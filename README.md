@@ -1,4 +1,4 @@
-![lol](https://i.imgur.com/Q4KiNJ8.png)
+![lol](https://i.imgur.com/AVSOLcz.png)
 
 [![](https://cf.way2muchnoise.eu/full_alchemistry-fabric_downloads.svg)](https://www.curseforge.com/minecraft/mc-mods/alchemistry-fabric) [![](https://cf.way2muchnoise.eu/packs/alchemistry-fabric.svg)](https://www.curseforge.com/minecraft/mc-mods/alchemistry-fabric) [![](https://cf.way2muchnoise.eu/versions/alchemistry-fabric.svg)](https://www.curseforge.com/minecraft/mc-mods/alchemistry-fabric) [![](https://img.shields.io/badge/Discord-TechnoVision-738bd7.svg)](https://discord.gg/m5fjByfrKP) 
 
