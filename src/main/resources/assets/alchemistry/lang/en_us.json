@@ -45,7 +45,7 @@
   "block.alchemistry.reactor_output": "Reactor Output",
   "guide.alchemistry.landing": "Welcome to the Alchemistry Guidebook. This book will introduce you to some of the basics of the mod.",
   "guide.alchemistry.title": "Alchemistry Guidebook",
-  "itemGroup.alchemistry": "Alchemistry",
+  "itemGroup.alchemistry.machine_tab": "Alchemistry",
   "tooltip.alchemistry.energy_requirement": "Requires %d FE/t",
   "tooltip.alchemistry.requires": "Requires"
 }

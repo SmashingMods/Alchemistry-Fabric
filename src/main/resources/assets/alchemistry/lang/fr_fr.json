@@ -30,7 +30,7 @@
   "alchemistry.jei.fission": "Chambre à fission",
   "alchemistry.jei.fusion": "Chambre à fusion",
 
-  "itemGroup.alchemistry": "Alchemistry",
+  "itemGroup.alchemistry.machine_tab": "Alchemistry",
 
   "item.alchemistry.fertilizer.tooltip": "Peut être utilisé comme de la poudre d'os.",
   "item.alchemistry.obsidian_breaker.tooltip": "Cliquez droit sur un bloc d'obsidienne pour la récolter immédiatement. Cet objet est à usage unique.",

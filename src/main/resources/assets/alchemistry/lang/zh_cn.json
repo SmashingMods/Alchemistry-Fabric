@@ -29,7 +29,7 @@
   "alchemistry.jei.liquifier": "液化器",
   "alchemistry.jei.fission": "裂变反应堆多方块结构",
 
-  "itemGroup.alchemistry": "Alchemistry",
+  "itemGroup.alchemistry.machine_tab": "Alchemistry",
 
   "item.alchemistry.fertilizer.tooltip": "它可以当作骨粉一样用",
   "item.alchemistry.obsidian_breaker.tooltip": "拿着这个物品右键一个黑曜石方块可以迅速挖掘黑曜石，这个物品将会被消耗。",
