@@ -1,102 +1,117 @@
 package com.technovision.alchemistry.api.blockentity;
 
+import com.technovision.alchemistry.Alchemistry;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventory;
-import net.minecraft.recipe.Recipe;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.screen.NamedScreenHandlerFactory;
-import net.minecraft.screen.ScreenHandler;
 import net.minecraft.text.Text;
+import net.minecraft.util.Hand;
+import net.minecraft.util.ItemScatterer;
+import net.minecraft.util.Nameable;
 import net.minecraft.util.math.BlockPos;
-import org.jetbrains.annotations.Nullable;
+import net.minecraft.util.registry.Registry;
+import net.minecraft.world.World;
 
-public class AbstractProcessingBlockEntity extends BlockEntity implements ProcessingBlockEntity, NamedScreenHandlerFactory {
+import java.util.Objects;
+
+public abstract class AbstractProcessingBlockEntity extends BlockEntity implements ProcessingBlockEntity, NamedScreenHandlerFactory, Nameable {
+
+    private final Text name;
+    private int progress = 0;
+    private boolean recipeLocked = false;
+    private boolean paused = false;
 
     public AbstractProcessingBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
+        String blockEntityName = Objects.requireNonNull(Registry.BLOCK_ENTITY_TYPE.getId(getType())).getPath();
+        this.name = Text.translatable(String.format("%s.container.%s", Alchemistry.MOD_ID, blockEntityName));
+    }
+
+    @Override
+    public Text getName() {
+        return name != null ? name : this.getDefaultName();
     }
 
     @Override
     public Text getDisplayName() {
-        return null;
+        return getName();
     }
 
-    @Nullable
+    protected Text getDefaultName() {
+        return name;
+    }
+
     @Override
-    public ScreenHandler createMenu(int syncId, PlayerInventory inv, PlayerEntity player) {
-        return null;
+    public NbtCompound toInitialChunkDataNbt() {
+        NbtCompound tag = super.toInitialChunkDataNbt();
+        writeNbt(tag);
+        return tag;
+    }
+
+    public boolean onBlockActivated(World world, BlockPos pos, PlayerEntity player, Hand hand) {
+        return false;
     }
 
     @Override
     public void tick() {
-
-    }
-
-    @Override
-    public void updateRecipe() {
-
-    }
-
-    @Override
-    public boolean canProcessRecipe() {
-        return false;
-    }
-
-    @Override
-    public void processRecipe() {
-
-    }
-
-    @Override
-    public <T extends Recipe<Inventory>> void setRecipe(@Nullable T pRecipe) {
-
-    }
-
-    @Override
-    public <T extends Recipe<Inventory>> Recipe<Inventory> getRecipe() {
-        return null;
+        if (world != null && !world.isClient()) {
+            if (!paused) {
+                if (!recipeLocked) {
+                    updateRecipe();
+                }
+                if (canProcessRecipe()) {
+                    processRecipe();
+                }
+            }
+        }
     }
 
     @Override
     public int getProgress() {
-        return 0;
+        return progress;
     }
 
     @Override
-    public void setProgress(int pProgress) {
-
+    public void setProgress(int progress) {
+        this.progress = progress;
     }
 
     @Override
     public void incrementProgress() {
-
+        this.progress++;
     }
 
     @Override
     public boolean isRecipeLocked() {
-        return false;
+        return this.recipeLocked;
     }
 
     @Override
     public void setRecipeLocked(boolean pRecipeLocked) {
-
+        this.recipeLocked = pRecipeLocked;
     }
 
     @Override
-    public boolean isProcessingPaused() {
-        return false;
+    protected void writeNbt(NbtCompound nbt) {
+        nbt.putInt("progress", progress);
+        nbt.putBoolean("locked", isRecipeLocked());
+        nbt.putBoolean("paused", isProcessingPaused());
+        // TODO: Add when implemented
+        //nbt.put("energy", energyHandler.serializeNBT());
+        super.writeNbt(nbt);
     }
 
     @Override
-    public void setPaused(boolean pPaused) {
-
-    }
-
-    @Override
-    public void dropContents() {
-
+    public void readNbt(NbtCompound nbt) {
+        super.readNbt(nbt);
+        setProgress(nbt.getInt("progress"));
+        setRecipeLocked(nbt.getBoolean("locked"));
+        setPaused(nbt.getBoolean("paused"));
+        // TODO: Add when implemented
+        //energyHandler.deserializeNBT(nbt.get("energy"));
     }
 }

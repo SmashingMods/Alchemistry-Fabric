@@ -3,6 +3,7 @@ package com.technovision.alchemistry;
 import com.technovision.alchemistry.registry.BlockEntityRegistry;
 import com.technovision.alchemistry.registry.BlockRegistry;
 import com.technovision.alchemistry.registry.ItemRegistry;
+import com.technovision.alchemistry.registry.ScreenRegistry;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.client.itemgroup.FabricItemGroupBuilder;
 import net.minecraft.item.ItemGroup;
@@ -34,5 +35,6 @@ public class Alchemistry implements ModInitializer {
         ItemRegistry.registerItems();
         BlockRegistry.registerBlocks();
         BlockEntityRegistry.registerBlockEntities();
+        ScreenRegistry.registerScreens();
     }
 }

@@ -1,0 +1,31 @@
+package com.technovision.alchemistry.common.block.dissolver;
+
+import com.technovision.alchemistry.api.blockentity.slots.OutputSlot;
+import com.technovision.alchemistry.api.container.AbstractAlchemistryScreenHandler;
+import com.technovision.alchemistry.registry.ScreenRegistry;
+import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.inventory.Inventory;
+import net.minecraft.inventory.SimpleInventory;
+import net.minecraft.screen.slot.Slot;
+
+public class DissolverScreenHandler extends AbstractAlchemistryScreenHandler {
+
+    public DissolverScreenHandler(int syncId, PlayerInventory playerInventory) {
+        this(syncId, playerInventory, new SimpleInventory(DissolverBlockEntity.INVENTORY_SIZE));
+    }
+
+    public DissolverScreenHandler(int syncId, PlayerInventory playerInventory, Inventory inventory) {
+        super(ScreenRegistry.DISSOLVER_SCREEN_HANDLER, syncId, playerInventory, inventory, DissolverBlockEntity.INVENTORY_SIZE);
+
+        // input
+        addSlots(Slot::new, inventory, 1, 1, 0, 1, 84, 12);
+        // output 2x5 grid
+        addSlots(OutputSlot::new, inventory, 2, 5, 1, 10, 48, 68);
+    }
+
+    @Override
+    public void addPlayerInventorySlots(Inventory pInventory) {
+        addSlots(Slot::new, pInventory, 3, 9, 9, 27, 12, 113);
+        addSlots(Slot::new, pInventory, 1, 9, 0, 9, 12, 171);
+    }
+}

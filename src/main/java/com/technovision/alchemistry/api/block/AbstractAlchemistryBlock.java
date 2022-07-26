@@ -17,7 +17,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.function.BiFunction;
 
-public abstract class AbstractAlchemistryBlock extends BlockWithEntity {
+public abstract class AbstractAlchemistryBlock extends BlockWithEntity implements BlockEntityProvider {
 
     private final BiFunction<BlockPos, BlockState, BlockEntity> blockEntityFunction;
     public static final DirectionProperty FACING = Properties.HORIZONTAL_FACING;
@@ -55,15 +55,17 @@ public abstract class AbstractAlchemistryBlock extends BlockWithEntity {
 
     @Override
     public void onStateReplaced(BlockState state, World world, BlockPos pos, BlockState newState, boolean moved) {
-        if (state.getBlock() != state.getBlock()) {
+        if (state.getBlock() != newState.getBlock()) {
             BlockEntity blockEntity = world.getBlockEntity(pos);
             if (blockEntity instanceof ProcessingBlockEntity processingBlockEntity) {
                 processingBlockEntity.dropContents();
+                world.updateComparators(pos, this);
             }
             // TODO: Uncomment this code once ProcessingBlockEntity and AbstractReactorBlockEntity are implemented
             /**
             if (blockEntity instanceof AbstractReactorBlockEntity reactorBlockEntity) {
                 reactorBlockEntity.onRemove();
+                world.updateComparators(pos, this);
             }
              */
         }
