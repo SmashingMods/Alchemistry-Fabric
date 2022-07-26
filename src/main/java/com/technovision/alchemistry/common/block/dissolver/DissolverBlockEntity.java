@@ -7,6 +7,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.recipe.Recipe;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.util.collection.DefaultedList;
@@ -66,16 +67,5 @@ public class DissolverBlockEntity extends AbstractInventoryBlockEntity {
     public <T extends Recipe<Inventory>> Recipe<Inventory> getRecipe() {
         // TODO: Implement
         return null;
-    }
-
-    @Override
-    public boolean isProcessingPaused() {
-        // TODO: Implement
-        return false;
-    }
-
-    @Override
-    public void setPaused(boolean pPaused) {
-        // TODO: Implement
     }
 }

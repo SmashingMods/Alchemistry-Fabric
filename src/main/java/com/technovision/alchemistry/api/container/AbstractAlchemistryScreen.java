@@ -1,5 +1,7 @@
 package com.technovision.alchemistry.api.container;
 
+import com.technovision.alchemistry.network.AlchemistryNetwork;
+import com.technovision.alchemistry.network.packets.ProcessingButtonPacket;
 import net.minecraft.client.gui.Drawable;
 import net.minecraft.client.gui.Element;
 import net.minecraft.client.gui.Selectable;
@@ -39,10 +41,11 @@ public abstract class AbstractAlchemistryScreen<M extends AbstractAlchemistryScr
             clickableWidget.x = x;
             clickableWidget.y = y;
         }
-        addDrawable(widget);
+        addDrawableChild(widget);
     }
 
     public void renderWidgets() {
+        clearChildren();
         if (handler.getBlockEntity().isRecipeLocked()) {
             renderWidget(unlockButton, x - 104, y);
         } else {
@@ -56,18 +59,20 @@ public abstract class AbstractAlchemistryScreen<M extends AbstractAlchemistryScr
     }
 
     private ButtonWidget.PressAction handleLock() {
-        return pButton -> {
-            boolean lockState = handler.getBlockEntity().isRecipeLocked();
+        return buttonWidget -> {
+            boolean lockState = !handler.getBlockEntity().isRecipeLocked();
             boolean pausedState = handler.getBlockEntity().isProcessingPaused();
-            //AlchemistryPacketHandler.INSTANCE.sendToServer(new ProcessingButtonPacket(menu.getBlockEntity().getBlockPos(), !lockState, pausedState));
+            //handler.getBlockEntity().setRecipeLocked(lockState);
+            AlchemistryNetwork.sendToServer(new ProcessingButtonPacket(handler.getBlockEntity().getPos(), lockState, pausedState));
         };
     }
 
     private ButtonWidget.PressAction handlePause() {
-        return pButton -> {
+        return buttonWidget -> {
             boolean lockState = handler.getBlockEntity().isRecipeLocked();
-            boolean pausedState = handler.getBlockEntity().isProcessingPaused();
-            //AlchemistryPacketHandler.INSTANCE.sendToServer(new ProcessingButtonPacket(menu.getBlockEntity().getBlockPos(), lockState, !pausedState));
+            boolean pausedState = !handler.getBlockEntity().isProcessingPaused();
+            //handler.getBlockEntity().setPaused(pausedState);
+            AlchemistryNetwork.sendToServer(new ProcessingButtonPacket(handler.getBlockEntity().getPos(), lockState, pausedState));
         };
     }
 }

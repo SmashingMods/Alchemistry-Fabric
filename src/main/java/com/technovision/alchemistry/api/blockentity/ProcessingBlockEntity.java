@@ -2,6 +2,7 @@ package com.technovision.alchemistry.api.blockentity;
 
 import net.minecraft.inventory.Inventory;
 import net.minecraft.recipe.Recipe;
+import net.minecraft.util.math.BlockPos;
 
 import javax.annotation.Nullable;
 

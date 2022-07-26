@@ -1,5 +1,6 @@
 package com.technovision.alchemistry;
 
+import com.technovision.alchemistry.network.AlchemistryNetwork;
 import com.technovision.alchemistry.common.block.dissolver.DissolverScreen;
 import com.technovision.alchemistry.registry.ScreenRegistry;
 import net.fabricmc.api.ClientModInitializer;
@@ -11,5 +12,8 @@ public class AlchemistryClient implements ClientModInitializer {
     public void onInitializeClient() {
         // Register screens
         HandledScreens.register(ScreenRegistry.DISSOLVER_SCREEN_HANDLER, DissolverScreen::new);
+
+        // Register client-side packet handlers
+        AlchemistryNetwork.registerClientHandlers();
     }
 }
