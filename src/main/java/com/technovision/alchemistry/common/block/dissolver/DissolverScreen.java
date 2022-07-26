@@ -2,8 +2,8 @@ package com.technovision.alchemistry.common.block.dissolver;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.technovision.alchemistry.Alchemistry;
+import com.technovision.alchemistry.api.container.AbstractAlchemistryScreen;
 import net.minecraft.client.WindowSettings;
-import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.player.PlayerInventory;
@@ -14,7 +14,7 @@ import net.minecraft.util.Identifier;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DissolverScreen extends HandledScreen<DissolverScreenHandler> {
+public class DissolverScreen extends AbstractAlchemistryScreen<DissolverScreenHandler> {
 
     private static final Identifier TEXTURE = new Identifier(Alchemistry.MOD_ID, "textures/gui/dissolver_gui.png");
 
@@ -39,11 +39,11 @@ public class DissolverScreen extends HandledScreen<DissolverScreenHandler> {
 
     @Override
     public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
-        renderBackground(matrices);
-        drawBackground(matrices, delta, mouseX, mouseY);
         super.render(matrices, mouseX, mouseY, delta);
+        // TODO: Add when implemented
+        //renderDisplayData(displayData, pPoseStack, this.leftPos, this.topPos);
+        //renderDisplayTooltip(displayData, pPoseStack, this.leftPos, this.topPos, pMouseX, pMouseY);
         drawMouseoverTooltip(matrices, mouseX, mouseY);
-        //renderWidgets();
     }
 
     @Override

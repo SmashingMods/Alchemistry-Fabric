@@ -2,6 +2,7 @@ package com.technovision.alchemistry.api.container;
 
 import com.mojang.datafixers.util.Function4;
 import com.technovision.alchemistry.api.blockentity.AbstractProcessingBlockEntity;
+import com.technovision.alchemistry.api.blockentity.ProcessingBlockEntity;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -17,12 +18,14 @@ public abstract class AbstractAlchemistryScreenHandler extends ScreenHandler {
     private final Inventory inventory;
     private final int slotCount;
     private final World world;
+    private final ProcessingBlockEntity blockEntity;
 
-    public AbstractAlchemistryScreenHandler(ScreenHandlerType<?> screenHandlerType, int syncId, PlayerInventory playerInventory, Inventory inventory, int slotCount) {
+    public AbstractAlchemistryScreenHandler(ScreenHandlerType<?> screenHandlerType, int syncId, PlayerInventory playerInventory, BlockEntity blockEntity, Inventory inventory, int slotCount) {
         super(screenHandlerType, syncId);
         this.inventory = inventory;
         this.slotCount = slotCount;
         this.world = playerInventory.player.getWorld();
+        this.blockEntity = (ProcessingBlockEntity) blockEntity;
         addPlayerInventorySlots(playerInventory);
         inventory.onOpen(playerInventory.player);
     }
@@ -90,5 +93,13 @@ public abstract class AbstractAlchemistryScreenHandler extends ScreenHandler {
 
     public Inventory getInventory() {
         return inventory;
+    }
+
+    public ProcessingBlockEntity getBlockEntity() {
+        return blockEntity;
+    }
+
+    public World getWorld() {
+        return world;
     }
 }

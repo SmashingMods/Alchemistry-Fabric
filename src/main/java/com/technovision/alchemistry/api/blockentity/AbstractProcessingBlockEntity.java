@@ -1,13 +1,16 @@
 package com.technovision.alchemistry.api.blockentity;
 
 import com.technovision.alchemistry.Alchemistry;
+import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.network.PacketByteBuf;
 import net.minecraft.screen.NamedScreenHandlerFactory;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Hand;
 import net.minecraft.util.ItemScatterer;
@@ -18,7 +21,7 @@ import net.minecraft.world.World;
 
 import java.util.Objects;
 
-public abstract class AbstractProcessingBlockEntity extends BlockEntity implements ProcessingBlockEntity, NamedScreenHandlerFactory, Nameable {
+public abstract class AbstractProcessingBlockEntity extends BlockEntity implements ProcessingBlockEntity, ExtendedScreenHandlerFactory, Nameable {
 
     private final Text name;
     private int progress = 0;
@@ -113,5 +116,10 @@ public abstract class AbstractProcessingBlockEntity extends BlockEntity implemen
         setPaused(nbt.getBoolean("paused"));
         // TODO: Add when implemented
         //energyHandler.deserializeNBT(nbt.get("energy"));
+    }
+
+    @Override
+    public void writeScreenOpeningData(ServerPlayerEntity player, PacketByteBuf buf) {
+        buf.writeBlockPos(pos);
     }
 }

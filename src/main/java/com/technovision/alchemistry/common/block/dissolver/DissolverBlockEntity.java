@@ -23,7 +23,7 @@ public class DissolverBlockEntity extends AbstractInventoryBlockEntity {
 
     @Override
     public @Nullable ScreenHandler createMenu(int syncId, PlayerInventory inv, PlayerEntity player) {
-        return new DissolverScreenHandler(syncId, inv, this);
+        return new DissolverScreenHandler(syncId, inv, this, this);
     }
 
     @Override
