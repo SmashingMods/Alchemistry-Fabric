@@ -6,23 +6,25 @@
   "name": "Alchemistry",
   "description": "Chemistry mod that allows you to break down items into chemical elements and recombine them into different items.",
   "authors": [
-    "TechnoVision"
+    "TechnoVision",
+    "DarkArcana",
+    "Timbroglio"
   ],
   "contact": {
     "homepage": "https://www.curseforge.com/minecraft/mc-mods/alchemistry-fabric",
-    "sources": "https://github.com/TechnoVisionDev/Alchemistry"
+    "sources": "https://github.com/SmashingMods/Alchemistry-Fabric"
   },
 
-  "license": "MIT",
+  "license": "ARR",
   "icon": "assets/alchemistry/icon.png",
 
   "environment": "*",
   "entrypoints": {
     "main": [
-      "com.technovision.alchemistry.Alchemistry"
+      "com.smashingmods.alchemistry.Alchemistry"
     ],
     "client": [
-      "com.technovision.alchemistry.AlchemistryClient"
+      "com.smashingmods.alchemistry.AlchemistryClient"
     ]
   },
   "mixins": [
