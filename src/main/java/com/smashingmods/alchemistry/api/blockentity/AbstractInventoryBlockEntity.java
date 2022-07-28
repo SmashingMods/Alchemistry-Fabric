@@ -39,4 +39,46 @@ public abstract class AbstractInventoryBlockEntity extends AbstractProcessingBlo
     public void dropContents() {
         ItemScatterer.spawn(world, pos, this);
     }
+
+    public ItemStack getStackInSlot(int slot) {
+        return inventory.get(slot);
+    }
+
+    public ItemStack setStackInSlot(int slot, ItemStack stack) {
+        return inventory.set(slot, stack);
+    }
+
+    public void incrementSlot(int pSlot, int pAmount) {
+        ItemStack temp = this.getStackInSlot(pSlot);
+
+        if (temp.getCount() + pAmount <= temp.getMaxCount()) {
+            temp.setCount(temp.getCount() + pAmount);
+        }
+
+        this.setStackInSlot(pSlot, temp);
+    }
+
+    public void setOrIncrement(int slot, ItemStack stackToSet) {
+        if (!stackToSet.isEmpty()) {
+            if (getStackInSlot(slot).isEmpty()) {
+                setStackInSlot(slot, stackToSet);
+            } else {
+                incrementSlot(slot, stackToSet.getCount());
+            }
+        }
+    }
+
+    public void decrementSlot(int pSlot, int pAmount) {
+        ItemStack temp = this.getStackInSlot(pSlot);
+
+        if (temp.isEmpty()) return;
+        if (temp.getCount() - pAmount < 0) return;
+
+        temp.decrement(pAmount);
+        if (temp.getCount() <= 0) {
+            this.setStackInSlot(pSlot, ItemStack.EMPTY);
+        } else {
+            this.setStackInSlot(pSlot, temp);
+        }
+    }
 }

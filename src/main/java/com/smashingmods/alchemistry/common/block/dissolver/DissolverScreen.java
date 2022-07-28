@@ -3,7 +3,9 @@ package com.smashingmods.alchemistry.common.block.dissolver;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.smashingmods.alchemistry.Alchemistry;
 import com.smashingmods.alchemistry.api.container.AbstractAlchemistryScreen;
-import net.minecraft.client.WindowSettings;
+import com.smashingmods.alchemistry.api.container.Direction2D;
+import com.smashingmods.alchemistry.api.container.DisplayData;
+import com.smashingmods.alchemistry.api.container.ProgressDisplayData;
 import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.player.PlayerInventory;
@@ -18,15 +20,15 @@ public class DissolverScreen extends AbstractAlchemistryScreen<DissolverScreenHa
 
     private static final Identifier TEXTURE = new Identifier(Alchemistry.MOD_ID, "textures/gui/dissolver_gui.png");
 
-    protected final List<WindowSettings> displayData = new ArrayList<>();
+    protected final List<DisplayData> displayData = new ArrayList<>();
 
     public DissolverScreen(DissolverScreenHandler handler, PlayerInventory inventory, Text title) {
         super(handler, inventory, title);
         this.backgroundWidth = 184;
         this.backgroundHeight = 200;
-        // TODO: Add when implemented
-        //displayData.add(new ProgressDisplayData(pMenu.getContainerData(), 0, 1, 88, 34, 60, 9, Direction2D.DOWN));
-        //displayData.add(new EnergyDisplayData(pMenu.getContainerData(), 2, 3, 156, 12, 16, 54));
+        displayData.add(new ProgressDisplayData(handler.getPropertyDelegate(), 0, 1, 88, 34, 60, 9, Direction2D.DOWN));
+        // TODO: Add when energy is implemented
+        //displayData.add(new EnergyDisplayData(handler.getPropertyDelegate(), 2, 3, 156, 12, 16, 54));
     }
 
     @Override
@@ -40,9 +42,8 @@ public class DissolverScreen extends AbstractAlchemistryScreen<DissolverScreenHa
     @Override
     public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
         super.render(matrices, mouseX, mouseY, delta);
-        // TODO: Add when implemented
-        //renderDisplayData(displayData, pPoseStack, this.leftPos, this.topPos);
-        //renderDisplayTooltip(displayData, pPoseStack, this.leftPos, this.topPos, pMouseX, pMouseY);
+        renderDisplayData(displayData, matrices, this.x, this.y);
+        renderDisplayTooltip(displayData, matrices, this.x, this.y, mouseX, mouseY);
         drawMouseoverTooltip(matrices, mouseX, mouseY);
     }
 

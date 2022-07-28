@@ -1,6 +1,6 @@
 package com.smashingmods.alchemistry.api.blockentity;
 
-import net.minecraft.inventory.Inventory;
+import net.minecraft.inventory.SimpleInventory;
 import net.minecraft.recipe.Recipe;
 
 import javax.annotation.Nullable;
@@ -15,9 +15,9 @@ public interface ProcessingBlockEntity {
 
     void processRecipe();
 
-    <T extends Recipe<Inventory>> void setRecipe(@Nullable T pRecipe);
+    <T extends Recipe<SimpleInventory>> void setRecipe(@Nullable T pRecipe);
 
-    <T extends Recipe<Inventory>> Recipe<Inventory> getRecipe();
+    Recipe<SimpleInventory> getRecipe();
 
     int getProgress();
 

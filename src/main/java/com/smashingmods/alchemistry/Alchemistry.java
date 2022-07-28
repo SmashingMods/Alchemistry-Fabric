@@ -1,10 +1,7 @@
 package com.smashingmods.alchemistry;
 
 import com.smashingmods.alchemistry.network.AlchemistryNetwork;
-import com.smashingmods.alchemistry.registry.BlockEntityRegistry;
-import com.smashingmods.alchemistry.registry.BlockRegistry;
-import com.smashingmods.alchemistry.registry.ItemRegistry;
-import com.smashingmods.alchemistry.registry.ScreenRegistry;
+import com.smashingmods.alchemistry.registry.*;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.client.itemgroup.FabricItemGroupBuilder;
 import net.minecraft.item.ItemGroup;
@@ -37,6 +34,7 @@ public class Alchemistry implements ModInitializer {
         BlockRegistry.registerBlocks();
         BlockEntityRegistry.registerBlockEntities();
         ScreenRegistry.registerScreens();
+        RecipeRegistry.registerRecipes();
 
         // Register server-side packet handlers
         AlchemistryNetwork.registerServerHandlers();

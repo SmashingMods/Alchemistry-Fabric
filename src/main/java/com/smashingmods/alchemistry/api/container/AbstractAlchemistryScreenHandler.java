@@ -7,6 +7,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;
+import net.minecraft.screen.PropertyDelegate;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.ScreenHandlerType;
 import net.minecraft.screen.slot.Slot;
@@ -14,13 +15,15 @@ import net.minecraft.world.World;
 
 public abstract class AbstractAlchemistryScreenHandler extends ScreenHandler {
 
+    private final PropertyDelegate delegate;
     private final Inventory inventory;
     private final int slotCount;
     private final World world;
     private final AbstractProcessingBlockEntity blockEntity;
 
-    public AbstractAlchemistryScreenHandler(ScreenHandlerType<?> screenHandlerType, int syncId, PlayerInventory playerInventory, BlockEntity blockEntity, Inventory inventory, int slotCount) {
+    public AbstractAlchemistryScreenHandler(ScreenHandlerType<?> screenHandlerType, int syncId, PlayerInventory playerInventory, BlockEntity blockEntity, Inventory inventory, PropertyDelegate delegate, int slotCount) {
         super(screenHandlerType, syncId);
+        this.delegate = delegate;
         this.inventory = inventory;
         this.slotCount = slotCount;
         this.world = playerInventory.player.getWorld();
@@ -90,8 +93,8 @@ public abstract class AbstractAlchemistryScreenHandler extends ScreenHandler {
         addSlots(Slot::new, pInventory, 1, 9, 0, 9,8, 144);
     }
 
-    public Inventory getInventory() {
-        return inventory;
+    public PropertyDelegate getPropertyDelegate() {
+        return delegate;
     }
 
     public AbstractProcessingBlockEntity getBlockEntity() {
