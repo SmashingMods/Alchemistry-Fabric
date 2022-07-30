@@ -1,0 +1,20 @@
+{
+  "rewards": {
+    "recipes": [
+      "chemlib:triglyceride"
+    ]
+  },
+  "criteria": {
+    "has_the_recipe": {
+      "trigger": "minecraft:recipe_unlocked",
+      "conditions": {
+        "recipe": "chemlib:triglyceride"
+      }
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe"
+    ]
+  ]
+}
