@@ -28,7 +28,7 @@ public class DissolverBlockEntity extends AbstractInventoryBlockEntity {
     private final DefaultedList<ItemStack> internalBuffer = DefaultedList.ofSize(64);
 
     public DissolverBlockEntity(BlockPos pos, BlockState state) {
-        super(DefaultedList.ofSize(INVENTORY_SIZE, ItemStack.EMPTY), BlockEntityRegistry.DISSOLVER_BLOCK_ENTITY, pos, state);
+        super(DefaultedList.ofSize(INVENTORY_SIZE, ItemStack.EMPTY), BlockEntityRegistry.DISSOLVER_BLOCK_ENTITY, pos, state, 100000);
         this.propertyDelegate = new PropertyDelegate() {
             public int get(int index) {
                 return switch (index) {

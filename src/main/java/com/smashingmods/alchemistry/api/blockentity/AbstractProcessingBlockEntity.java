@@ -22,19 +22,17 @@ import java.util.Objects;
 
 public abstract class AbstractProcessingBlockEntity extends BlockEntity implements ProcessingBlockEntity, ExtendedScreenHandlerFactory, Nameable {
 
-    public static final long ENERGY_CAPACITY = 100000;
-
     private final Text name;
     private int progress = 0;
     private boolean recipeLocked = false;
     private boolean paused = false;
     private final SimpleEnergyStorage energyStorage;
 
-    public AbstractProcessingBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
+    public AbstractProcessingBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state, long energyCapacity) {
         super(type, pos, state);
         String blockEntityName = Objects.requireNonNull(Registry.BLOCK_ENTITY_TYPE.getId(getType())).getPath();
         this.name = Text.translatable(String.format("%s.container.%s", Alchemistry.MOD_ID, blockEntityName));
-        energyStorage = new SimpleEnergyStorage(ENERGY_CAPACITY, ENERGY_CAPACITY, ENERGY_CAPACITY) {
+        energyStorage = new SimpleEnergyStorage(energyCapacity, energyCapacity, energyCapacity) {
             @Override
             protected void onFinalCommit() {
                 markDirty();

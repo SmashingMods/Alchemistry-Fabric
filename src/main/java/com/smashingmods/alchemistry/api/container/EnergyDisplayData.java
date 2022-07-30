@@ -2,7 +2,9 @@ package com.smashingmods.alchemistry.api.container;
 
 import net.minecraft.screen.PropertyDelegate;
 import net.minecraft.text.MutableText;
+import net.minecraft.text.Style;
 import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 
 import java.text.NumberFormat;
 import java.util.List;
@@ -41,13 +43,13 @@ public class EnergyDisplayData extends DisplayData {
         String capacity = numFormat.format(getMaxValue()).toLowerCase();
         int percent = (int) (((double) getValue() / (double) getMaxValue()) * 100);
 
-        String color;
-        if (percent < 11) color = "§c";
-        else if (percent < 75) color = "§e";
-        else color = "§a";
+        Formatting color;
+        if (percent < 11) color = Formatting.RED;
+        else if (percent < 75) color = Formatting.YELLOW;
+        else color = Formatting.GREEN;
 
         MutableText line1 = Text.literal(stored + "/" + capacity + " E");
-        MutableText line2 = Text.literal(color + percent + "% §7Charged");
+        MutableText line2 = Text.literal(percent + "%").formatted(color).append(Text.literal(" Charged").formatted(Formatting.GRAY));
         return List.of(line1, line2);
     }
 }
