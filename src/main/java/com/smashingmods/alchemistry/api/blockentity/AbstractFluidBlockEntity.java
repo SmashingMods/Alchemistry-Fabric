@@ -1,6 +1,7 @@
 package com.smashingmods.alchemistry.api.blockentity;
 
 import com.smashingmods.alchemistry.mixin.BucketItemMixin;
+import com.smashingmods.chemlib.common.fluids.ChemicalBucketItem;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.base.SingleVariantStorage;
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
@@ -59,11 +60,11 @@ public abstract class AbstractFluidBlockEntity extends AbstractInventoryBlockEnt
                 // Fill bucket in hand
                 if (!world.isClient() && !player.isCreative()) player.setStackInHand(hand, new ItemStack(fluidVariant.getFluid().getBucketItem()));
                 else player.playSound(SoundEvents.ITEM_BUCKET_FILL, 1.0f, 1.0f);
-            } else {
+            } else if (item != Items.BUCKET && getFluidStorage().getAmount() + BUCKET_CONSTANT <= getFluidStorage().getCapacity()) {
                 // Insert fluid if it matches
                 Fluid fluid = ((BucketItemMixin) bucket).getFluid();
                 FluidVariant fluidVariant = FluidVariant.of(fluid);
-                if (getFluidStorage().amount == 0 || fluidVariant.equals(getFluidStorage().getResource())) insertFluid(fluidVariant);
+                if (getFluidStorage().getAmount() == 0 || fluidVariant.equals(getFluidStorage().getResource())) insertFluid(fluidVariant);
                 else return false;
 
                 // Empty bucket in hand

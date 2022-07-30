@@ -1,5 +1,6 @@
 package com.smashingmods.alchemistry;
 
+import com.smashingmods.alchemistry.datagen.RecipeGenerator;
 import com.smashingmods.alchemistry.network.AlchemistryNetwork;
 import com.smashingmods.alchemistry.registry.*;
 import net.fabricmc.api.ModInitializer;
