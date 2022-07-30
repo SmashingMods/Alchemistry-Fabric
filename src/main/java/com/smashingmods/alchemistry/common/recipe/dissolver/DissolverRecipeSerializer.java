@@ -19,12 +19,10 @@ import java.util.List;
 public class DissolverRecipeSerializer implements RecipeSerializer<DissolverRecipe> {
 
     public static final DissolverRecipeSerializer INSTANCE = new DissolverRecipeSerializer();
-    public static final String ID = "dissolver";
-    // this is the name given in the json file
+    public static final String ID = DissolverRecipe.Type.ID;
 
     @Override
     public DissolverRecipe read(Identifier id, JsonObject json) {
-        String group = json.get("group").getAsString();
         Ingredient input = Ingredient.fromJson(JsonHelper.getObject(json, "input"));
 
         JsonObject outputJson = json.getAsJsonObject("output");

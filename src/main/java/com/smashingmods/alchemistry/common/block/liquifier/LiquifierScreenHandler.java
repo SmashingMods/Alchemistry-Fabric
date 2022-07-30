@@ -18,7 +18,7 @@ public class LiquifierScreenHandler extends AbstractAlchemistryScreenHandler {
     protected final PropertyDelegate propertyDelegate;
 
     public LiquifierScreenHandler(int syncId, PlayerInventory playerInventory, PacketByteBuf buffer) {
-        this(syncId, playerInventory, Objects.requireNonNull(playerInventory.player.getWorld().getBlockEntity(buffer.readBlockPos())), new SimpleInventory(LiquifierBlockEntity.INVENTORY_SIZE), new ArrayPropertyDelegate(6));
+        this(syncId, playerInventory, Objects.requireNonNull(playerInventory.player.getWorld().getBlockEntity(buffer.readBlockPos())), new SimpleInventory(LiquifierBlockEntity.INVENTORY_SIZE), new ArrayPropertyDelegate(7));
     }
 
     protected LiquifierScreenHandler(int syncId, PlayerInventory playerInventory, BlockEntity blockEntity, Inventory inventory, PropertyDelegate delegate) {

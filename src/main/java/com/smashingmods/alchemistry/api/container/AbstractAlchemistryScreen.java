@@ -27,6 +27,7 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.fluid.FlowableFluid;
 import net.minecraft.fluid.Fluids;
+import net.minecraft.item.ItemStack;
 import net.minecraft.screen.PlayerScreenHandler;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
@@ -130,7 +131,7 @@ public abstract class AbstractAlchemistryScreen<M extends AbstractAlchemistryScr
 
     public void drawFluidTank(FluidDisplayData data, int textureX, int textureY) {
         if (data.getValue() > 0) {
-            FluidVariant fluidVariant = data.getFluidHandler().getResource();
+            FluidVariant fluidVariant = data.getFluidVariant();
             int color = FluidVariantRendering.getColor(fluidVariant);
             setShaderColor(color);
             Sprite icon = FluidVariantRendering.getSprite(fluidVariant);

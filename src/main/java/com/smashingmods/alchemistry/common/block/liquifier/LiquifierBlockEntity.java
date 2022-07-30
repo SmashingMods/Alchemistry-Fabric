@@ -2,32 +2,29 @@ package com.smashingmods.alchemistry.common.block.liquifier;
 
 import com.smashingmods.alchemistry.Config;
 import com.smashingmods.alchemistry.api.blockentity.AbstractFluidBlockEntity;
-import com.smashingmods.alchemistry.mixin.BucketItemMixin;
+import com.smashingmods.alchemistry.common.recipe.liquifier.LiquifierRecipe;
 import com.smashingmods.alchemistry.registry.BlockEntityRegistry;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.fluid.Fluid;
 import net.minecraft.inventory.SimpleInventory;
-import net.minecraft.item.BucketItem;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
 import net.minecraft.recipe.Recipe;
 import net.minecraft.screen.PropertyDelegate;
 import net.minecraft.screen.ScreenHandler;
-import net.minecraft.sound.SoundEvents;
-import net.minecraft.util.Hand;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.util.registry.Registry;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Optional;
 
 public class LiquifierBlockEntity extends AbstractFluidBlockEntity {
 
     public static final int INVENTORY_SIZE = 1;
 
+    private LiquifierRecipe currentRecipe;
     protected final PropertyDelegate propertyDelegate;
     private final int maxProgress;
 
@@ -43,6 +40,7 @@ public class LiquifierBlockEntity extends AbstractFluidBlockEntity {
                     case 3 -> (int) getEnergyStorage().getCapacity();
                     case 4 -> (int) getFluidStorage().getAmount();
                     case 5 -> (int) getFluidStorage().getCapacity();
+                    case 6 -> Registry.FLUID.getRawId(getFluidStorage().getResource().getFluid());
                     default -> 0;
                 };
             }
@@ -50,77 +48,70 @@ public class LiquifierBlockEntity extends AbstractFluidBlockEntity {
                 switch (index) {
                     case 0 -> setProgress(value);
                     case 2 -> insertEnergy(value);
-                    case 3 -> getFluidStorage().amount = value;
+                    case 4 -> getFluidStorage().amount = value;
+                    case 6 -> getFluidStorage().variant = FluidVariant.of(Registry.FLUID.get(value));
                 }
             }
             public int size() {
-                return 6;
+                return 7;
             }
         };
     }
 
     @Override
     public void updateRecipe() {
-        // TODO: Implement
+        if (world == null || world.isClient()) return;
+        SimpleInventory inventory = new SimpleInventory(getItems().size());
+        for (int i = 0; i < getItems().size(); i++) {
+            inventory.setStack(i, getStack(i));
+        }
+        Optional<LiquifierRecipe> match = world.getRecipeManager().getFirstMatch(LiquifierRecipe.Type.INSTANCE, inventory, world);
+        if (match.isPresent()) {
+            if (currentRecipe == null || !currentRecipe.equals(match.get())) {
+                setProgress(0);
+                currentRecipe = match.get();
+            }
+        }
     }
 
     @Override
     public boolean canProcessRecipe() {
-        // TODO: Implement
+        if (currentRecipe != null) {
+            return getEnergyStorage().getAmount() >= Config.Common.liquifierEnergyPerTick.get()
+                    && (getFluidStorage().getResource().equals(currentRecipe.getFluidOutput()) || getFluidStorage().getAmount() == 0)
+                    && getFluidStorage().getAmount() <= (getFluidStorage().getAmount() + currentRecipe.getFluidAmount())
+                    && (ItemStack.canCombine(currentRecipe.getInput().getMatchingStacks()[0], getStackInSlot(0)))
+                    && getStackInSlot(0).getCount() >= currentRecipe.getInputAmount();
+        }
         return false;
     }
 
     @Override
     public void processRecipe() {
-        // TODO: Implement
+        if (getProgress() < maxProgress) {
+            incrementProgress();
+        } else {
+            setProgress(0);
+            decrementSlot(0, currentRecipe.getInputAmount());
+            insertFluid(currentRecipe.getFluidOutput(), currentRecipe.getFluidAmount());
+        }
+        extractEnergy(Config.Common.liquifierEnergyPerTick.get());
+        markDirty();
     }
 
     @Override
     public <T extends Recipe<SimpleInventory>> void setRecipe(@Nullable T pRecipe) {
-        // TODO: Implement
+        currentRecipe = (LiquifierRecipe) pRecipe;
     }
 
     @Override
     public Recipe<SimpleInventory> getRecipe() {
-        // TODO: Implement
-        return null;
+        return currentRecipe;
     }
 
     @Nullable
     @Override
     public ScreenHandler createMenu(int syncId, PlayerInventory inv, PlayerEntity player) {
         return new LiquifierScreenHandler(syncId, inv, this, this, this.propertyDelegate);
-    }
-
-    /**
-     * Handles fluid insertion/extraction when using a bucket
-     * @return true if fluid was transferred, false if GUI should be opened instead.
-     */
-    public boolean onBlockActivated(World world, BlockPos blockPos, PlayerEntity player, Hand hand) {
-        Item item = player.getStackInHand(hand).getItem();
-        if (item instanceof BucketItem bucket) {
-            if (item == Items.BUCKET) {
-                // Extract fluid if possible
-                FluidVariant fluidVariant = getFluidStorage().variant;
-                try { extractFluid(fluidVariant); }
-                catch (IllegalArgumentException e) { return false; }
-
-                // Fill bucket in hand
-                if (!world.isClient() && !player.isCreative()) player.setStackInHand(hand, new ItemStack(fluidVariant.getFluid().getBucketItem()));
-                else player.playSound(SoundEvents.ITEM_BUCKET_FILL, 1.0f, 1.0f);
-            } else {
-                // Insert fluid if it matches
-                Fluid fluid = ((BucketItemMixin) bucket).getFluid();
-                FluidVariant fluidVariant = FluidVariant.of(fluid);
-                if (getFluidStorage().amount == 0 || fluidVariant.equals(getFluidStorage().variant)) insertFluid(fluidVariant);
-                else return false;
-
-                // Empty bucket in hand
-                if (!world.isClient() && !player.isCreative()) player.setStackInHand(hand, new ItemStack(Items.BUCKET));
-                else player.playSound(SoundEvents.ITEM_BUCKET_EMPTY, 1.0f, 1.0f);
-            }
-            return true;
-        }
-        return false;
     }
 }
