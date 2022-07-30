@@ -14,12 +14,12 @@ import net.minecraft.item.BucketItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import net.minecraft.nbt.NbtCompound;
 import net.minecraft.recipe.Recipe;
 import net.minecraft.screen.PropertyDelegate;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.Hand;
+import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
@@ -32,7 +32,7 @@ public class LiquifierBlockEntity extends AbstractFluidBlockEntity {
     private final int maxProgress;
 
     public LiquifierBlockEntity(BlockPos pos, BlockState state) {
-        super(BlockEntityRegistry.LIQUIFIER_BLOCK_ENTITY, pos, state, Config.Common.liquifierEnergyCapacity.get(), Config.Common.liquifierFluidCapacity.get());
+        super(DefaultedList.ofSize(INVENTORY_SIZE, ItemStack.EMPTY), BlockEntityRegistry.LIQUIFIER_BLOCK_ENTITY, pos, state, Config.Common.liquifierEnergyCapacity.get(), Config.Common.liquifierFluidCapacity.get());
         this.maxProgress = Config.Common.liquifierTicksPerOperation.get();
         this.propertyDelegate = new PropertyDelegate() {
             public int get(int index) {
@@ -122,17 +122,5 @@ public class LiquifierBlockEntity extends AbstractFluidBlockEntity {
             return true;
         }
         return false;
-    }
-
-    @Override
-    public void writeNbt(NbtCompound nbt) {
-        super.writeNbt(nbt);
-        nbt.putInt("liquifier.progress", getProgress());
-    }
-
-    @Override
-    public void readNbt(NbtCompound nbt) {
-        super.readNbt(nbt);
-        setProgress(nbt.getInt("liquifier.progress"));
     }
 }

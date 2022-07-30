@@ -1,11 +1,11 @@
 package com.smashingmods.alchemistry.api.blockentity;
 
-import net.fabricmc.fabric.api.transfer.v1.fluid.FluidConstants;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.base.SingleVariantStorage;
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntityType;
+import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
@@ -13,11 +13,9 @@ import net.minecraft.util.math.BlockPos;
 public abstract class AbstractFluidBlockEntity extends AbstractInventoryBlockEntity {
 
     private final SingleVariantStorage<FluidVariant> fluidStorage;
-    private final long fluidCapacity;
 
-    public AbstractFluidBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state, long energyCapacity, long fluidCapacity) {
-        super(DefaultedList.ofSize(1), type, pos, state, energyCapacity);
-        this.fluidCapacity = fluidCapacity;
+    public AbstractFluidBlockEntity(DefaultedList<ItemStack> inventory, BlockEntityType<?> type, BlockPos pos, BlockState state, long energyCapacity, long fluidCapacity) {
+        super(inventory, type, pos, state, energyCapacity);
         this.fluidStorage = new SingleVariantStorage<>() {
             @Override
             protected FluidVariant getBlankVariant() {

@@ -34,6 +34,8 @@ public abstract class AbstractAlchemistryScreenHandler extends ScreenHandler {
 
     @Override
     public ItemStack transferSlot(PlayerEntity player, int invSlot) {
+        System.out.println("Size: " + inventory.size());
+        System.out.println("Slot Num: " + invSlot);
         Slot sourceSlot = slots.get(invSlot);
         if (!sourceSlot.hasStack()) {
             return ItemStack.EMPTY;
