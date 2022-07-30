@@ -1,5 +1,6 @@
 package com.smashingmods.alchemistry.common.block.dissolver;
 
+import com.smashingmods.alchemistry.Config;
 import com.smashingmods.alchemistry.api.blockentity.AbstractInventoryBlockEntity;
 import com.smashingmods.alchemistry.common.recipe.dissolver.DissolverRecipe;
 import com.smashingmods.alchemistry.registry.BlockEntityRegistry;
@@ -24,11 +25,13 @@ public class DissolverBlockEntity extends AbstractInventoryBlockEntity {
 
     private DissolverRecipe currentRecipe;
     protected final PropertyDelegate propertyDelegate;
-    private final int maxProgress = 50;
-    private final DefaultedList<ItemStack> internalBuffer = DefaultedList.ofSize(64);
+    private final int maxProgress;
+    private final DefaultedList<ItemStack> internalBuffer;
 
     public DissolverBlockEntity(BlockPos pos, BlockState state) {
-        super(DefaultedList.ofSize(INVENTORY_SIZE, ItemStack.EMPTY), BlockEntityRegistry.DISSOLVER_BLOCK_ENTITY, pos, state, 100000);
+        super(DefaultedList.ofSize(INVENTORY_SIZE, ItemStack.EMPTY), BlockEntityRegistry.DISSOLVER_BLOCK_ENTITY, pos, state, Config.Common.dissolverEnergyCapacity.get());
+        this.internalBuffer = DefaultedList.ofSize(64);
+        this.maxProgress = Config.Common.dissolverTicksPerOperation.get();
         this.propertyDelegate = new PropertyDelegate() {
             public int get(int index) {
                 return switch (index) {
@@ -93,7 +96,7 @@ public class DissolverBlockEntity extends AbstractInventoryBlockEntity {
             ItemStack input = getStackInSlot(0).copy();
             SimpleInventory inputInventory = new SimpleInventory(1);
             inputInventory.addStack(input);
-            return getEnergyStorage().getAmount() >= 100
+            return getEnergyStorage().getAmount() >= Config.Common.dissolverEnergyPerTick.get()
                     && currentRecipe.matches(inputInventory, world)
                     && currentRecipe.getInput().getMatchingStacks().length > 0
                     && (input.getCount() >= currentRecipe.getInput().getMatchingStacks()[0].copy().getCount())

@@ -12,8 +12,13 @@ group = project.maven_group
 
 repositories {
 	// Add repositories to retrieve artifacts from in here.
+	mavenCentral()
 	maven { url 'https://jitpack.io' }
 	maven { url 'https://maven.blamejared.com' }
+	maven {
+		name = 'Curse Maven'
+		url = 'https://cursemaven.com'
+	}
 }
 
 dependencies {
@@ -33,6 +38,13 @@ dependencies {
 
 	// Tech Reborn Energy API
 	include modApi('teamreborn:energy:2.2.0') {
+		exclude(group: "net.fabricmc.fabric-api")
+	}
+
+	// Forge Config API
+	include implementation('com.electronwill.night-config:core:3.6.5')
+	include implementation('com.electronwill.night-config:toml:3.6.5')
+	include modImplementation("curse.maven:forgeconfigapiport-547434:3904745") {
 		exclude(group: "net.fabricmc.fabric-api")
 	}
 }
