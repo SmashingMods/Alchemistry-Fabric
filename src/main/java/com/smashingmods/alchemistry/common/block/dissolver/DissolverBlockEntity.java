@@ -24,7 +24,7 @@ public class DissolverBlockEntity extends AbstractInventoryBlockEntity {
 
     private DissolverRecipe currentRecipe;
     protected final PropertyDelegate propertyDelegate;
-    private final int maxProgress = 72;
+    private final int maxProgress = 50;
     private final DefaultedList<ItemStack> internalBuffer = DefaultedList.ofSize(64);
 
     public DissolverBlockEntity(BlockPos pos, BlockState state) {
@@ -42,7 +42,7 @@ public class DissolverBlockEntity extends AbstractInventoryBlockEntity {
             public void set(int index, int value) {
                 switch (index) {
                     case 0 -> setProgress(value);
-                    case 2 -> addEnergy(value);
+                    case 2 -> insertEnergy(value);
                 }
             }
             public int size() {
@@ -91,16 +91,10 @@ public class DissolverBlockEntity extends AbstractInventoryBlockEntity {
     public boolean canProcessRecipe() {
         if (currentRecipe != null) {
             ItemStack input = getStackInSlot(0).copy();
-            // TODO: Implement when energy is added (replace return statement below)
-            /**
-            return getEnergyHandler().getEnergyStored() >= Config.Common.dissolverEnergyPerTick.get()
-                    && currentRecipe.matches(input)
-                    && (input.getCount() >= currentRecipe.getInput().getMatchingStacks()[0].copy().getCount())
-                    && internalBuffer.isEmpty();
-             */
             SimpleInventory inputInventory = new SimpleInventory(1);
             inputInventory.addStack(input);
-            return currentRecipe.matches(inputInventory, world)
+            return getEnergyStorage().getAmount() >= 100
+                    && currentRecipe.matches(inputInventory, world)
                     && currentRecipe.getInput().getMatchingStacks().length > 0
                     && (input.getCount() >= currentRecipe.getInput().getMatchingStacks()[0].copy().getCount())
                     && internalBuffer.isEmpty();
@@ -118,8 +112,7 @@ public class DissolverBlockEntity extends AbstractInventoryBlockEntity {
             decrementSlot(0, currentRecipe.getInput().getMatchingStacks()[0].copy().getCount());
             internalBuffer.addAll(currentRecipe.getProbabilityOutput().calculateOutput());
         }
-        // TODO: Implement when energy is added
-        //getEnergyHandler().extractEnergy(Config.Common.dissolverEnergyPerTick.get(), false);
+        extractEnergy(100);
         markDirty();
     }
 

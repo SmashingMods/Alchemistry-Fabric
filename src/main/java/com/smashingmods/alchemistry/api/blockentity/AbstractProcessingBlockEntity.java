@@ -130,7 +130,7 @@ public abstract class AbstractProcessingBlockEntity extends BlockEntity implemen
         setProgress(nbt.getInt("progress"));
         setRecipeLocked(nbt.getBoolean("locked"));
         setPaused(nbt.getBoolean("paused"));
-        addEnergy(nbt.getLong("energy"));
+        insertEnergy(nbt.getLong("energy"));
     }
 
     @Override
@@ -142,12 +142,19 @@ public abstract class AbstractProcessingBlockEntity extends BlockEntity implemen
         return energyStorage;
     }
 
-    public void addEnergy(long value) {
+    public void insertEnergy(long value) {
         try (Transaction transaction = Transaction.openOuter()) {
-            // Try to extract, will return how much was actually extracted
             long amountExtracted = getEnergyStorage().insert(value, transaction);
             if (amountExtracted == value) {
-                // "Commit" the transaction to make sure the change is applied.
+                transaction.commit();
+            }
+        }
+    }
+
+    public void extractEnergy(long value) {
+        try (Transaction transaction = Transaction.openOuter()) {
+            long amountExtracted = getEnergyStorage().extract(value, transaction);
+            if (amountExtracted == value) {
                 transaction.commit();
             }
         }
