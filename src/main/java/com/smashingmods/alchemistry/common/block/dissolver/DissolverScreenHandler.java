@@ -22,7 +22,7 @@ public class DissolverScreenHandler extends AbstractAlchemistryScreenHandler {
         this(syncId, playerInventory,Objects.requireNonNull(playerInventory.player.getWorld().getBlockEntity(buffer.readBlockPos())), new SimpleInventory(DissolverBlockEntity.INVENTORY_SIZE), new ArrayPropertyDelegate(4));
     }
 
-    public DissolverScreenHandler(int syncId, PlayerInventory playerInventory, BlockEntity blockEntity, Inventory inventory, PropertyDelegate delegate) {
+    protected DissolverScreenHandler(int syncId, PlayerInventory playerInventory, BlockEntity blockEntity, Inventory inventory, PropertyDelegate delegate) {
         super(ScreenRegistry.DISSOLVER_SCREEN_HANDLER, syncId, playerInventory, blockEntity, inventory, delegate, DissolverBlockEntity.INVENTORY_SIZE);
         this.propertyDelegate = delegate;
 

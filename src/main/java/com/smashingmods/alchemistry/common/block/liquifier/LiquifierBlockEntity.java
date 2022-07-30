@@ -2,6 +2,7 @@ package com.smashingmods.alchemistry.common.block.liquifier;
 
 import com.smashingmods.alchemistry.Config;
 import com.smashingmods.alchemistry.api.blockentity.AbstractFluidBlockEntity;
+import com.smashingmods.alchemistry.common.block.dissolver.DissolverScreenHandler;
 import com.smashingmods.alchemistry.registry.BlockEntityRegistry;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
@@ -13,6 +14,8 @@ import net.minecraft.util.math.BlockPos;
 import org.jetbrains.annotations.Nullable;
 
 public class LiquifierBlockEntity extends AbstractFluidBlockEntity {
+
+    public static final int INVENTORY_SIZE = 1;
 
     private final int maxProgress;
 
@@ -51,7 +54,7 @@ public class LiquifierBlockEntity extends AbstractFluidBlockEntity {
     @Nullable
     @Override
     public ScreenHandler createMenu(int syncId, PlayerInventory inv, PlayerEntity player) {
-        // TODO: Implement
-        return null;
+        // TODO: Replace null at the new with property delegate
+        return new LiquifierScreenHandler(syncId, inv, this, this, null);
     }
 }
