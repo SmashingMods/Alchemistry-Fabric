@@ -4,6 +4,8 @@ import net.minecraft.screen.PropertyDelegate;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 
+import java.util.List;
+
 public class ProgressDisplayData extends DisplayData {
 
     private final PropertyDelegate delegate;
@@ -34,7 +36,7 @@ public class ProgressDisplayData extends DisplayData {
     }
 
     @Override
-    public MutableText toText() {
-        return Text.literal("Show Recipes");
+    public List<Text> toText() {
+        return List.of(Text.literal("Show Recipes"));
     }
 }

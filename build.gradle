@@ -25,9 +25,16 @@ dependencies {
 	// Fabric API
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
-	// Libraries (Requires ChemLib)
+	// ChemLib
 	modImplementation "com.github.SmashingMods:ChemLib-Fabric:1.19.1-1.0.1"
+
+	// Patchouli
 	modImplementation "vazkii.patchouli:Patchouli:1.19-74-FABRIC"
+
+	// Tech Reborn Energy API
+	include modApi('teamreborn:energy:2.2.0') {
+		exclude(group: "net.fabricmc.fabric-api")
+	}
 }
 
 processResources {

@@ -3,6 +3,8 @@ package com.smashingmods.alchemistry.api.container;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 
+import java.util.List;
+
 public abstract class DisplayData implements IDisplayData {
 
     private final int x;
@@ -17,12 +19,12 @@ public abstract class DisplayData implements IDisplayData {
         this.height = pHeight;
     }
 
-    public MutableText toTextComponent() {
+    public List<Text> toText() {
         String temp = "";
         if (this.toString() != null) {
             temp = this.toString();
         }
-        return Text.literal(temp);
+        return List.of(Text.literal(temp));
     }
 
     @Override

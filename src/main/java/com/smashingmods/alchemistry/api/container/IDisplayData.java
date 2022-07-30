@@ -1,6 +1,9 @@
 package com.smashingmods.alchemistry.api.container;
 
 import net.minecraft.text.MutableText;
+import net.minecraft.text.Text;
+
+import java.util.List;
 
 public interface IDisplayData {
 
@@ -16,5 +19,5 @@ public interface IDisplayData {
 
     int getMaxValue();
 
-    MutableText toText();
+    List<Text> toText();
 }

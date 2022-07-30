@@ -24,7 +24,7 @@ public class DissolverBlockEntity extends AbstractInventoryBlockEntity {
 
     private DissolverRecipe currentRecipe;
     protected final PropertyDelegate propertyDelegate;
-    private int maxProgress = 72;
+    private final int maxProgress = 72;
     private final DefaultedList<ItemStack> internalBuffer = DefaultedList.ofSize(64);
 
     public DissolverBlockEntity(BlockPos pos, BlockState state) {
@@ -34,17 +34,19 @@ public class DissolverBlockEntity extends AbstractInventoryBlockEntity {
                 return switch (index) {
                     case 0 -> getProgress();
                     case 1 -> DissolverBlockEntity.this.maxProgress;
+                    case 2 -> (int) getEnergyStorage().getAmount();
+                    case 3 -> (int) getEnergyStorage().getCapacity();
                     default -> 0;
                 };
             }
             public void set(int index, int value) {
                 switch (index) {
                     case 0 -> setProgress(value);
-                    case 1 -> DissolverBlockEntity.this.maxProgress = value;
+                    case 2 -> addEnergy(value);
                 }
             }
             public int size() {
-                return 2;
+                return 4;
             }
         };
     }
@@ -150,13 +152,11 @@ public class DissolverBlockEntity extends AbstractInventoryBlockEntity {
     protected void writeNbt(NbtCompound nbt) {
         super.writeNbt(nbt);
         nbt.putInt("dissolver.progress", getProgress());
-        // TODO: Add energy here when implemented
     }
 
     @Override
     public void readNbt(NbtCompound nbt) {
         super.readNbt(nbt);
         setProgress(nbt.getInt("dissolver.progress"));
-        // TODO: Add energy here when implemented
     }
 }

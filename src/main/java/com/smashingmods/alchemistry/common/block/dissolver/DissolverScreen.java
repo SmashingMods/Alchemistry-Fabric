@@ -2,10 +2,7 @@ package com.smashingmods.alchemistry.common.block.dissolver;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.smashingmods.alchemistry.Alchemistry;
-import com.smashingmods.alchemistry.api.container.AbstractAlchemistryScreen;
-import com.smashingmods.alchemistry.api.container.Direction2D;
-import com.smashingmods.alchemistry.api.container.DisplayData;
-import com.smashingmods.alchemistry.api.container.ProgressDisplayData;
+import com.smashingmods.alchemistry.api.container.*;
 import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.player.PlayerInventory;
@@ -27,8 +24,7 @@ public class DissolverScreen extends AbstractAlchemistryScreen<DissolverScreenHa
         this.backgroundWidth = 184;
         this.backgroundHeight = 200;
         displayData.add(new ProgressDisplayData(handler.getPropertyDelegate(), 0, 1, 88, 34, 60, 9, Direction2D.DOWN));
-        // TODO: Add when energy is implemented
-        //displayData.add(new EnergyDisplayData(handler.getPropertyDelegate(), 2, 3, 156, 12, 16, 54));
+        displayData.add(new EnergyDisplayData(handler.getPropertyDelegate(), 2, 3, 156, 12, 16, 54));
     }
 
     @Override

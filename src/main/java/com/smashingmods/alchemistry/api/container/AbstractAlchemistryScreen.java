@@ -87,7 +87,7 @@ public abstract class AbstractAlchemistryScreen<M extends AbstractAlchemistryScr
                         mouseY <= data.getY() + y + data.getHeight()
         ).forEach(data -> {
             if (!(data instanceof ProgressDisplayData)) {
-                renderTooltip(matrices, data.toTextComponent(), mouseX, mouseY);
+                renderTooltip(matrices, data.toText(), mouseX, mouseY);
             }
         });
     }
@@ -97,16 +97,22 @@ public abstract class AbstractAlchemistryScreen<M extends AbstractAlchemistryScr
             if (data instanceof ProgressDisplayData) {
                 directionalArrow(matrices, x + data.getX(), y + data.getY(), data.getValue(), data.getMaxValue(), ((ProgressDisplayData) data).getDirection());
             }
-            // TODO: Add when energy and fluid are implemented
-            /**
             if (data instanceof EnergyDisplayData) {
-                drawEnergyBar(pPoseStack, (EnergyDisplayData) data, 0, 40);
+                drawEnergyBar(matrices, (EnergyDisplayData) data, 0, 40);
             }
+            // TODO: Add when fluid is implemented
+            /**
             if (data instanceof FluidDisplayData) {
                 drawFluidTank((FluidDisplayData) data, pX + data.getX(), pY + data.getY());
             }
              */
         });
+    }
+
+    public void drawEnergyBar(MatrixStack pPoseStack, EnergyDisplayData data, int textureX, int textureY) {
+        int x = data.getX() + (this.width - this.backgroundWidth) / 2;
+        int y = data.getY() + (this.height - this.backgroundHeight) / 2;
+        this.directionalBlit(pPoseStack, x, y + data.getHeight(), textureX, textureY, data.getWidth(), data.getHeight(), data.getValue(), data.getMaxValue(), Direction2D.UP);
     }
 
     public void directionalArrow(MatrixStack matrices, int x, int y, int progress, int maxProgress, Direction2D direction2D) {
