@@ -56,8 +56,8 @@ public class DissolverBlock extends AbstractAlchemistryBlock {
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(World world, BlockState state, BlockEntityType<T> type) {
         if (!world.isClient()) {
             return (level, pos, blockState, blockEntity) -> {
-                if (blockEntity instanceof DissolverBlockEntity) {
-                    ((DissolverBlockEntity) blockEntity).tick();
+                if (blockEntity instanceof DissolverBlockEntity dissolverBlockEntity) {
+                    dissolverBlockEntity.tick();
                 }
             };
         }

@@ -4,14 +4,30 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.smashingmods.alchemistry.Alchemistry;
 import com.smashingmods.alchemistry.network.AlchemistryNetwork;
 import com.smashingmods.alchemistry.network.packets.ProcessingButtonPacket;
+import net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry;
+import net.fabricmc.fabric.api.transfer.v1.client.fluid.FluidVariantRenderHandler;
+import net.fabricmc.fabric.api.transfer.v1.client.fluid.FluidVariantRendering;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariantAttributes;
+import net.fabricmc.fabric.impl.client.rendering.ColorProviderRegistryImpl;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.Drawable;
+import net.minecraft.client.gui.DrawableHelper;
 import net.minecraft.client.gui.Element;
 import net.minecraft.client.gui.Selectable;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.ClickableWidget;
+import net.minecraft.client.render.BufferBuilder;
+import net.minecraft.client.render.Tessellator;
+import net.minecraft.client.render.VertexFormat;
+import net.minecraft.client.render.VertexFormats;
+import net.minecraft.client.texture.Sprite;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.fluid.FlowableFluid;
+import net.minecraft.fluid.Fluids;
+import net.minecraft.screen.PlayerScreenHandler;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
@@ -100,12 +116,9 @@ public abstract class AbstractAlchemistryScreen<M extends AbstractAlchemistryScr
             if (data instanceof EnergyDisplayData) {
                 drawEnergyBar(matrices, (EnergyDisplayData) data, 0, 40);
             }
-            // TODO: Add when fluid is implemented
-            /**
             if (data instanceof FluidDisplayData) {
-                drawFluidTank((FluidDisplayData) data, pX + data.getX(), pY + data.getY());
+                drawFluidTank((FluidDisplayData) data, x + data.getX(), y + data.getY());
             }
-             */
         });
     }
 
@@ -113,6 +126,67 @@ public abstract class AbstractAlchemistryScreen<M extends AbstractAlchemistryScr
         int x = data.getX() + (this.width - this.backgroundWidth) / 2;
         int y = data.getY() + (this.height - this.backgroundHeight) / 2;
         this.directionalBlit(pPoseStack, x, y + data.getHeight(), textureX, textureY, data.getWidth(), data.getHeight(), data.getValue(), data.getMaxValue(), Direction2D.UP);
+    }
+
+    public void drawFluidTank(FluidDisplayData data, int textureX, int textureY) {
+        if (data.getValue() > 0) {
+            FluidVariant fluidVariant = data.getFluidHandler().getResource();
+            int color = FluidVariantRendering.getColor(fluidVariant);
+            setShaderColor(color);
+            Sprite icon = FluidVariantRendering.getSprite(fluidVariant);
+            drawTexture(data, icon, textureX, textureY);
+            RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
+        }
+    }
+
+    public void drawTexture(DisplayData pData, Sprite sprite, int pTextureX, int pTextureY) {
+        RenderSystem.setShaderTexture(0, PlayerScreenHandler.BLOCK_ATLAS_TEXTURE);
+        int renderAmount = Math.max(Math.min(pData.getHeight(), pData.getValue() * pData.getHeight() / pData.getMaxValue()), 1);
+        int posY = pTextureY + pData.getHeight() - renderAmount;
+
+        float minU = sprite.getMinU();
+        float maxU = sprite.getMaxU();
+        float minV = sprite.getMinV();
+        float maxV = sprite.getMaxV();
+
+        for (int width = 0; width < pData.getWidth(); width++) {
+            for (int height = 0; height < pData.getHeight(); height++) {
+
+                int drawHeight = Math.min(renderAmount - height, 16);
+                int drawWidth = Math.min(pData.getWidth() - width, 16);
+
+                int x1 = pTextureX + width;
+                float x2 = x1 + drawWidth;
+                int y1 = posY + height;
+                float y2 = y1 + drawHeight;
+
+                float scaleV = minV + (maxV - minV) * drawHeight / 16f;
+                float scaleU = minU + (maxU - minU) * drawWidth / 16f;
+
+                float blitOffset = 0;
+
+                Tessellator tesselator = Tessellator.getInstance();
+                BufferBuilder bufferBuilder = tesselator.getBuffer();
+
+                bufferBuilder.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_TEXTURE);
+                bufferBuilder.vertex(x1, y2, blitOffset).texture(minU, scaleV).next();
+                bufferBuilder.vertex(x2, y2, blitOffset).texture(scaleU, scaleV).next();
+                bufferBuilder.vertex(x2, y1, blitOffset).texture(scaleU, minV).next();
+                bufferBuilder.vertex(x1, y1, blitOffset).texture(minU, minV).next();
+                tesselator.draw();
+
+                height += 15;
+            }
+            width += 16;
+        }
+    }
+
+    public static void setShaderColor(int color) {
+        float alpha = (color >> 24 & 255) / 255f;
+        float red = (color >> 16 & 255) / 255f;
+        float green = (color >> 8 & 255) / 255f;
+        float blue = (color & 255) / 255f;
+        RenderSystem.setShaderColor(red, green, blue, alpha);
     }
 
     public void directionalArrow(MatrixStack matrices, int x, int y, int progress, int maxProgress, Direction2D direction2D) {

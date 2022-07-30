@@ -36,7 +36,7 @@ public class DissolverBlockEntity extends AbstractInventoryBlockEntity {
             public int get(int index) {
                 return switch (index) {
                     case 0 -> getProgress();
-                    case 1 -> DissolverBlockEntity.this.maxProgress;
+                    case 1 -> maxProgress;
                     case 2 -> (int) getEnergyStorage().getAmount();
                     case 3 -> (int) getEnergyStorage().getCapacity();
                     default -> 0;

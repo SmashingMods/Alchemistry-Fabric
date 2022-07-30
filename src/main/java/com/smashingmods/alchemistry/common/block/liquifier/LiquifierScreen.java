@@ -23,8 +23,7 @@ public class LiquifierScreen extends AbstractAlchemistryScreen<LiquifierScreenHa
         super(handler, inventory, title);
         displayData.add(new ProgressDisplayData(handler.getPropertyDelegate(), 0, 1, 92, 39, 60, 9, Direction2D.RIGHT));
         displayData.add(new EnergyDisplayData(handler.getPropertyDelegate(), 2, 3, 26, 21, 16, 46));
-        // TODO: Add when fluid rendering is implemented
-        //displayData.add(new FluidDisplayData(handler.getBlockEntity(), pMenu.getContainerData(), 4, 5, 134, 21, 16, 46));
+        displayData.add(new FluidDisplayData(handler.getBlockEntity(), handler.getPropertyDelegate(), 4, 5, 134, 21, 16, 46));
     }
 
     @Override

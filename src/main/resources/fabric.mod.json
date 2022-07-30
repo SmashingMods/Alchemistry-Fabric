@@ -28,6 +28,7 @@
     ]
   },
   "mixins": [
+    "alchemistry.mixins.json"
   ],
 
   "depends": {

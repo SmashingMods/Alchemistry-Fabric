@@ -1,7 +1,6 @@
 package com.smashingmods.alchemistry.common.block.liquifier;
 
 import com.smashingmods.alchemistry.api.block.AbstractAlchemistryBlock;
-import com.smashingmods.alchemistry.common.block.dissolver.DissolverBlockEntity;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockRenderType;
 import net.minecraft.block.BlockState;
@@ -21,8 +20,6 @@ import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.function.BiFunction;
-
 public class LiquifierBlock extends AbstractAlchemistryBlock {
 
     public static final VoxelShape base = Block.createCuboidShape(0, 0, 0, 16, 1, 16);
@@ -30,7 +27,6 @@ public class LiquifierBlock extends AbstractAlchemistryBlock {
     public static final VoxelShape SHAPE = VoxelShapes.union(base, rest);
 
     public LiquifierBlock() {
-        // TODO: Replace with LiquifierBlockEntity
         super(LiquifierBlockEntity::new);
     }
 
@@ -46,7 +42,14 @@ public class LiquifierBlock extends AbstractAlchemistryBlock {
 
     @Override
     public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
-        if (!world.isClient()) {
+        BlockEntity blockEntity = world.getBlockEntity(pos);
+        boolean interactionSuccessful = true;
+
+        if (blockEntity instanceof LiquifierBlockEntity liquifierBlockEntity) {
+            interactionSuccessful = liquifierBlockEntity.onBlockActivated(world, pos, player, hand);
+        }
+
+        if (!world.isClient() && !interactionSuccessful) {
             NamedScreenHandlerFactory screenHandlerFactory = state.createScreenHandlerFactory(world, pos);
             if (screenHandlerFactory != null) {
                 player.openHandledScreen(screenHandlerFactory);
@@ -60,9 +63,8 @@ public class LiquifierBlock extends AbstractAlchemistryBlock {
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(World world, BlockState state, BlockEntityType<T> type) {
         if (!world.isClient()) {
             return (level, pos, blockState, blockEntity) -> {
-                if (blockEntity instanceof DissolverBlockEntity) {
-                    // TODO: Replace with LiquifierBlockEntity
-                    ((LiquifierBlockEntity) blockEntity).tick();
+                if (blockEntity instanceof LiquifierBlockEntity liquifierBlockEntity) {
+                    liquifierBlockEntity.tick();
                 }
             };
         }
