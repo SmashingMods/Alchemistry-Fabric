@@ -85,8 +85,6 @@ public class CompactorScreen extends AbstractAlchemistryScreen<CompactorScreenHa
     }
 
     private ButtonWidget.PressAction handleResetTargetButton() {
-        return button -> {
-            AlchemistryNetwork.sendToServer(new CompactorButtonPacket(handler.getBlockEntity().getPos()));
-        };
+        return button -> AlchemistryNetwork.sendToServer(new CompactorButtonPacket(handler.getBlockEntity().getPos()));
     }
 }

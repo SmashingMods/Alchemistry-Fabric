@@ -52,7 +52,6 @@ public class ProcessingButtonPacket implements AlchemistryPacket {
         // Set new values
         blockEntity.setRecipeLocked(packet.isLocked);
         blockEntity.setPaused(packet.isPaused);
-        blockEntity.markDirty();
-        handler.getPlayer().getWorld().updateListeners(packet.blockPos, blockEntity.getCachedState(), blockEntity.getCachedState(), 3);
+        blockEntity.forceSync();
     }
 }

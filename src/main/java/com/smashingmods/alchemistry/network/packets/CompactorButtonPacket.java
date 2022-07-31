@@ -42,7 +42,6 @@ public class CompactorButtonPacket implements AlchemistryPacket {
 
         // Set new values
         blockEntity.setTarget(ItemStack.EMPTY);
-        blockEntity.markDirty();
-        handler.getPlayer().getWorld().updateListeners(packet.blockPos, blockEntity.getCachedState(), blockEntity.getCachedState(), 3);
+        blockEntity.forceSync();
     }
 }

@@ -163,13 +163,15 @@ public class CompactorBlockEntity extends AbstractInventoryBlockEntity {
 
     @Override
     protected void writeNbt(NbtCompound nbt) {
-        target.writeNbt(nbt);
         super.writeNbt(nbt);
+        nbt.put("target", target.writeNbt(new NbtCompound()));
     }
 
     @Override
     public void readNbt(NbtCompound nbt) {
         super.readNbt(nbt);
-        target = ItemStack.fromNbt(nbt);
+        if (nbt.contains("target")) {
+            target = ItemStack.fromNbt(nbt.getCompound("target"));
+        }
     }
 }
