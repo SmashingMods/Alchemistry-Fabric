@@ -34,6 +34,7 @@ public class CompactorBlockEntity extends AbstractInventoryBlockEntity {
 
     public CompactorBlockEntity(BlockPos pos, BlockState state) {
         super(DefaultedList.ofSize(INVENTORY_SIZE, ItemStack.EMPTY), BlockEntityRegistry.COMPACTOR_BLOCK_ENTITY, pos, state, Config.Common.compactorEnergyCapacity.get());
+        this.target = ItemStack.EMPTY;
         this.maxProgress = Config.Common.compactorTicksPerOperation.get();
         this.propertyDelegate = new PropertyDelegate() {
             public int get(int index) {
@@ -66,12 +67,9 @@ public class CompactorBlockEntity extends AbstractInventoryBlockEntity {
     public void updateRecipe() {
         if (world == null || world.isClient() || isRecipeLocked()) return;
         if (!getStackInSlot(INPUT_SLOT_INDEX).isEmpty()) {
-            // Update recipe
-            SimpleInventory inventory = new SimpleInventory(getItems().size());
-            inventory.addStack(getItems().get(INPUT_SLOT_INDEX));
             if (target.isEmpty()) {
                 // Find recipe without target
-                List<CompactorRecipe> recipes = world.getRecipeManager().getAllMatches(CompactorRecipe.Type.INSTANCE, inventory, world).stream()
+                List<CompactorRecipe> recipes = world.getRecipeManager().getAllMatches(CompactorRecipe.Type.INSTANCE, new SimpleInventory(1), world).stream()
                         .filter(recipe -> ItemStack.canCombine(getStackInSlot(0), recipe.getInput()))
                         .toList();
                 if (recipes.size() == 1) {
@@ -87,14 +85,13 @@ public class CompactorBlockEntity extends AbstractInventoryBlockEntity {
                 }
             } else {
                 // Find recipe with target
-                world.getRecipeManager().getAllMatches(CompactorRecipe.Type.INSTANCE, inventory, world).stream()
+                world.getRecipeManager().getAllMatches(CompactorRecipe.Type.INSTANCE, new SimpleInventory(1), world).stream()
                         .filter(recipe -> ItemStack.canCombine(target, recipe.getOutput()))
                         .findFirst()
                         .ifPresent(recipe -> {
                             if (currentRecipe == null || !currentRecipe.equals(recipe)) {
                                 setProgress(0);
                                 currentRecipe = recipe;
-                                setTarget(recipe.getOutput().copy());
                             }
                         });
             }
@@ -133,7 +130,6 @@ public class CompactorBlockEntity extends AbstractInventoryBlockEntity {
             currentRecipe = null;
         } else {
             currentRecipe = (CompactorRecipe) recipe;
-            target = recipe.getOutput();
         }
     }
 
@@ -148,10 +144,9 @@ public class CompactorBlockEntity extends AbstractInventoryBlockEntity {
 
     public void setTarget(ItemStack targetStack) {
         if (world != null && !world.isClient() && !isRecipeLocked()) {
-            if (isTargetValid(targetStack)) {
+            if (targetStack == ItemStack.EMPTY || isTargetValid(targetStack)) {
                 this.target = targetStack;
-                this.markDirty();
-                world.updateListeners(this.pos, this.getCachedState(), this.getCachedState(), 3);
+                forceSync();
             }
         }
     }

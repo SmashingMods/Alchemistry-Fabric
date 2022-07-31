@@ -3,6 +3,8 @@ package com.smashingmods.alchemistry.common.block.compactor;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.smashingmods.alchemistry.Alchemistry;
 import com.smashingmods.alchemistry.api.container.*;
+import com.smashingmods.alchemistry.network.AlchemistryNetwork;
+import com.smashingmods.alchemistry.network.packets.CompactorButtonPacket;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.item.TooltipContext;
 import net.minecraft.client.render.GameRenderer;
@@ -83,7 +85,8 @@ public class CompactorScreen extends AbstractAlchemistryScreen<CompactorScreenHa
     }
 
     private ButtonWidget.PressAction handleResetTargetButton() {
-        // TODO: Implement
-        return pButton -> System.out.println("PRESSED RESET");
+        return button -> {
+            AlchemistryNetwork.sendToServer(new CompactorButtonPacket(handler.getBlockEntity().getPos()));
+        };
     }
 }

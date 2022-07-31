@@ -159,4 +159,9 @@ public abstract class AbstractProcessingBlockEntity extends BlockEntity implemen
             }
         }
     }
+
+    public void forceSync() {
+        this.markDirty();
+        world.updateListeners(this.pos, this.getCachedState(), this.getCachedState(), 3);
+    }
 }
