@@ -22,7 +22,7 @@ public class AtomizerScreenHandler extends AbstractAlchemistryScreenHandler {
     }
 
     protected AtomizerScreenHandler(int syncId, PlayerInventory playerInventory, BlockEntity blockEntity, Inventory inventory, PropertyDelegate delegate) {
-        super(ScreenRegistry.ATOMIZER_SCREEN_HANDLER, syncId, playerInventory, blockEntity, inventory, delegate, AtomizerBlockEntity.INVENTORY_SIZE);
+        super(ScreenRegistry.ATOMIZER_SCREEN_HANDLER, syncId, playerInventory, blockEntity, inventory, delegate, 0, AtomizerBlockEntity.INVENTORY_SIZE);
         addSlots(Slot::new, inventory, 1, 1, 0, inventory.size(), 98, 35);
 
         this.propertyDelegate = delegate;

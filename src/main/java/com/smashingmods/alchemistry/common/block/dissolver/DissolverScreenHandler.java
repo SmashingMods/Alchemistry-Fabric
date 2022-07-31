@@ -23,7 +23,7 @@ public class DissolverScreenHandler extends AbstractAlchemistryScreenHandler {
     }
 
     protected DissolverScreenHandler(int syncId, PlayerInventory playerInventory, BlockEntity blockEntity, Inventory inventory, PropertyDelegate delegate) {
-        super(ScreenRegistry.DISSOLVER_SCREEN_HANDLER, syncId, playerInventory, blockEntity, inventory, delegate, DissolverBlockEntity.INVENTORY_SIZE);
+        super(ScreenRegistry.DISSOLVER_SCREEN_HANDLER, syncId, playerInventory, blockEntity, inventory, delegate, 1, DissolverBlockEntity.INVENTORY_SIZE-1);
 
         // input slots
         addSlots(Slot::new, inventory, 1, 1, 0, 1, 84, 12);

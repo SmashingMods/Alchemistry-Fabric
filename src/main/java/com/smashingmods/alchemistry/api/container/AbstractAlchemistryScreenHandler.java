@@ -17,15 +17,17 @@ public abstract class AbstractAlchemistryScreenHandler extends ScreenHandler {
 
     private final PropertyDelegate delegate;
     private final Inventory inventory;
-    private final int slotCount;
+    private final int inputSlots;
+    private final int outputSlots;
     private final World world;
     private final AbstractProcessingBlockEntity blockEntity;
 
-    public AbstractAlchemistryScreenHandler(ScreenHandlerType<?> screenHandlerType, int syncId, PlayerInventory playerInventory, BlockEntity blockEntity, Inventory inventory, PropertyDelegate delegate, int slotCount) {
+    public AbstractAlchemistryScreenHandler(ScreenHandlerType<?> screenHandlerType, int syncId, PlayerInventory playerInventory, BlockEntity blockEntity, Inventory inventory, PropertyDelegate delegate,  int inputSlots, int outputSlots) {
         super(screenHandlerType, syncId);
         this.delegate = delegate;
         this.inventory = inventory;
-        this.slotCount = slotCount;
+        this.inputSlots = inputSlots;
+        this.outputSlots = outputSlots;
         this.world = playerInventory.player.getWorld();
         this.blockEntity = (AbstractProcessingBlockEntity) blockEntity;
         addPlayerInventorySlots(playerInventory);
@@ -34,23 +36,31 @@ public abstract class AbstractAlchemistryScreenHandler extends ScreenHandler {
 
     @Override
     public ItemStack transferSlot(PlayerEntity player, int invSlot) {
+        int blockEntitySlots = inputSlots + outputSlots;
         Slot sourceSlot = slots.get(invSlot);
         if (!sourceSlot.hasStack()) {
             return ItemStack.EMPTY;
         }
+
         ItemStack sourceStack = sourceSlot.getStack();
         ItemStack copyStack = sourceStack.copy();
+
         if (invSlot < 36) {
-            if (!insertItem(sourceStack, 36, 36 + slotCount, false)) {
+            if (!insertItem(sourceStack, 36, 36 + inputSlots, false)) {
                 return ItemStack.EMPTY;
             }
-        } else if (invSlot < 36 + slotCount) {
+        } else if (invSlot < 36 + inputSlots) {
             if (!insertItem(sourceStack, 0, 36, false))  {
+                return ItemStack.EMPTY;
+            }
+        } else if (invSlot >= 36 + inputSlots && invSlot < 36 + blockEntitySlots) {
+            if (!insertItem(sourceStack, 0, 36, true)) {
                 return ItemStack.EMPTY;
             }
         } else {
             return ItemStack.EMPTY;
         }
+
         if (sourceStack.getCount() == 0) {
             sourceSlot.setStack(ItemStack.EMPTY);
         } else {

@@ -22,7 +22,7 @@ public class LiquifierScreenHandler extends AbstractAlchemistryScreenHandler {
     }
 
     protected LiquifierScreenHandler(int syncId, PlayerInventory playerInventory, BlockEntity blockEntity, Inventory inventory, PropertyDelegate delegate) {
-        super(ScreenRegistry.LIQUIFIER_SCREEN_HANDLER, syncId, playerInventory, blockEntity, inventory, delegate, LiquifierBlockEntity.INVENTORY_SIZE);
+        super(ScreenRegistry.LIQUIFIER_SCREEN_HANDLER, syncId, playerInventory, blockEntity, inventory, delegate, LiquifierBlockEntity.INVENTORY_SIZE, 0);
         addSlots(Slot::new, inventory, 1, 1, 0, inventory.size(), 62, 35);
 
         this.propertyDelegate = delegate;
