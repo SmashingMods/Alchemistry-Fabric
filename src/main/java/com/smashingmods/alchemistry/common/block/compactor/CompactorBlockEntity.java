@@ -2,13 +2,14 @@ package com.smashingmods.alchemistry.common.block.compactor;
 
 import com.smashingmods.alchemistry.Config;
 import com.smashingmods.alchemistry.api.blockentity.AbstractInventoryBlockEntity;
-import com.smashingmods.alchemistry.common.recipe.dissolver.DissolverRecipe;
+import com.smashingmods.alchemistry.common.recipe.compactor.CompactorRecipe;
 import com.smashingmods.alchemistry.registry.BlockEntityRegistry;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.SimpleInventory;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.recipe.Recipe;
 import net.minecraft.screen.PropertyDelegate;
 import net.minecraft.screen.ScreenHandler;
@@ -16,13 +17,16 @@ import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Optional;
+import java.util.List;
 
 public class CompactorBlockEntity extends AbstractInventoryBlockEntity {
 
     public static final int INVENTORY_SIZE = 3;
+    public static final int INPUT_SLOT_INDEX = 0;
+    public static final int TARGET_SLOT_INDEX = 1;
+    public static final int OUTPUT_SLOT_INDEX = 2;
 
-    private DissolverRecipe currentRecipe;
+    private CompactorRecipe currentRecipe;
     protected final PropertyDelegate propertyDelegate;
     private final int maxProgress;
     private ItemStack target;
@@ -59,70 +63,76 @@ public class CompactorBlockEntity extends AbstractInventoryBlockEntity {
     }
 
     @Override
-    public void tick() {
-        // TODO: Implement
-        if (world != null && !world.isClient()) {
-            if (!isProcessingPaused()) {
-                if (!isRecipeLocked()) {
-                    updateRecipe();
-                }
-                if (canProcessRecipe()) {
-                    processRecipe();
-                }
-            }
-        }
-    }
-
-    @Override
     public void updateRecipe() {
-        // TODO: Implement
-        if (world == null || world.isClient()) return;
-        SimpleInventory inventory = new SimpleInventory(getItems().size());
-        for (int i = 0; i < getItems().size(); i++) {
-            inventory.setStack(i, getStack(i));
-        }
-        Optional<DissolverRecipe> match = world.getRecipeManager().getFirstMatch(DissolverRecipe.Type.INSTANCE, inventory, world);
-        if (match.isPresent()) {
-            if (currentRecipe == null || !currentRecipe.equals(match.get())) {
-                setProgress(0);
-                currentRecipe = match.get();
+        if (world == null || world.isClient() || isRecipeLocked()) return;
+        if (!getStackInSlot(INPUT_SLOT_INDEX).isEmpty()) {
+            SimpleInventory inventory = new SimpleInventory(getItems().size());
+            inventory.addStack(getItems().get(INPUT_SLOT_INDEX));
+            if (target.isEmpty()) {
+                List<CompactorRecipe> recipes = world.getRecipeManager().getAllMatches(CompactorRecipe.Type.INSTANCE, inventory, world);
+                if (recipes.size() == 1) {
+                    if (currentRecipe == null || !currentRecipe.equals(recipes.get(0))) {
+                        setProgress(0);
+                        currentRecipe = recipes.get(0);
+                        setTarget(recipes.get(0).getOutput().copy());
+                    }
+                } else {
+                    setProgress(0);
+                    setRecipe(null);
+                }
+            } else {
+                world.getRecipeManager().getAllMatches(CompactorRecipe.Type.INSTANCE, inventory, world).stream()
+                        .filter(recipe -> ItemStack.canCombine(target, recipe.getOutput()))
+                        .findFirst()
+                        .ifPresent(recipe -> {
+                            if (currentRecipe == null || !currentRecipe.equals(recipe)) {
+                                setProgress(0);
+                                currentRecipe = recipe;
+                                setTarget(recipe.getOutput().copy());
+                            }
+                        });
             }
         }
     }
 
     @Override
     public boolean canProcessRecipe() {
-        // TODO: Implement
         if (currentRecipe != null) {
-            ItemStack input = getStackInSlot(0).copy();
-            SimpleInventory inputInventory = new SimpleInventory(1);
-            inputInventory.addStack(input);
+            ItemStack input = getStackInSlot(INPUT_SLOT_INDEX);
+            ItemStack output = getStackInSlot(OUTPUT_SLOT_INDEX);
             return getEnergyStorage().getAmount() >= Config.Common.compactorEnergyPerTick.get()
-                    && currentRecipe.matches(inputInventory, world)
-                    && currentRecipe.getInput().getMatchingStacks().length > 0
-                    && (input.getCount() >= currentRecipe.getInput().getMatchingStacks()[0].copy().getCount());
-        } else {
-            return false;
+                    && (ItemStack.canCombine(input, currentRecipe.getInput()) && input.getCount() >= currentRecipe.getInput().getCount())
+                    && (currentRecipe.getOutput().getCount() + output.getCount()) <= currentRecipe.getOutput().getMaxCount()
+                    && (ItemStack.canCombine(output, currentRecipe.getOutput()) || output.isEmpty());
         }
+        return false;
     }
 
     @Override
     public void processRecipe() {
-        // TODO: Implement
         if (getProgress() < maxProgress) {
             incrementProgress();
         } else {
             setProgress(0);
-            decrementSlot(0, currentRecipe.getInput().getMatchingStacks()[0].copy().getCount());
+            decrementSlot(INPUT_SLOT_INDEX, currentRecipe.getInput().getCount());
+            setOrIncrement(OUTPUT_SLOT_INDEX, currentRecipe.getOutput().copy());
         }
-        extractEnergy(100);
+        extractEnergy(Config.Common.compactorEnergyPerTick.get());
         markDirty();
     }
 
     @Override
-    public <T extends Recipe<SimpleInventory>> void setRecipe(@Nullable T pRecipe) {
-        // TODO: Implement
-        currentRecipe = (DissolverRecipe) pRecipe;
+    public <T extends Recipe<SimpleInventory>> void setRecipe(@Nullable T recipe) {
+        if (recipe == null) {
+            currentRecipe = null;
+        } else {
+            currentRecipe = (CompactorRecipe) recipe;
+            target = recipe.getOutput();
+            if (world != null && !world.isClient()) {
+                // TODO: Send Packet
+                //AlchemistryPacketHandler.sendToNear(new BlockEntityPacket(getBlockPos(), getUpdateTag()), level, getBlockPos(), 64);
+            }
+        }
     }
 
     @Override
@@ -134,4 +144,21 @@ public class CompactorBlockEntity extends AbstractInventoryBlockEntity {
         return target;
     }
 
+    public void setTarget(ItemStack pTarget) {
+        if (world != null && !world.isClient() && !isRecipeLocked()) {
+            this.target = pTarget;
+        }
+    }
+
+    @Override
+    protected void writeNbt(NbtCompound nbt) {
+        target.writeNbt(nbt);
+        super.writeNbt(nbt);
+    }
+
+    @Override
+    public void readNbt(NbtCompound nbt) {
+        super.readNbt(nbt);
+        target = ItemStack.fromNbt(nbt);
+    }
 }

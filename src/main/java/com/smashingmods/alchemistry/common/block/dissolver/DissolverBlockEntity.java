@@ -115,7 +115,7 @@ public class DissolverBlockEntity extends AbstractInventoryBlockEntity {
             decrementSlot(0, currentRecipe.getInput().getMatchingStacks()[0].copy().getCount());
             internalBuffer.addAll(currentRecipe.getProbabilityOutput().calculateOutput());
         }
-        extractEnergy(100);
+        extractEnergy(Config.Common.dissolverEnergyPerTick.get());
         markDirty();
     }
 

@@ -83,6 +83,7 @@ public class CompactorScreen extends AbstractAlchemistryScreen<CompactorScreenHa
     }
 
     private ButtonWidget.PressAction handleResetTargetButton() {
+        // TODO: Implement
         return pButton -> System.out.println("PRESSED RESET");
     }
 }

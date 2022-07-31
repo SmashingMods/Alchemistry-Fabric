@@ -50,11 +50,9 @@ public abstract class AbstractInventoryBlockEntity extends AbstractProcessingBlo
 
     public void incrementSlot(int pSlot, int pAmount) {
         ItemStack temp = this.getStackInSlot(pSlot);
-
         if (temp.getCount() + pAmount <= temp.getMaxCount()) {
             temp.setCount(temp.getCount() + pAmount);
         }
-
         this.setStackInSlot(pSlot, temp);
     }
 
@@ -70,7 +68,6 @@ public abstract class AbstractInventoryBlockEntity extends AbstractProcessingBlo
 
     public void decrementSlot(int pSlot, int pAmount) {
         ItemStack temp = this.getStackInSlot(pSlot);
-
         if (temp.isEmpty()) return;
         if (temp.getCount() - pAmount < 0) return;
 
