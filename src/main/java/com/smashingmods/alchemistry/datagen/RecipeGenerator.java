@@ -26,13 +26,19 @@ public class RecipeGenerator {
      * Fills the recipe map of identifiers to JSON elements for each recipe.
      */
     public static void generateRecipes() {
-        // Generate Liquifier Recipes
+        // Generate Liquifier and Atomizer Recipes
         ItemRegistry.getElements().stream()
                 .filter(element -> element.getMatterState().equals(MatterState.LIQUID) || element.getMatterState().equals(MatterState.GAS) && !element.isArtificial())
-                .forEach(filteredElement -> createLiquifierRecipe(filteredElement.getChemicalName()));
+                .forEach(filteredElement -> {
+                    createLiquifierRecipe(filteredElement.getChemicalName());
+                    createAtomizerRecipe(filteredElement.getChemicalName());
+                });
         ItemRegistry.getCompounds().stream()
                 .filter(compound -> compound.getMatterState().equals(MatterState.LIQUID) || compound.getMatterState().equals(MatterState.GAS))
-                .forEach(filteredElement -> createLiquifierRecipe(filteredElement.getChemicalName()));
+                .forEach(filteredElement -> {
+                    createLiquifierRecipe(filteredElement.getChemicalName());
+                    createAtomizerRecipe(filteredElement.getChemicalName());
+                });
     }
 
     /**
@@ -58,6 +64,32 @@ public class RecipeGenerator {
         result.addProperty("amount", "500");
         json.add("result", result);
 
-        RECIPES.put(new Identifier(Alchemistry.MOD_ID, chemical), json);
+        RECIPES.put(new Identifier(Alchemistry.MOD_ID, "liquifier/"+chemical), json);
+    }
+
+    /**
+     * Generates a recipe for the atomizer processing block and adds it to recipe map.
+     * @param chemical the name of the chemical fluid to process into an element.
+     */
+    private static void createAtomizerRecipe(String chemical) {
+        JsonObject json = new JsonObject();
+        json.addProperty("type", Alchemistry.MOD_ID + ":" + "atomizer");
+        json.addProperty("group", Alchemistry.MOD_ID + ":" + "atomizer");
+
+        JsonObject input = new JsonObject();
+        if (chemical.equals("water")) {
+            input.addProperty("fluid", Registry.FLUID.getId(Fluids.WATER).toString());
+        } else {
+            input.addProperty("fluid", "chemlib:" + chemical + "_source");
+        }
+        input.addProperty("amount", "500");
+        json.add("input", input);
+
+        JsonObject result = new JsonObject();
+        result.addProperty("item", "chemlib:"+chemical);
+        result.addProperty("count", 8);
+        json.add("result", result);
+
+        RECIPES.put(new Identifier(Alchemistry.MOD_ID, "atomizer/"+chemical), json);
     }
 }
