@@ -13,10 +13,12 @@ public class ItemRegistry {
     public static final BlockItem DISSOLVER = new BlockItem(BlockRegistry.DISSOLVER, ITEM_SETTINGS);
     public static final BlockItem LIQUIFIER = new BlockItem(BlockRegistry.LIQUIFIER, ITEM_SETTINGS);
     public static final BlockItem ATOMIZER = new BlockItem(BlockRegistry.ATOMIZER, ITEM_SETTINGS);
+    public static final BlockItem COMPACTOR = new BlockItem(BlockRegistry.COMPACTOR, ITEM_SETTINGS);
 
     public static void registerItems() {
         Registry.register(Registry.ITEM, new Identifier(Alchemistry.MOD_ID, "dissolver"), DISSOLVER);
         Registry.register(Registry.ITEM, new Identifier(Alchemistry.MOD_ID, "liquifier"), LIQUIFIER);
         Registry.register(Registry.ITEM, new Identifier(Alchemistry.MOD_ID, "atomizer"), ATOMIZER);
+        Registry.register(Registry.ITEM, new Identifier(Alchemistry.MOD_ID, "compactor"), COMPACTOR);
     }
 }

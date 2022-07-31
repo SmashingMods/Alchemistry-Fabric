@@ -2,6 +2,8 @@
   "replace": false,
   "values": [
     "alchemistry:dissolver",
-    "alchemistry:liquifier"
+    "alchemistry:liquifier",
+    "alchemistry:atomizer",
+    "alchemistry:compactor"
   ]
 }
