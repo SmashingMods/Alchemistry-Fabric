@@ -1,7 +1,6 @@
 package com.smashingmods.alchemistry.common.block.atomizer;
 
 import com.smashingmods.alchemistry.api.block.AbstractAlchemistryBlock;
-import com.smashingmods.alchemistry.common.block.liquifier.LiquifierBlockEntity;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockRenderType;
 import net.minecraft.block.BlockState;

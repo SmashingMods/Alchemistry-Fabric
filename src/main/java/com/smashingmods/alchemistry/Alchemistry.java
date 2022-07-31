@@ -27,7 +27,7 @@ public class Alchemistry implements ModInitializer {
 
     public static final ItemGroup MACHINE_TAB = FabricItemGroupBuilder.build(
             new Identifier(Alchemistry.MOD_ID, "machine_tab"),
-            () -> new ItemStack(ItemRegistry.DISSOLVER)
+            () -> new ItemStack(ItemRegistry.ATOMIZER)
     );
 
     @Override
