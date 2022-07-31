@@ -23,6 +23,10 @@ public class CompactorRecipe extends AbstractAlchemistryRecipe {
 
     @Override
     public boolean matches(SimpleInventory inventory, World world) {
+        return !world.isClient();
+    }
+
+    public boolean isCorrectRecipe(SimpleInventory inventory, World world) {
         if (world.isClient()) return false;
         ItemStack invStack = inventory.getStack(0);
         return ItemStack.areItemsEqual(input, invStack) && invStack.getCount() >= input.getCount();

@@ -66,16 +66,16 @@ public abstract class AbstractInventoryBlockEntity extends AbstractProcessingBlo
         }
     }
 
-    public void decrementSlot(int pSlot, int pAmount) {
-        ItemStack temp = this.getStackInSlot(pSlot);
+    public void decrementSlot(int slot, int pAmount) {
+        ItemStack temp = this.getStackInSlot(slot);
         if (temp.isEmpty()) return;
         if (temp.getCount() - pAmount < 0) return;
 
         temp.decrement(pAmount);
         if (temp.getCount() <= 0) {
-            this.setStackInSlot(pSlot, ItemStack.EMPTY);
+            this.setStackInSlot(slot, ItemStack.EMPTY);
         } else {
-            this.setStackInSlot(pSlot, temp);
+            this.setStackInSlot(slot, temp);
         }
     }
 }

@@ -1,6 +1,7 @@
 package com.smashingmods.alchemistry.common.block.compactor;
 
-import com.smashingmods.alchemistry.api.blockentity.slots.OutputSlot;
+import com.smashingmods.alchemistry.api.container.slots.OutputSlot;
+import com.smashingmods.alchemistry.api.container.slots.TargetSlot;
 import com.smashingmods.alchemistry.api.container.AbstractAlchemistryScreenHandler;
 import com.smashingmods.alchemistry.registry.ScreenRegistry;
 import net.minecraft.block.entity.BlockEntity;
@@ -25,10 +26,11 @@ public class CompactorScreenHandler extends AbstractAlchemistryScreenHandler {
     protected CompactorScreenHandler(int syncId, PlayerInventory playerInventory, BlockEntity blockEntity, Inventory inventory, PropertyDelegate delegate) {
         super(ScreenRegistry.COMPACTOR_SCREEN_HANDLER, syncId, playerInventory, blockEntity, inventory, delegate, 2, 1);
 
-        // input slots
+        // input slot
         addSlots(Slot::new, inventory, 0, 1, 51, 35);
-        addSlots(Slot::new, inventory, 1, 1, 80, 12);
-        // output slots
+        // target slot
+        addSlot(new TargetSlot(inventory, 1, 80, 12, (CompactorBlockEntity) blockEntity));
+        // output slot
         addSlots(OutputSlot::new, inventory, 2, 1, 111, 35);
 
         this.propertyDelegate = delegate;

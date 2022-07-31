@@ -1,6 +1,6 @@
 package com.smashingmods.alchemistry.common.block.dissolver;
 
-import com.smashingmods.alchemistry.api.blockentity.slots.OutputSlot;
+import com.smashingmods.alchemistry.api.container.slots.OutputSlot;
 import com.smashingmods.alchemistry.api.container.AbstractAlchemistryScreenHandler;
 import com.smashingmods.alchemistry.registry.ScreenRegistry;
 import net.minecraft.block.entity.BlockEntity;

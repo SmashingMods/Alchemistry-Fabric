@@ -18,6 +18,7 @@ import net.minecraft.util.math.BlockPos;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Optional;
 
 public class CompactorBlockEntity extends AbstractInventoryBlockEntity {
 
@@ -33,7 +34,6 @@ public class CompactorBlockEntity extends AbstractInventoryBlockEntity {
 
     public CompactorBlockEntity(BlockPos pos, BlockState state) {
         super(DefaultedList.ofSize(INVENTORY_SIZE, ItemStack.EMPTY), BlockEntityRegistry.COMPACTOR_BLOCK_ENTITY, pos, state, Config.Common.compactorEnergyCapacity.get());
-        this.target = ItemStack.EMPTY;
         this.maxProgress = Config.Common.compactorTicksPerOperation.get();
         this.propertyDelegate = new PropertyDelegate() {
             public int get(int index) {
@@ -66,10 +66,14 @@ public class CompactorBlockEntity extends AbstractInventoryBlockEntity {
     public void updateRecipe() {
         if (world == null || world.isClient() || isRecipeLocked()) return;
         if (!getStackInSlot(INPUT_SLOT_INDEX).isEmpty()) {
+            // Update recipe
             SimpleInventory inventory = new SimpleInventory(getItems().size());
             inventory.addStack(getItems().get(INPUT_SLOT_INDEX));
             if (target.isEmpty()) {
-                List<CompactorRecipe> recipes = world.getRecipeManager().getAllMatches(CompactorRecipe.Type.INSTANCE, inventory, world);
+                // Find recipe without target
+                List<CompactorRecipe> recipes = world.getRecipeManager().getAllMatches(CompactorRecipe.Type.INSTANCE, inventory, world).stream()
+                        .filter(recipe -> ItemStack.canCombine(getStackInSlot(0), recipe.getInput()))
+                        .toList();
                 if (recipes.size() == 1) {
                     if (currentRecipe == null || !currentRecipe.equals(recipes.get(0))) {
                         setProgress(0);
@@ -77,10 +81,12 @@ public class CompactorBlockEntity extends AbstractInventoryBlockEntity {
                         setTarget(recipes.get(0).getOutput().copy());
                     }
                 } else {
+                    // Several recipes found, do nothing
                     setProgress(0);
                     setRecipe(null);
                 }
             } else {
+                // Find recipe with target
                 world.getRecipeManager().getAllMatches(CompactorRecipe.Type.INSTANCE, inventory, world).stream()
                         .filter(recipe -> ItemStack.canCombine(target, recipe.getOutput()))
                         .findFirst()
@@ -128,10 +134,6 @@ public class CompactorBlockEntity extends AbstractInventoryBlockEntity {
         } else {
             currentRecipe = (CompactorRecipe) recipe;
             target = recipe.getOutput();
-            if (world != null && !world.isClient()) {
-                // TODO: Send Packet
-                //AlchemistryPacketHandler.sendToNear(new BlockEntityPacket(getBlockPos(), getUpdateTag()), level, getBlockPos(), 64);
-            }
         }
     }
 
@@ -144,10 +146,24 @@ public class CompactorBlockEntity extends AbstractInventoryBlockEntity {
         return target;
     }
 
-    public void setTarget(ItemStack pTarget) {
+    public void setTarget(ItemStack targetStack) {
         if (world != null && !world.isClient() && !isRecipeLocked()) {
-            this.target = pTarget;
+            if (isTargetValid(targetStack)) {
+                this.target = targetStack;
+                this.markDirty();
+                world.updateListeners(this.pos, this.getCachedState(), this.getCachedState(), 3);
+            }
         }
+    }
+
+    private boolean isTargetValid(ItemStack itemStack) {
+        if (world != null && !world.isClient()) {
+            Optional<CompactorRecipe> match = world.getRecipeManager().getAllMatches(CompactorRecipe.Type.INSTANCE, new SimpleInventory(1), world).stream()
+                    .filter(recipe -> ItemStack.canCombine(recipe.getOutput().copy(), itemStack.copy()))
+                    .findFirst();
+            return match.isPresent();
+        }
+        return false;
     }
 
     @Override

@@ -1,4 +1,4 @@
-package com.smashingmods.alchemistry.api.blockentity.slots;
+package com.smashingmods.alchemistry.api.container.slots;
 
 import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;
