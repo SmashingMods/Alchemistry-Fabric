@@ -50,6 +50,8 @@ public class BlockEntityRegistry {
         EnergyStorage.SIDED.registerForBlockEntity((myBlockEntity, direction) -> myBlockEntity.getEnergyStorage(), ATOMIZER_BLOCK_ENTITY);
         EnergyStorage.SIDED.registerForBlockEntity((myBlockEntity, direction) -> myBlockEntity.getEnergyStorage(), COMPACTOR_BLOCK_ENTITY);
         EnergyStorage.SIDED.registerForBlockEntity((myBlockEntity, direction) -> myBlockEntity.getEnergyStorage(), COMBINER_BLOCK_ENTITY);
+        EnergyStorage.SIDED.registerForBlockEntity((myBlockEntity, direction) -> myBlockEntity.getEnergyStorage(), FISSION_CONTROLLER_BLOCK_ENTITY);
+        EnergyStorage.SIDED.registerForBlockEntity((myBlockEntity, direction) -> myBlockEntity.getEnergyStorage(), FUSION_CONTROLLER_BLOCK_ENTITY);
 
         // Register fluid storage for block entity
         FluidStorage.SIDED.registerForBlockEntity((myTank, direction) -> myTank.getFluidStorage(), LIQUIFIER_BLOCK_ENTITY);

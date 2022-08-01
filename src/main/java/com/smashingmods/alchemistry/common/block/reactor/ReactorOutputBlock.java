@@ -30,12 +30,9 @@ public class ReactorOutputBlock extends AbstractAlchemistryBlock {
     public void onStateReplaced(BlockState state, World world, BlockPos pos, BlockState newState, boolean moved) {
         if (!world.isClient()) {
             if (world.getBlockEntity(pos) instanceof ReactorOutputBlockEntity blockEntity) {
-                // TODO: Implement
-                /**
                 if (blockEntity.getController() != null) {
                     blockEntity.getController().setOutputFound(false);
                 }
-                 */
             }
         }
         super.onStateReplaced(state, world, pos, newState, moved);

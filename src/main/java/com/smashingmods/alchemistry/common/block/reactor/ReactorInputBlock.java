@@ -30,12 +30,9 @@ public class ReactorInputBlock extends AbstractAlchemistryBlock {
     public void onStateReplaced(BlockState state, World world, BlockPos pos, BlockState newState, boolean moved) {
         if (!world.isClient()) {
             if (world.getBlockEntity(pos) instanceof ReactorInputBlockEntity blockEntity) {
-                // TODO: Implement
-                /**
                 if (blockEntity.getController() != null) {
                     blockEntity.getController().setInputFound(false);
                 }
-                 */
             }
         }
         super.onStateReplaced(state, world, pos, newState, moved);
