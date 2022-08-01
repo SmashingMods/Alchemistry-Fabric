@@ -15,6 +15,8 @@ public class ItemRegistry {
     public static final BlockItem ATOMIZER = new BlockItem(BlockRegistry.ATOMIZER, ITEM_SETTINGS);
     public static final BlockItem COMPACTOR = new BlockItem(BlockRegistry.COMPACTOR, ITEM_SETTINGS);
     public static final BlockItem COMBINER = new BlockItem(BlockRegistry.COMBINER, ITEM_SETTINGS);
+    public static final BlockItem FUSION_CORE = new BlockItem(BlockRegistry.FUSION_CORE, ITEM_SETTINGS);
+    public static final BlockItem FISSION_CORE = new BlockItem(BlockRegistry.FISSION_CORE, ITEM_SETTINGS);
 
     public static void registerItems() {
         Registry.register(Registry.ITEM, new Identifier(Alchemistry.MOD_ID, "dissolver"), DISSOLVER);
@@ -22,5 +24,7 @@ public class ItemRegistry {
         Registry.register(Registry.ITEM, new Identifier(Alchemistry.MOD_ID, "atomizer"), ATOMIZER);
         Registry.register(Registry.ITEM, new Identifier(Alchemistry.MOD_ID, "compactor"), COMPACTOR);
         Registry.register(Registry.ITEM, new Identifier(Alchemistry.MOD_ID, "combiner"), COMBINER);
+        Registry.register(Registry.ITEM, new Identifier(Alchemistry.MOD_ID, "fusion_core"), FUSION_CORE);
+        Registry.register(Registry.ITEM, new Identifier(Alchemistry.MOD_ID, "fission_core"), FISSION_CORE);
     }
 }

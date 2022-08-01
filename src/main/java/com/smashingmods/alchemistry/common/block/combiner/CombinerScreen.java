@@ -96,11 +96,11 @@ public class CombinerScreen extends AbstractAlchemistryScreen<CombinerScreenHand
         super.render(matrices, mouseX, mouseY, delta);
         renderRecipeBox(matrices, mouseX, mouseY);
         renderCurrentRecipe(matrices, mouseX, mouseY);
-
         renderDisplayData(displayData, matrices, this.x, this.y);
-        renderDisplayTooltip(displayData, matrices, this.x, this.y, mouseX, mouseY);
+
         drawMouseoverTooltip(matrices, mouseX, mouseY);
         renderRecipeTooltips(matrices, mouseX, mouseY);
+        renderDisplayTooltip(displayData, matrices, this.x, this.y, mouseX, mouseY);
     }
 
     @Override
