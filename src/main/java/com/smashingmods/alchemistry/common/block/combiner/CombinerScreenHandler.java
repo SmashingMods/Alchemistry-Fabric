@@ -16,6 +16,8 @@ import net.minecraft.screen.ArrayPropertyDelegate;
 import net.minecraft.screen.PropertyDelegate;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.registry.Registry;
 import net.minecraft.world.World;
 
 import java.util.ArrayList;
@@ -100,14 +102,15 @@ public class CombinerScreenHandler extends AbstractAlchemistryScreenHandler {
     }
 
     public List<CombinerRecipe> getDisplayedRecipes() {
-        return blockEntity.getRecipes().stream().sorted().toList();
+        return displayedRecipes.stream().sorted().toList();
     }
 
     public void searchRecipeList(String pKeyword) {
         this.displayedRecipes.clear();
         this.displayedRecipes.addAll(this.blockEntity.getRecipes().stream().filter(recipe -> {
             Objects.requireNonNull(recipe.getOutput().getItem().getName());
-            return recipe.getOutput().getItem().getName().toString().contains(pKeyword.toLowerCase().replace(" ", "_"));
+            Identifier id = Registry.ITEM.getId(recipe.getOutput().getItem());
+            return id.getPath().contains(pKeyword.toLowerCase().replace(" ", "_"));
         }).toList());
     }
 }

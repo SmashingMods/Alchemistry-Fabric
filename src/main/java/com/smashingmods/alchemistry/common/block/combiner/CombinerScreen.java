@@ -45,6 +45,7 @@ public class CombinerScreen extends AbstractAlchemistryScreen<CombinerScreenHand
     private float scrollOffset;
     private boolean scrolling;
     private int startIndex;
+    private int editBoxCharacters;
 
     public CombinerScreen(CombinerScreenHandler handler, PlayerInventory inventory, Text title) {
         super(handler, inventory, title);
@@ -53,6 +54,7 @@ public class CombinerScreen extends AbstractAlchemistryScreen<CombinerScreenHand
         this.displayData.add(new ProgressDisplayData(handler.getPropertyDelegate(), 0, 1, 65, 84, 60, 9, Direction2D.RIGHT));
         this.displayData.add(new EnergyDisplayData(handler.getPropertyDelegate(), 2, 3, 156, 23, 16, 54));
         this.blockEntity = (CombinerBlockEntity) handler.getBlockEntity();
+        this.editBoxCharacters = 0;
 
         this.editBox = new TextFieldWidget(MinecraftClient.getInstance().textRenderer, 0, 0, 72, 12, Text.literal(""));
         if (!blockEntity.getEditBoxText().isEmpty()) {
@@ -64,16 +66,25 @@ public class CombinerScreen extends AbstractAlchemistryScreen<CombinerScreenHand
     @Override
     protected void handledScreenTick() {
         if (editBox.getText().isEmpty()) {
-            blockEntity.setEditBoxText("");
+            setEditBoxText("");
             handler.resetDisplayedRecipes();
             editBox.setSuggestion(I18n.translate("alchemistry.container.combiner.search"));
+        } else if (blockEntity.getEditBoxText().length() != editBoxCharacters) {
+            editBoxCharacters = blockEntity.getEditBoxText().length();
+            mouseScrolled(0, 0, 0);
+            setEditBoxText(editBox.getText());
+            handler.searchRecipeList(editBox.getText());
+            editBox.setSuggestion("");
         } else {
             mouseScrolled(0, 0, 0);
-            blockEntity.setEditBoxText(editBox.getText());
-            handler.searchRecipeList(editBox.getText());
+            setEditBoxText(editBox.getText());
             editBox.setSuggestion("");
         }
         super.handledScreenTick();
+    }
+
+    private void setEditBoxText(String text) {
+        blockEntity.setEditBoxText(editBox.getText());
     }
 
     @Override
