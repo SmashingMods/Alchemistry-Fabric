@@ -10,8 +10,9 @@ import com.smashingmods.chemlib.common.items.ChemicalItem;
 import com.smashingmods.chemlib.common.items.CompoundItem;
 import com.smashingmods.chemlib.common.items.ElementItem;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.EditBox;
+import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.render.GameRenderer;
+import net.minecraft.client.resource.language.I18n;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
@@ -32,7 +33,7 @@ public class CombinerScreen extends AbstractAlchemistryScreen<CombinerScreenHand
 
     protected final List<DisplayData> displayData = new ArrayList<>();
     private final CombinerBlockEntity blockEntity;
-    protected final EditBox editBox;
+    protected final TextFieldWidget editBox;
 
     private final int DISPLAYED_SLOTS = 12;
     private final int RECIPE_BOX_SIZE = 18;
@@ -48,7 +49,7 @@ public class CombinerScreen extends AbstractAlchemistryScreen<CombinerScreenHand
         this.displayData.add(new EnergyDisplayData(handler.getPropertyDelegate(), 2, 3, 156, 23, 16, 54));
         this.blockEntity = (CombinerBlockEntity) handler.getBlockEntity();
 
-        this.editBox = new EditBox(MinecraftClient.getInstance().textRenderer, 72);
+        this.editBox = new TextFieldWidget(MinecraftClient.getInstance().textRenderer, 0, 0, 72, 12, Text.literal(""));
         if (!blockEntity.getEditBoxText().isEmpty()) {
             editBox.setText(blockEntity.getEditBoxText());
             handler.searchRecipeList(blockEntity.getEditBoxText());
@@ -60,12 +61,12 @@ public class CombinerScreen extends AbstractAlchemistryScreen<CombinerScreenHand
         if (editBox.getText().isEmpty()) {
             blockEntity.setEditBoxText("");
             handler.resetDisplayedRecipes();
-            //editBox.setSuggestion(I18n.translate("alchemistry.container.combiner.search"));
+            editBox.setSuggestion(I18n.translate("alchemistry.container.combiner.search"));
         } else {
             mouseScrolled(0, 0, 0);
             blockEntity.setEditBoxText(editBox.getText());
             handler.searchRecipeList(editBox.getText());
-            //editBox.setSuggestion("");
+            editBox.setSuggestion("");
         }
         super.handledScreenTick();
     }
@@ -99,7 +100,7 @@ public class CombinerScreen extends AbstractAlchemistryScreen<CombinerScreenHand
     @Override
     public void renderWidgets() {
         super.renderWidgets();
-        //renderWidget(editBox, x + 57, y + 7);
+        renderWidget(editBox, x + 57, y + 7);
     }
 
     protected void renderRecipeBox(MatrixStack matrices, int mouseX, int mouseY) {
