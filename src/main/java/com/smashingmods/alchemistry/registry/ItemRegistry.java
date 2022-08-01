@@ -20,6 +20,7 @@ public class ItemRegistry {
     public static final BlockItem REACTOR_GLASS = new BlockItem(BlockRegistry.REACTOR_GLASS, ITEM_SETTINGS);
     public static final BlockItem REACTOR_ENERGY = new BlockItem(BlockRegistry.REACTOR_ENERGY, ITEM_SETTINGS);
     public static final BlockItem REACTOR_INPUT = new BlockItem(BlockRegistry.REACTOR_INPUT, ITEM_SETTINGS);
+    public static final BlockItem REACTOR_OUTPUT = new BlockItem(BlockRegistry.REACTOR_OUTPUT, ITEM_SETTINGS);
 
     public static void registerItems() {
         Registry.register(Registry.ITEM, new Identifier(Alchemistry.MOD_ID, "dissolver"), DISSOLVER);
@@ -32,5 +33,6 @@ public class ItemRegistry {
         Registry.register(Registry.ITEM, new Identifier(Alchemistry.MOD_ID, "reactor_glass"), REACTOR_GLASS);
         Registry.register(Registry.ITEM, new Identifier(Alchemistry.MOD_ID, "reactor_energy"), REACTOR_ENERGY);
         Registry.register(Registry.ITEM, new Identifier(Alchemistry.MOD_ID, "reactor_input"), REACTOR_INPUT);
+        Registry.register(Registry.ITEM, new Identifier(Alchemistry.MOD_ID, "reactor_output"), REACTOR_OUTPUT);
     }
 }

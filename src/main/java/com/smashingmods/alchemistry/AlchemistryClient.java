@@ -25,7 +25,7 @@ public class AlchemistryClient implements ClientModInitializer {
         HandledScreens.register(ScreenRegistry.COMBINER_SCREEN_HANDLER, CombinerScreen::new);
 
         // Make glass block translucent
-        BlockRenderLayerMap.INSTANCE.putBlock(BlockRegistry.REACTOR_GLASS, RenderLayer.getCutout());
+        BlockRenderLayerMap.INSTANCE.putBlock(BlockRegistry.REACTOR_GLASS, RenderLayer.getTranslucent());
 
         // Register client-side packet handlers
         AlchemistryNetwork.registerClientHandlers();

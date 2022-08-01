@@ -25,6 +25,7 @@ public class BlockRegistry {
     public static final ReactorGlassBlock REACTOR_GLASS = new ReactorGlassBlock();
     public static final ReactorEnergyBlock REACTOR_ENERGY = new ReactorEnergyBlock();
     public static final ReactorInputBlock REACTOR_INPUT = new ReactorInputBlock();
+    public static final ReactorInputBlock REACTOR_OUTPUT = new ReactorInputBlock();
 
     public static void registerBlocks() {
         Registry.register(Registry.BLOCK, new Identifier(Alchemistry.MOD_ID, "dissolver"), DISSOLVER);
@@ -37,5 +38,6 @@ public class BlockRegistry {
         Registry.register(Registry.BLOCK, new Identifier(Alchemistry.MOD_ID, "reactor_glass"), REACTOR_GLASS);
         Registry.register(Registry.BLOCK, new Identifier(Alchemistry.MOD_ID, "reactor_energy"), REACTOR_ENERGY);
         Registry.register(Registry.BLOCK, new Identifier(Alchemistry.MOD_ID, "reactor_input"), REACTOR_INPUT);
+        Registry.register(Registry.BLOCK, new Identifier(Alchemistry.MOD_ID, "reactor_output"), REACTOR_OUTPUT);
     }
 }

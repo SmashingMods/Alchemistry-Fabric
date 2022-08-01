@@ -10,10 +10,10 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
-public class ReactorInputBlock extends AbstractAlchemistryBlock {
+public class ReactorOutputBlock extends AbstractAlchemistryBlock {
 
-    public ReactorInputBlock() {
-        super(ReactorInputBlockEntity::new);
+    public ReactorOutputBlock() {
+        super(ReactorOutputBlockEntity::new);
     }
 
     @Override
@@ -29,11 +29,11 @@ public class ReactorInputBlock extends AbstractAlchemistryBlock {
     @Override
     public void onStateReplaced(BlockState state, World world, BlockPos pos, BlockState newState, boolean moved) {
         if (!world.isClient()) {
-            if (world.getBlockEntity(pos) instanceof ReactorInputBlockEntity blockEntity) {
+            if (world.getBlockEntity(pos) instanceof ReactorOutputBlockEntity blockEntity) {
                 // TODO: Implement
                 /**
                 if (blockEntity.getController() != null) {
-                    blockEntity.getController().setInputFound(false);
+                    blockEntity.getController().setOutputFound(false);
                 }
                  */
             }

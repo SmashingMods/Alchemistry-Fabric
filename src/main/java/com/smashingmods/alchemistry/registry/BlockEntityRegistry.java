@@ -9,6 +9,7 @@ import com.smashingmods.alchemistry.common.block.liquifier.LiquifierBlockEntity;
 import com.smashingmods.alchemistry.common.block.reactor.ReactorEnergyBlockEntity;
 import com.smashingmods.alchemistry.common.block.reactor.ReactorInputBlock;
 import com.smashingmods.alchemistry.common.block.reactor.ReactorInputBlockEntity;
+import com.smashingmods.alchemistry.common.block.reactor.ReactorOutputBlockEntity;
 import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorage;
 import net.minecraft.block.entity.BlockEntityType;
@@ -25,6 +26,7 @@ public class BlockEntityRegistry {
     public static final BlockEntityType<CombinerBlockEntity> COMBINER_BLOCK_ENTITY = FabricBlockEntityTypeBuilder.create(CombinerBlockEntity::new, BlockRegistry.COMBINER).build(null);
     public static final BlockEntityType<ReactorEnergyBlockEntity> REACTOR_ENERGY_BLOCK_ENTITY = FabricBlockEntityTypeBuilder.create(ReactorEnergyBlockEntity::new, BlockRegistry.REACTOR_ENERGY).build(null);
     public static final BlockEntityType<ReactorInputBlockEntity> REACTOR_INPUT_BLOCK_ENTITY = FabricBlockEntityTypeBuilder.create(ReactorInputBlockEntity::new, BlockRegistry.REACTOR_INPUT).build(null);
+    public static final BlockEntityType<ReactorOutputBlockEntity> REACTOR_OUTPUT_BLOCK_ENTITY = FabricBlockEntityTypeBuilder.create(ReactorOutputBlockEntity::new, BlockRegistry.REACTOR_OUTPUT).build(null);
 
     public static void registerBlockEntities() {
         // Register block entity
@@ -35,6 +37,7 @@ public class BlockEntityRegistry {
         Registry.register(Registry.BLOCK_ENTITY_TYPE, new Identifier(Alchemistry.MOD_ID, "combiner_block_entity"), COMBINER_BLOCK_ENTITY);
         Registry.register(Registry.BLOCK_ENTITY_TYPE, new Identifier(Alchemistry.MOD_ID, "reactor_energy_block_entity"), REACTOR_ENERGY_BLOCK_ENTITY);
         Registry.register(Registry.BLOCK_ENTITY_TYPE, new Identifier(Alchemistry.MOD_ID, "reactor_input_block_entity"), REACTOR_INPUT_BLOCK_ENTITY);
+        Registry.register(Registry.BLOCK_ENTITY_TYPE, new Identifier(Alchemistry.MOD_ID, "reactor_output_block_entity"), REACTOR_OUTPUT_BLOCK_ENTITY);
 
         // Register energy storage for block entity
         EnergyStorage.SIDED.registerForBlockEntity((myBlockEntity, direction) -> myBlockEntity.getEnergyStorage(), DISSOLVER_BLOCK_ENTITY);
