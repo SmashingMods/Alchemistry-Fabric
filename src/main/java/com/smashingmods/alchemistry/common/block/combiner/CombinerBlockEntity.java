@@ -27,7 +27,7 @@ public class CombinerBlockEntity extends AbstractInventoryBlockEntity {
 
     protected final PropertyDelegate propertyDelegate;
     private final int maxProgress;
-    private List<CombinerRecipe> recipes;
+    private final List<CombinerRecipe> recipes;
     private CombinerRecipe currentRecipe;
     private int selectedRecipe;
     private String editBoxText;

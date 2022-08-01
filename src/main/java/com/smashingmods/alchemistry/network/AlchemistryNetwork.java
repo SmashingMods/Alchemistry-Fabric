@@ -1,9 +1,6 @@
 package com.smashingmods.alchemistry.network;
 
-import com.smashingmods.alchemistry.network.packets.AlchemistryPacket;
-import com.smashingmods.alchemistry.network.packets.CombinerRecipePacket;
-import com.smashingmods.alchemistry.network.packets.ProcessingButtonPacket;
-import com.smashingmods.alchemistry.network.packets.CompactorButtonPacket;
+import com.smashingmods.alchemistry.network.packets.*;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -26,6 +23,9 @@ public class AlchemistryNetwork {
         }
         else if (packet instanceof CompactorButtonPacket targetUpdatePacket) {
             ClientPlayNetworking.send(CompactorButtonPacket.PACKET_ID, targetUpdatePacket.toByteBuf());
+        }
+        else if (packet instanceof CombinerIndexPacket combinerIndexPacket) {
+            ClientPlayNetworking.send(CombinerIndexPacket.PACKET_ID, combinerIndexPacket.toByteBuf());
         }
     }
 
@@ -66,6 +66,12 @@ public class AlchemistryNetwork {
         ServerPlayNetworking.registerGlobalReceiver(CompactorButtonPacket.PACKET_ID, (server, player, handler, buf, sender) -> {
             CompactorButtonPacket packet = new CompactorButtonPacket(buf);
             server.execute(() -> CompactorButtonPacket.handle(handler, packet));
+        });
+
+        // CombinerIndexPacket
+        ServerPlayNetworking.registerGlobalReceiver(CombinerIndexPacket.PACKET_ID, (server, player, handler, buf, sender) -> {
+            CombinerIndexPacket packet = new CombinerIndexPacket(buf);
+            server.execute(() -> CombinerIndexPacket.handle(handler, packet));
         });
     }
 }

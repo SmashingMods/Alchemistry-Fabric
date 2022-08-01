@@ -1,11 +1,14 @@
 package com.smashingmods.alchemistry.common.block.combiner;
 
+import com.smashingmods.alchemistry.Alchemistry;
 import com.smashingmods.alchemistry.api.container.AbstractAlchemistryScreenHandler;
 import com.smashingmods.alchemistry.api.container.slots.OutputSlot;
 import com.smashingmods.alchemistry.common.recipe.combiner.CombinerRecipe;
 import com.smashingmods.alchemistry.network.AlchemistryNetwork;
+import com.smashingmods.alchemistry.network.packets.CombinerIndexPacket;
 import com.smashingmods.alchemistry.network.packets.CombinerRecipePacket;
 import com.smashingmods.alchemistry.registry.ScreenRegistry;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -67,7 +70,7 @@ public class CombinerScreenHandler extends AbstractAlchemistryScreenHandler {
                     CombinerRecipe recipe = blockEntity.getRecipes().get(recipeIndex);
                     this.setSelectedRecipeIndex(id);
                     this.blockEntity.setRecipe(recipe);
-                    //AlchemistryPacketHandler.INSTANCE.sendToServer(new CombinerRecipePacket(getBlockEntity().getBlockPos(), recipeIndex));
+                    AlchemistryNetwork.sendToServer(new CombinerIndexPacket(getBlockEntity().getPos(), recipeIndex));
                 }
             }
         }
@@ -90,6 +93,7 @@ public class CombinerScreenHandler extends AbstractAlchemistryScreenHandler {
         if (!world.isClient() && !this.blockEntity.isRecipesSynced()) {
             List<CombinerRecipe> recipes = world.getRecipeManager().getAllMatches(CombinerRecipe.Type.INSTANCE, new SimpleInventory(1), world).stream().sorted().toList();
             for (CombinerRecipe recipe : recipes) {
+                this.blockEntity.addRecipe(recipe);
                 AlchemistryNetwork.sendToClient(new CombinerRecipePacket(blockEntity.getPos(), recipe), (ServerPlayerEntity) viewer);
             }
             this.blockEntity.markRecipesSynced();
