@@ -10,6 +10,9 @@ import com.smashingmods.alchemistry.common.block.reactor.ReactorCoreBlock;
 import com.smashingmods.alchemistry.common.block.reactor.ReactorEnergyBlock;
 import com.smashingmods.alchemistry.common.block.reactor.ReactorGlassBlock;
 import com.smashingmods.alchemistry.common.block.reactor.ReactorInputBlock;
+import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
+import net.minecraft.block.Block;
+import net.minecraft.block.Material;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
 
@@ -26,6 +29,7 @@ public class BlockRegistry {
     public static final ReactorEnergyBlock REACTOR_ENERGY = new ReactorEnergyBlock();
     public static final ReactorInputBlock REACTOR_INPUT = new ReactorInputBlock();
     public static final ReactorInputBlock REACTOR_OUTPUT = new ReactorInputBlock();
+    public static final Block REACTOR_CASING = new Block(FabricBlockSettings.of(Material.METAL).strength(2.0f));
 
     public static void registerBlocks() {
         Registry.register(Registry.BLOCK, new Identifier(Alchemistry.MOD_ID, "dissolver"), DISSOLVER);
@@ -39,5 +43,6 @@ public class BlockRegistry {
         Registry.register(Registry.BLOCK, new Identifier(Alchemistry.MOD_ID, "reactor_energy"), REACTOR_ENERGY);
         Registry.register(Registry.BLOCK, new Identifier(Alchemistry.MOD_ID, "reactor_input"), REACTOR_INPUT);
         Registry.register(Registry.BLOCK, new Identifier(Alchemistry.MOD_ID, "reactor_output"), REACTOR_OUTPUT);
+        Registry.register(Registry.BLOCK, new Identifier(Alchemistry.MOD_ID, "reactor_casing"), REACTOR_CASING);
     }
 }
