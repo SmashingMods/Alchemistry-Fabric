@@ -221,7 +221,7 @@ public class CombinerScreen extends AbstractAlchemistryScreen<CombinerScreenHand
         List<Text> components = new ArrayList<>();
         String namespace = StringUtils.capitalize(Registry.ITEM.getId(pItemStack.getItem()).getNamespace());
 
-        components.add(Text.translatable(pTranslationKey).formatted(Formatting.UNDERLINE, Formatting.BLUE));
+        components.add(Text.translatable(pTranslationKey).formatted(Formatting.UNDERLINE, Formatting.YELLOW));
         components.add(Text.literal(String.format("%dx %s", pItemStack.getCount(), pItemStack.getItem().getName().getString())));
 
         if (pItemStack.getItem() instanceof Chemical chemical) {

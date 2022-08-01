@@ -1,7 +1,7 @@
 package com.smashingmods.alchemistry.network;
 
 import com.smashingmods.alchemistry.network.packets.AlchemistryPacket;
-import com.smashingmods.alchemistry.network.packets.BlockEntityPacket;
+import com.smashingmods.alchemistry.network.packets.CombinerRecipePacket;
 import com.smashingmods.alchemistry.network.packets.ProcessingButtonPacket;
 import com.smashingmods.alchemistry.network.packets.CompactorButtonPacket;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
@@ -34,8 +34,8 @@ public class AlchemistryNetwork {
      * @param packet a packet with data to be sent.
      */
     public static void sendToClient(AlchemistryPacket packet, ServerPlayerEntity recipient) {
-        if (packet instanceof BlockEntityPacket blockEntityPacket) {
-            ServerPlayNetworking.send(recipient, BlockEntityPacket.PACKET_ID, blockEntityPacket.toByteBuf());
+        if (packet instanceof CombinerRecipePacket blockEntityPacket) {
+            ServerPlayNetworking.send(recipient, CombinerRecipePacket.PACKET_ID, blockEntityPacket.toByteBuf());
         }
     }
 
@@ -44,9 +44,10 @@ public class AlchemistryNetwork {
      * Should only be called once inside the client mod initializer.
      */
     public static void registerClientHandlers() {
-        ClientPlayNetworking.registerGlobalReceiver(BlockEntityPacket.PACKET_ID, (client, handler, buf, sender) -> {
-            BlockEntityPacket packet = new BlockEntityPacket(buf);
-            client.execute(() -> BlockEntityPacket.handle(handler, packet));
+        // CombinerRecipePacket
+        ClientPlayNetworking.registerGlobalReceiver(CombinerRecipePacket.PACKET_ID, (client, handler, buf, sender) -> {
+            CombinerRecipePacket packet = new CombinerRecipePacket(buf);
+            client.execute(() -> CombinerRecipePacket.handle(handler, packet));
         });
     }
 

@@ -31,7 +31,7 @@ public class CombinerBlockEntity extends AbstractInventoryBlockEntity {
     private CombinerRecipe currentRecipe;
     private int selectedRecipe;
     private String editBoxText;
-
+    private boolean recipesSynced;
 
     public CombinerBlockEntity(BlockPos pos, BlockState state) {
         super(DefaultedList.ofSize(INVENTORY_SIZE, ItemStack.EMPTY), BlockEntityRegistry.COMBINER_BLOCK_ENTITY, pos, state, Config.Common.combinerEnergyCapacity.get());
@@ -39,6 +39,7 @@ public class CombinerBlockEntity extends AbstractInventoryBlockEntity {
         this.recipes = new ArrayList<>();
         this.selectedRecipe = -1;
         this.editBoxText = "";
+        this.recipesSynced = false;
         this.propertyDelegate = new PropertyDelegate() {
             public int get(int index) {
                 return switch (index) {
@@ -131,8 +132,16 @@ public class CombinerBlockEntity extends AbstractInventoryBlockEntity {
         return this.recipes;
     }
 
-    public void setRecipes(List<CombinerRecipe> recipes) {
-        this.recipes = recipes;
+    public void addRecipe(CombinerRecipe recipe) {
+        this.recipes.add(recipe);
+    }
+
+    public boolean isRecipesSynced() {
+        return recipesSynced;
+    }
+
+    public void markRecipesSynced() {
+        recipesSynced = true;
     }
 
     protected String getEditBoxText() {

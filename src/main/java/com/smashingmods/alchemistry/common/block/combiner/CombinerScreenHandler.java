@@ -3,6 +3,8 @@ package com.smashingmods.alchemistry.common.block.combiner;
 import com.smashingmods.alchemistry.api.container.AbstractAlchemistryScreenHandler;
 import com.smashingmods.alchemistry.api.container.slots.OutputSlot;
 import com.smashingmods.alchemistry.common.recipe.combiner.CombinerRecipe;
+import com.smashingmods.alchemistry.network.AlchemistryNetwork;
+import com.smashingmods.alchemistry.network.packets.CombinerRecipePacket;
 import com.smashingmods.alchemistry.registry.ScreenRegistry;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -13,6 +15,7 @@ import net.minecraft.network.PacketByteBuf;
 import net.minecraft.screen.ArrayPropertyDelegate;
 import net.minecraft.screen.PropertyDelegate;
 import net.minecraft.screen.slot.Slot;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.world.World;
 
 import java.util.ArrayList;
@@ -82,15 +85,12 @@ public class CombinerScreenHandler extends AbstractAlchemistryScreenHandler {
     }
 
     private void setupRecipeList() {
-        List<CombinerRecipe> recipes = world.getRecipeManager().getAllMatches(CombinerRecipe.Type.INSTANCE, new SimpleInventory(1), world).stream().sorted().toList();
-        if (this.displayedRecipes.isEmpty()) {
-            this.setSelectedRecipeIndex(-1);
-            this.blockEntity.setRecipes(recipes);
-            this.resetDisplayedRecipes();
-
-            if (!world.isClient()) {
-                //AlchemistryNetwork.sendToClient(new BlockEntityPacket(getBlockEntity().getPos(), blockEntity.toInitialChunkDataNbt()), (ServerPlayerEntity) viewer);
+        if (!world.isClient() && !this.blockEntity.isRecipesSynced()) {
+            List<CombinerRecipe> recipes = world.getRecipeManager().getAllMatches(CombinerRecipe.Type.INSTANCE, new SimpleInventory(1), world).stream().sorted().toList();
+            for (CombinerRecipe recipe : recipes) {
+                AlchemistryNetwork.sendToClient(new CombinerRecipePacket(blockEntity.getPos(), recipe), (ServerPlayerEntity) viewer);
             }
+            this.blockEntity.markRecipesSynced();
         }
     }
 
@@ -100,7 +100,7 @@ public class CombinerScreenHandler extends AbstractAlchemistryScreenHandler {
     }
 
     public List<CombinerRecipe> getDisplayedRecipes() {
-        return displayedRecipes;
+        return blockEntity.getRecipes().stream().sorted().toList();
     }
 
     public void searchRecipeList(String pKeyword) {
