@@ -5,6 +5,8 @@ import com.smashingmods.alchemistry.common.block.atomizer.AtomizerBlock;
 import com.smashingmods.alchemistry.common.block.combiner.CombinerBlock;
 import com.smashingmods.alchemistry.common.block.compactor.CompactorBlock;
 import com.smashingmods.alchemistry.common.block.dissolver.DissolverBlock;
+import com.smashingmods.alchemistry.common.block.fission.FissionControllerBlock;
+import com.smashingmods.alchemistry.common.block.fusion.FusionControllerBlock;
 import com.smashingmods.alchemistry.common.block.liquifier.LiquifierBlock;
 import com.smashingmods.alchemistry.common.block.reactor.ReactorCoreBlock;
 import com.smashingmods.alchemistry.common.block.reactor.ReactorEnergyBlock;
@@ -30,6 +32,8 @@ public class BlockRegistry {
     public static final ReactorInputBlock REACTOR_INPUT = new ReactorInputBlock();
     public static final ReactorInputBlock REACTOR_OUTPUT = new ReactorInputBlock();
     public static final Block REACTOR_CASING = new Block(FabricBlockSettings.of(Material.METAL).strength(2.0f));
+    public static final FissionControllerBlock FISSION_CONTROLLER = new FissionControllerBlock();
+    public static final FusionControllerBlock FUSION_CONTROLLER = new FusionControllerBlock();
 
     public static void registerBlocks() {
         Registry.register(Registry.BLOCK, new Identifier(Alchemistry.MOD_ID, "dissolver"), DISSOLVER);
@@ -44,5 +48,7 @@ public class BlockRegistry {
         Registry.register(Registry.BLOCK, new Identifier(Alchemistry.MOD_ID, "reactor_input"), REACTOR_INPUT);
         Registry.register(Registry.BLOCK, new Identifier(Alchemistry.MOD_ID, "reactor_output"), REACTOR_OUTPUT);
         Registry.register(Registry.BLOCK, new Identifier(Alchemistry.MOD_ID, "reactor_casing"), REACTOR_CASING);
+        Registry.register(Registry.BLOCK, new Identifier(Alchemistry.MOD_ID, "fission_chamber_controller"), FISSION_CONTROLLER);
+        Registry.register(Registry.BLOCK, new Identifier(Alchemistry.MOD_ID, "fusion_chamber_controller"), FUSION_CONTROLLER);
     }
 }
