@@ -13,18 +13,23 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.resource.language.I18n;
+import net.minecraft.client.sound.PositionedSoundInstance;
+import net.minecraft.client.util.InputUtil;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
+import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.registry.Registry;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 public class CombinerScreen extends AbstractAlchemistryScreen<CombinerScreenHandler> {
@@ -199,7 +204,6 @@ public class CombinerScreen extends AbstractAlchemistryScreen<CombinerScreenHand
         List<CombinerRecipe> displayedRecipes = handler.getDisplayedRecipes();
 
         for (int index = startIndex; index < startIndex + DISPLAYED_SLOTS && index < displayedRecipes.size(); index++) {
-
             ItemStack output = displayedRecipes.get(index).getOutput();
 
             int firstVisibleIndex = index - startIndex;
@@ -221,7 +225,6 @@ public class CombinerScreen extends AbstractAlchemistryScreen<CombinerScreenHand
         components.add(Text.literal(String.format("%dx %s", pItemStack.getCount(), pItemStack.getItem().getName().getString())));
 
         if (pItemStack.getItem() instanceof Chemical chemical) {
-
             String abbreviation = chemical.getAbbreviation();
 
             if (chemical instanceof ElementItem element) {
@@ -239,7 +242,98 @@ public class CombinerScreen extends AbstractAlchemistryScreen<CombinerScreenHand
         renderTooltip(matrices, components, Optional.empty(), pMouseX, pMouseY);
     }
 
+    @Override
+    public boolean keyPressed(int pKeyCode, int pScanCode, int pModifiers) {
+        if (pKeyCode == InputUtil.GLFW_KEY_E && editBox.isFocused()) {
+            return false;
+        } else if (pKeyCode == InputUtil.GLFW_KEY_TAB && !editBox.isFocused()) {
+            editBox.setTextFieldFocused(true);
+            editBox.setEditable(true);
+            editBox.active = true;
+        } else if (pKeyCode == InputUtil.GLFW_KEY_ESCAPE && editBox.isFocused()) {
+            editBox.setTextFieldFocused(false);
+            editBox.setEditable(false);
+            editBox.active = false;
+            return false;
+        }
+        return super.keyPressed(pKeyCode, pScanCode, pModifiers);
+    }
+
+    @Override
+    public boolean mouseClicked(double pMouseX, double pMouseY, int pButton) {
+        Objects.requireNonNull(MinecraftClient.getInstance().player);
+        Objects.requireNonNull(MinecraftClient.getInstance().interactionManager);
+
+        int editBoxMinX = x + 57;
+        int editBoxMaxX = editBoxMinX + 72;
+        int editBoxMinY = y + 7;
+        int editBoxMaxY = editBoxMinY + 12;
+
+        if (pMouseX >= editBoxMinX && pMouseX < editBoxMaxX && pMouseY >= editBoxMinY && pMouseY < editBoxMaxY) {
+            editBox.onClick(pMouseX, pMouseY);
+        } else {
+            editBox.active = false;
+        }
+        scrolling = false;
+
+        int recipeBoxLeftPos = x + 57;
+        int recipeBoxTopPos = y + 23;
+        int k = startIndex + DISPLAYED_SLOTS;
+
+        for (int index = this.startIndex; index < k; index++) {
+            int currentIndex = index - startIndex;
+            double boxX = pMouseX - (double)(recipeBoxLeftPos + currentIndex % 4 * RECIPE_BOX_SIZE);
+            double boxY = pMouseY - (double)(recipeBoxTopPos + currentIndex / 4 * RECIPE_BOX_SIZE);
+
+            if (boxX >= 0 && boxY >= 0 && boxX < RECIPE_BOX_SIZE && boxY < RECIPE_BOX_SIZE && handler.onButtonClick(MinecraftClient.getInstance().player, index)) {
+                MinecraftClient.getInstance().getSoundManager().play(PositionedSoundInstance.master(SoundEvents.UI_STONECUTTER_SELECT_RECIPE, 1.0F));
+                MinecraftClient.getInstance().interactionManager.clickButton((handler).syncId, index);
+                return true;
+            }
+
+            int scrollMinX = recipeBoxLeftPos + 75;
+            int scrollMaxX = recipeBoxLeftPos + 87;
+            int scrollMaxY = recipeBoxTopPos + 54;
+            if (pMouseX >= scrollMinX
+                    && pMouseX < scrollMaxX
+                    && pMouseY >= recipeBoxTopPos
+                    && pMouseY < scrollMaxY) {
+                scrolling = true;
+            }
+        }
+        return super.mouseClicked(pMouseX, pMouseY, pButton);
+    }
+
+    @Override
+    public boolean mouseDragged(double pMouseX, double pMouseY, int pButton, double pDragX, double pDragY) {
+        if (scrolling && isScrollBarActive()) {
+            int i = y + 14;
+            int j = i + 54;
+            scrollOffset = ((float)pMouseY - (float)i - 7.5F) / ((float)(j - i) - 15.0F);
+            scrollOffset = MathHelper.clamp(scrollOffset, 0.0F, 1.0F);
+            startIndex = (int)((double)(scrollOffset * (float) getOffscreenRows()) + 0.5D) * 4;
+            return true;
+        } else {
+            return super.mouseDragged(pMouseX, pMouseY, pButton, pDragX, pDragY);
+        }
+    }
+
+    @Override
+    public boolean mouseScrolled(double pMouseX, double pMouseY, double pDelta) {
+        if (isScrollBarActive()) {
+            int offscreenRows = getOffscreenRows();
+            float f = (float) pDelta / (float) offscreenRows;
+            scrollOffset = MathHelper.clamp(scrollOffset - f, 0.0F, 1.0F);
+            startIndex = (int)((double)(scrollOffset * (float) offscreenRows) + 0.5D) * 4;
+        }
+        return true;
+    }
+
     private boolean isScrollBarActive() {
         return handler.getDisplayedRecipes().size() > 12;
+    }
+
+    private int getOffscreenRows() {
+        return (handler.getDisplayedRecipes().size() + 4 - 1) / 4 - 3;
     }
 }
