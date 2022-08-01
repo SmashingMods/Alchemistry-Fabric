@@ -18,6 +18,7 @@ public class ItemRegistry {
     public static final BlockItem FUSION_CORE = new BlockItem(BlockRegistry.FUSION_CORE, ITEM_SETTINGS);
     public static final BlockItem FISSION_CORE = new BlockItem(BlockRegistry.FISSION_CORE, ITEM_SETTINGS);
     public static final BlockItem REACTOR_GLASS = new BlockItem(BlockRegistry.REACTOR_GLASS, ITEM_SETTINGS);
+    public static final BlockItem REACTOR_ENERGY = new BlockItem(BlockRegistry.REACTOR_ENERGY, ITEM_SETTINGS);
 
     public static void registerItems() {
         Registry.register(Registry.ITEM, new Identifier(Alchemistry.MOD_ID, "dissolver"), DISSOLVER);
@@ -28,5 +29,6 @@ public class ItemRegistry {
         Registry.register(Registry.ITEM, new Identifier(Alchemistry.MOD_ID, "fusion_core"), FUSION_CORE);
         Registry.register(Registry.ITEM, new Identifier(Alchemistry.MOD_ID, "fission_core"), FISSION_CORE);
         Registry.register(Registry.ITEM, new Identifier(Alchemistry.MOD_ID, "reactor_glass"), REACTOR_GLASS);
+        Registry.register(Registry.ITEM, new Identifier(Alchemistry.MOD_ID, "reactor_energy"), REACTOR_ENERGY);
     }
 }

@@ -6,9 +6,12 @@ import com.smashingmods.alchemistry.common.block.compactor.CompactorScreen;
 import com.smashingmods.alchemistry.common.block.liquifier.LiquifierScreen;
 import com.smashingmods.alchemistry.network.AlchemistryNetwork;
 import com.smashingmods.alchemistry.common.block.dissolver.DissolverScreen;
+import com.smashingmods.alchemistry.registry.BlockRegistry;
 import com.smashingmods.alchemistry.registry.ScreenRegistry;
 import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
 import net.minecraft.client.gui.screen.ingame.HandledScreens;
+import net.minecraft.client.render.RenderLayer;
 
 public class AlchemistryClient implements ClientModInitializer {
 
@@ -20,6 +23,9 @@ public class AlchemistryClient implements ClientModInitializer {
         HandledScreens.register(ScreenRegistry.ATOMIZER_SCREEN_HANDLER, AtomizerScreen::new);
         HandledScreens.register(ScreenRegistry.COMPACTOR_SCREEN_HANDLER, CompactorScreen::new);
         HandledScreens.register(ScreenRegistry.COMBINER_SCREEN_HANDLER, CombinerScreen::new);
+
+        // Make glass block translucent
+        BlockRenderLayerMap.INSTANCE.putBlock(BlockRegistry.REACTOR_GLASS, RenderLayer.getCutout());
 
         // Register client-side packet handlers
         AlchemistryNetwork.registerClientHandlers();
