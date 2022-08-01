@@ -13,13 +13,13 @@ import net.minecraft.util.Identifier;
 import java.util.ArrayList;
 import java.util.List;
 
-public class FissionScreen extends AbstractAlchemistryScreen<FissionScreenHandler> {
+public class FissionControllerScreen extends AbstractAlchemistryScreen<FissionControllerScreenHandler> {
 
     private static final Identifier TEXTURE = new Identifier(Alchemistry.MOD_ID, "textures/gui/fission_gui.png");
 
     protected final List<DisplayData> displayData = new ArrayList<>();
 
-    public FissionScreen(FissionScreenHandler handler, PlayerInventory inventory, Text title) {
+    public FissionControllerScreen(FissionControllerScreenHandler handler, PlayerInventory inventory, Text title) {
         super(handler, inventory, title);
         displayData.add(new ProgressDisplayData(handler.getPropertyDelegate(), 0, 1, 74, 39, 60, 9, Direction2D.RIGHT));
         displayData.add(new EnergyDisplayData(handler.getPropertyDelegate(), 2, 3, 17, 16, 16, 54));

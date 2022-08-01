@@ -3,7 +3,6 @@ package com.smashingmods.alchemistry.common.block.fission;
 import com.smashingmods.alchemistry.Config;
 import com.smashingmods.alchemistry.api.blockentity.AbstractReactorBlockEntity;
 import com.smashingmods.alchemistry.api.blockentity.ReactorType;
-import com.smashingmods.alchemistry.common.block.dissolver.DissolverScreenHandler;
 import com.smashingmods.alchemistry.registry.BlockEntityRegistry;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
@@ -80,6 +79,6 @@ public class FissionControllerBlockEntity extends AbstractReactorBlockEntity {
     @Nullable
     @Override
     public ScreenHandler createMenu(int syncId, PlayerInventory inv, PlayerEntity player) {
-        return new FissionScreenHandler(syncId, inv, this, this, this.propertyDelegate);
+        return new FissionControllerScreenHandler(syncId, inv, this, this, this.propertyDelegate);
     }
 }

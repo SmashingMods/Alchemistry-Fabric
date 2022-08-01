@@ -15,15 +15,15 @@ import net.minecraft.screen.slot.Slot;
 
 import java.util.Objects;
 
-public class FissionScreenHandler extends AbstractAlchemistryScreenHandler {
+public class FissionControllerScreenHandler extends AbstractAlchemistryScreenHandler {
 
     protected final PropertyDelegate propertyDelegate;
 
-    public FissionScreenHandler(int syncId, PlayerInventory playerInventory, PacketByteBuf buffer) {
+    public FissionControllerScreenHandler(int syncId, PlayerInventory playerInventory, PacketByteBuf buffer) {
         this(syncId, playerInventory,Objects.requireNonNull(playerInventory.player.getWorld().getBlockEntity(buffer.readBlockPos())), new SimpleInventory(FissionControllerBlockEntity.INVENTORY_SIZE), new ArrayPropertyDelegate(4));
     }
 
-    protected FissionScreenHandler(int syncId, PlayerInventory playerInventory, BlockEntity blockEntity, Inventory inventory, PropertyDelegate delegate) {
+    protected FissionControllerScreenHandler(int syncId, PlayerInventory playerInventory, BlockEntity blockEntity, Inventory inventory, PropertyDelegate delegate) {
         super(ScreenRegistry.FISSION_SCREEN_HANDLER, syncId, playerInventory, blockEntity, inventory, delegate, 1, DissolverBlockEntity.INVENTORY_SIZE-1);
 
         addSlots(Slot::new, inventory, 0, 1, 44, 35);

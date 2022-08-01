@@ -3,7 +3,8 @@ package com.smashingmods.alchemistry;
 import com.smashingmods.alchemistry.common.block.atomizer.AtomizerScreen;
 import com.smashingmods.alchemistry.common.block.combiner.CombinerScreen;
 import com.smashingmods.alchemistry.common.block.compactor.CompactorScreen;
-import com.smashingmods.alchemistry.common.block.fission.FissionScreen;
+import com.smashingmods.alchemistry.common.block.fission.FissionControllerScreen;
+import com.smashingmods.alchemistry.common.block.fusion.FusionControllerScreen;
 import com.smashingmods.alchemistry.common.block.liquifier.LiquifierScreen;
 import com.smashingmods.alchemistry.network.AlchemistryNetwork;
 import com.smashingmods.alchemistry.common.block.dissolver.DissolverScreen;
@@ -24,7 +25,8 @@ public class AlchemistryClient implements ClientModInitializer {
         HandledScreens.register(ScreenRegistry.ATOMIZER_SCREEN_HANDLER, AtomizerScreen::new);
         HandledScreens.register(ScreenRegistry.COMPACTOR_SCREEN_HANDLER, CompactorScreen::new);
         HandledScreens.register(ScreenRegistry.COMBINER_SCREEN_HANDLER, CombinerScreen::new);
-        HandledScreens.register(ScreenRegistry.FISSION_SCREEN_HANDLER, FissionScreen::new);
+        HandledScreens.register(ScreenRegistry.FISSION_SCREEN_HANDLER, FissionControllerScreen::new);
+        HandledScreens.register(ScreenRegistry.FUSION_SCREEN_HANDLER, FusionControllerScreen::new);
 
         // Make glass block translucent
         BlockRenderLayerMap.INSTANCE.putBlock(BlockRegistry.REACTOR_GLASS, RenderLayer.getTranslucent());
