@@ -3,6 +3,8 @@ package com.smashingmods.alchemistry.registry;
 import com.smashingmods.alchemistry.Alchemistry;
 import com.smashingmods.alchemistry.common.recipe.atomizer.AtomizerRecipe;
 import com.smashingmods.alchemistry.common.recipe.atomizer.AtomizerRecipeSerializer;
+import com.smashingmods.alchemistry.common.recipe.combiner.CombinerRecipe;
+import com.smashingmods.alchemistry.common.recipe.combiner.CombinerRecipeSerializer;
 import com.smashingmods.alchemistry.common.recipe.compactor.CompactorRecipe;
 import com.smashingmods.alchemistry.common.recipe.compactor.CompactorRecipeSerializer;
 import com.smashingmods.alchemistry.common.recipe.dissolver.DissolverRecipe;
@@ -30,5 +32,9 @@ public class RecipeRegistry {
         // Compactor
         Registry.register(Registry.RECIPE_SERIALIZER, new Identifier(Alchemistry.MOD_ID, CompactorRecipeSerializer.ID), CompactorRecipeSerializer.INSTANCE);
         Registry.register(Registry.RECIPE_TYPE, new Identifier(Alchemistry.MOD_ID, CompactorRecipe.Type.ID), CompactorRecipe.Type.INSTANCE);
+
+        // Combiner
+        Registry.register(Registry.RECIPE_SERIALIZER, new Identifier(Alchemistry.MOD_ID, CombinerRecipeSerializer.ID), CombinerRecipeSerializer.INSTANCE);
+        Registry.register(Registry.RECIPE_TYPE, new Identifier(Alchemistry.MOD_ID, CombinerRecipe.Type.ID), CombinerRecipe.Type.INSTANCE);
     }
 }

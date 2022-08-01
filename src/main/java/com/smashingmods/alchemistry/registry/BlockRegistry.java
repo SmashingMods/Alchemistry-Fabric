@@ -2,6 +2,7 @@ package com.smashingmods.alchemistry.registry;
 
 import com.smashingmods.alchemistry.Alchemistry;
 import com.smashingmods.alchemistry.common.block.atomizer.AtomizerBlock;
+import com.smashingmods.alchemistry.common.block.combiner.CombinerBlock;
 import com.smashingmods.alchemistry.common.block.compactor.CompactorBlock;
 import com.smashingmods.alchemistry.common.block.compactor.CompactorScreen;
 import com.smashingmods.alchemistry.common.block.dissolver.DissolverBlock;
@@ -15,11 +16,13 @@ public class BlockRegistry {
     public static final LiquifierBlock LIQUIFIER = new LiquifierBlock();
     public static final AtomizerBlock ATOMIZER = new AtomizerBlock();
     public static final CompactorBlock COMPACTOR = new CompactorBlock();
+    public static final CombinerBlock COMBINER = new CombinerBlock();
 
     public static void registerBlocks() {
         Registry.register(Registry.BLOCK, new Identifier(Alchemistry.MOD_ID, "dissolver"), DISSOLVER);
         Registry.register(Registry.BLOCK, new Identifier(Alchemistry.MOD_ID, "liquifier"), LIQUIFIER);
         Registry.register(Registry.BLOCK, new Identifier(Alchemistry.MOD_ID, "atomizer"), ATOMIZER);
         Registry.register(Registry.BLOCK, new Identifier(Alchemistry.MOD_ID, "compactor"), COMPACTOR);
+        Registry.register(Registry.BLOCK, new Identifier(Alchemistry.MOD_ID, "combiner"), COMBINER);
     }
 }

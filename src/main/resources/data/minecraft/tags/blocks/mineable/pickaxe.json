@@ -4,6 +4,7 @@
     "alchemistry:dissolver",
     "alchemistry:liquifier",
     "alchemistry:atomizer",
-    "alchemistry:compactor"
+    "alchemistry:compactor",
+    "alchemistry:combiner"
   ]
 }

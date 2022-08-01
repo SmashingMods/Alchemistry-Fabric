@@ -1,6 +1,7 @@
 package com.smashingmods.alchemistry.network;
 
 import com.smashingmods.alchemistry.network.packets.AlchemistryPacket;
+import com.smashingmods.alchemistry.network.packets.BlockEntityPacket;
 import com.smashingmods.alchemistry.network.packets.ProcessingButtonPacket;
 import com.smashingmods.alchemistry.network.packets.CompactorButtonPacket;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
@@ -32,13 +33,22 @@ public class AlchemistryNetwork {
      * Sends a AlchemistryPacket to the client side.
      * @param packet a packet with data to be sent.
      */
-    public static void sendToClient(AlchemistryPacket packet, ServerPlayerEntity recipient) { }
+    public static void sendToClient(AlchemistryPacket packet, ServerPlayerEntity recipient) {
+        if (packet instanceof BlockEntityPacket blockEntityPacket) {
+            ServerPlayNetworking.send(recipient, BlockEntityPacket.PACKET_ID, blockEntityPacket.toByteBuf());
+        }
+    }
 
     /**
      * Registers the handlers for each of the client-side packets.
      * Should only be called once inside the client mod initializer.
      */
-    public static void registerClientHandlers() { }
+    public static void registerClientHandlers() {
+        ClientPlayNetworking.registerGlobalReceiver(BlockEntityPacket.PACKET_ID, (client, handler, buf, sender) -> {
+            BlockEntityPacket packet = new BlockEntityPacket(buf);
+            client.execute(() -> BlockEntityPacket.handle(handler, packet));
+        });
+    }
 
     /**
      * Registers the handlers for each of the server-side packets.

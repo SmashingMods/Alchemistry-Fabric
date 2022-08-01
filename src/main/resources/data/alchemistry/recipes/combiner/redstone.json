@@ -1,0 +1,15 @@
+{
+  "type": "alchemistry:combiner",
+  "group": "alchemistry:combiner",
+  "input": [
+    {
+      "item": "chemlib:iron_oxide"
+    },
+    {
+      "item": "chemlib:strontium_carbonate"
+    }
+  ],
+  "result": {
+    "item": "minecraft:redstone"
+  }
+}

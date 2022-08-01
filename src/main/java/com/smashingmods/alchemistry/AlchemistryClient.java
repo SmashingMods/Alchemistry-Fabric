@@ -1,6 +1,7 @@
 package com.smashingmods.alchemistry;
 
 import com.smashingmods.alchemistry.common.block.atomizer.AtomizerScreen;
+import com.smashingmods.alchemistry.common.block.combiner.CombinerScreen;
 import com.smashingmods.alchemistry.common.block.compactor.CompactorScreen;
 import com.smashingmods.alchemistry.common.block.liquifier.LiquifierScreen;
 import com.smashingmods.alchemistry.network.AlchemistryNetwork;
@@ -18,6 +19,7 @@ public class AlchemistryClient implements ClientModInitializer {
         HandledScreens.register(ScreenRegistry.LIQUIFIER_SCREEN_HANDLER, LiquifierScreen::new);
         HandledScreens.register(ScreenRegistry.ATOMIZER_SCREEN_HANDLER, AtomizerScreen::new);
         HandledScreens.register(ScreenRegistry.COMPACTOR_SCREEN_HANDLER, CompactorScreen::new);
+        HandledScreens.register(ScreenRegistry.COMBINER_SCREEN_HANDLER, CombinerScreen::new);
 
         // Register client-side packet handlers
         AlchemistryNetwork.registerClientHandlers();

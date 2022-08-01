@@ -2,6 +2,7 @@ package com.smashingmods.alchemistry.registry;
 
 import com.smashingmods.alchemistry.Alchemistry;
 import com.smashingmods.alchemistry.common.block.atomizer.AtomizerBlockEntity;
+import com.smashingmods.alchemistry.common.block.combiner.CombinerBlockEntity;
 import com.smashingmods.alchemistry.common.block.compactor.CompactorBlockEntity;
 import com.smashingmods.alchemistry.common.block.dissolver.DissolverBlockEntity;
 import com.smashingmods.alchemistry.common.block.liquifier.LiquifierBlockEntity;
@@ -18,6 +19,7 @@ public class BlockEntityRegistry {
     public static final BlockEntityType<LiquifierBlockEntity> LIQUIFIER_BLOCK_ENTITY = FabricBlockEntityTypeBuilder.create(LiquifierBlockEntity::new, BlockRegistry.LIQUIFIER).build(null);
     public static final BlockEntityType<AtomizerBlockEntity> ATOMIZER_BLOCK_ENTITY = FabricBlockEntityTypeBuilder.create(AtomizerBlockEntity::new, BlockRegistry.ATOMIZER).build(null);
     public static final BlockEntityType<CompactorBlockEntity> COMPACTOR_BLOCK_ENTITY = FabricBlockEntityTypeBuilder.create(CompactorBlockEntity::new, BlockRegistry.COMPACTOR).build(null);
+    public static final BlockEntityType<CombinerBlockEntity> COMBINER_BLOCK_ENTITY = FabricBlockEntityTypeBuilder.create(CombinerBlockEntity::new, BlockRegistry.COMBINER).build(null);
 
     public static void registerBlockEntities() {
         // Register block entity
@@ -25,12 +27,14 @@ public class BlockEntityRegistry {
         Registry.register(Registry.BLOCK_ENTITY_TYPE, new Identifier(Alchemistry.MOD_ID, "liquifier_block_entity"), LIQUIFIER_BLOCK_ENTITY);
         Registry.register(Registry.BLOCK_ENTITY_TYPE, new Identifier(Alchemistry.MOD_ID, "atomizer_block_entity"), ATOMIZER_BLOCK_ENTITY);
         Registry.register(Registry.BLOCK_ENTITY_TYPE, new Identifier(Alchemistry.MOD_ID, "compactor_block_entity"), COMPACTOR_BLOCK_ENTITY);
+        Registry.register(Registry.BLOCK_ENTITY_TYPE, new Identifier(Alchemistry.MOD_ID, "combiner_block_entity"), COMBINER_BLOCK_ENTITY);
 
         // Register energy storage for block entity
         EnergyStorage.SIDED.registerForBlockEntity((myBlockEntity, direction) -> myBlockEntity.getEnergyStorage(), DISSOLVER_BLOCK_ENTITY);
         EnergyStorage.SIDED.registerForBlockEntity((myBlockEntity, direction) -> myBlockEntity.getEnergyStorage(), LIQUIFIER_BLOCK_ENTITY);
         EnergyStorage.SIDED.registerForBlockEntity((myBlockEntity, direction) -> myBlockEntity.getEnergyStorage(), ATOMIZER_BLOCK_ENTITY);
         EnergyStorage.SIDED.registerForBlockEntity((myBlockEntity, direction) -> myBlockEntity.getEnergyStorage(), COMPACTOR_BLOCK_ENTITY);
+        EnergyStorage.SIDED.registerForBlockEntity((myBlockEntity, direction) -> myBlockEntity.getEnergyStorage(), COMBINER_BLOCK_ENTITY);
 
         // Register fluid storage for block entity
         FluidStorage.SIDED.registerForBlockEntity((myTank, direction) -> myTank.getFluidStorage(), LIQUIFIER_BLOCK_ENTITY);

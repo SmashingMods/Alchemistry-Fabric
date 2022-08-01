@@ -144,15 +144,4 @@ public class DissolverBlockEntity extends AbstractInventoryBlockEntity {
         return currentRecipe;
     }
 
-    @Override
-    protected void writeNbt(NbtCompound nbt) {
-        super.writeNbt(nbt);
-        nbt.putInt("dissolver.progress", getProgress());
-    }
-
-    @Override
-    public void readNbt(NbtCompound nbt) {
-        super.readNbt(nbt);
-        setProgress(nbt.getInt("dissolver.progress"));
-    }
 }
