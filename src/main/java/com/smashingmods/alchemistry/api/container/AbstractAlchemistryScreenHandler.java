@@ -11,6 +11,7 @@ import net.minecraft.screen.PropertyDelegate;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.ScreenHandlerType;
 import net.minecraft.screen.slot.Slot;
+import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.world.World;
 
 public abstract class AbstractAlchemistryScreenHandler extends ScreenHandler {
@@ -113,5 +114,9 @@ public abstract class AbstractAlchemistryScreenHandler extends ScreenHandler {
 
     public World getWorld() {
         return world;
+    }
+
+    public Inventory getClientInventory() {
+        return inventory;
     }
 }

@@ -66,25 +66,21 @@ public class CombinerScreen extends AbstractAlchemistryScreen<CombinerScreenHand
     @Override
     protected void handledScreenTick() {
         if (editBox.getText().isEmpty()) {
-            setEditBoxText("");
+            blockEntity.setEditBoxText("");
             handler.resetDisplayedRecipes();
             editBox.setSuggestion(I18n.translate("alchemistry.container.combiner.search"));
         } else if (blockEntity.getEditBoxText().length() != editBoxCharacters) {
             editBoxCharacters = blockEntity.getEditBoxText().length();
             mouseScrolled(0, 0, 0);
-            setEditBoxText(editBox.getText());
+            blockEntity.setEditBoxText(editBox.getText());
             handler.searchRecipeList(editBox.getText());
             editBox.setSuggestion("");
         } else {
             mouseScrolled(0, 0, 0);
-            setEditBoxText(editBox.getText());
+            blockEntity.setEditBoxText(editBox.getText());
             editBox.setSuggestion("");
         }
         super.handledScreenTick();
-    }
-
-    private void setEditBoxText(String text) {
-        blockEntity.setEditBoxText(editBox.getText());
     }
 
     @Override
@@ -195,8 +191,7 @@ public class CombinerScreen extends AbstractAlchemistryScreen<CombinerScreenHand
                     if (index < currentRecipe.getInput().size()) {
 
                         ItemStack itemStack = currentRecipe.getInput().get(index);
-
-                        if (blockEntity.getStackInSlot(index).isEmpty()) {
+                        if (handler.getClientInventory().getStack(index).isEmpty()) {
                             FakeItemRenderer.renderFakeItem(itemStack, x, y, 0.35F);
 
                             if (pMouseX >= x - 1 && pMouseX < x + 17 && pMouseY > y - 2 && pMouseY < y + 17) {

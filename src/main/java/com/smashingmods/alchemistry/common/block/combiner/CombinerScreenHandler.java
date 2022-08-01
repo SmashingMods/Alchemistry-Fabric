@@ -1,6 +1,5 @@
 package com.smashingmods.alchemistry.common.block.combiner;
 
-import com.smashingmods.alchemistry.Alchemistry;
 import com.smashingmods.alchemistry.api.container.AbstractAlchemistryScreenHandler;
 import com.smashingmods.alchemistry.api.container.slots.OutputSlot;
 import com.smashingmods.alchemistry.common.recipe.combiner.CombinerRecipe;
@@ -8,18 +7,19 @@ import com.smashingmods.alchemistry.network.AlchemistryNetwork;
 import com.smashingmods.alchemistry.network.packets.CombinerIndexPacket;
 import com.smashingmods.alchemistry.network.packets.CombinerRecipePacket;
 import com.smashingmods.alchemistry.registry.ScreenRegistry;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.inventory.SimpleInventory;
+import net.minecraft.item.ItemStack;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.screen.ArrayPropertyDelegate;
 import net.minecraft.screen.PropertyDelegate;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.world.World;
 
@@ -117,4 +117,5 @@ public class CombinerScreenHandler extends AbstractAlchemistryScreenHandler {
             return id.getPath().contains(pKeyword.toLowerCase().replace(" ", "_"));
         }).toList());
     }
+
 }
