@@ -13,11 +13,16 @@ public class ReactorEnergyBlockEntity extends BlockEntity {
 
     @Nullable
     private AbstractReactorBlockEntity controller;
-    private SimpleEnergyStorage energyStorage;
+    private final SimpleEnergyStorage tempEnergy;
 
     public ReactorEnergyBlockEntity(BlockPos pos, BlockState state) {
         super(BlockEntityRegistry.REACTOR_ENERGY_BLOCK_ENTITY, pos, state);
-        energyStorage = null;
+        tempEnergy = new SimpleEnergyStorage(1, 1, 1) {
+            @Override
+            protected void onFinalCommit() {
+                markDirty();
+            }
+        };
     }
 
     @Nullable
@@ -27,10 +32,11 @@ public class ReactorEnergyBlockEntity extends BlockEntity {
 
     public void setController(@Nullable AbstractReactorBlockEntity controller) {
         this.controller = controller;
-        energyStorage = controller.getEnergyStorage();
     }
 
     public SimpleEnergyStorage getEnergyStorage() {
-        return energyStorage;
+        return controller == null ? tempEnergy : controller.getEnergyStorage();
     }
+
+
 }
