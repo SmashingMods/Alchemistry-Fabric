@@ -29,7 +29,7 @@
   "alchemistry.jei.liquifier": "액화기",
   "alchemistry.jei.fission": "핵분열 멀티블록",
 
-  "itemGroup.alchemistry.machine_tab": "알케미스트리",
+  "itemGroup.alchemistry": "알케미스트리",
 
   "item.alchemistry.fertilizer.tooltip": "뼛가루처럼 사용할 수 있습니다.",
   "item.alchemistry.obsidian_breaker.tooltip": "이 아이템을 잡고 있는 동안 흑요석 블록을 마우스 오른쪽 버튼으로 클릭하여 흑요석을 즉시 수집합니다. 이 아이템이 소비됩니다.",

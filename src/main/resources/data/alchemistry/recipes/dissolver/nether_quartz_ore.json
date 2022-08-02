@@ -13,11 +13,11 @@
         "results": [
           {
             "item": "chemlib:barium",
-            "count": 32
+            "count": 64
           },
           {
             "item": "chemlib:silicon_dioxide",
-            "count": 64
+            "count": 128
           }
         ]
       }

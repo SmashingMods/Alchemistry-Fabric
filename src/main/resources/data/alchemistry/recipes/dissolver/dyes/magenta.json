@@ -1,0 +1,22 @@
+{
+  "type": "alchemistry:dissolver",
+  "group": "alchemistry:dissolver",
+  "input": {
+    "tag": "forge:dyes/magenta"
+  },
+  "output": {
+    "rolls": 1,
+    "weighted": false,
+    "groups": [
+      {
+        "probability": 1.0,
+        "results": [
+          {
+            "item": "chemlib:han_purple",
+            "count": 4
+          }
+        ]
+      }
+    ]
+  }
+}

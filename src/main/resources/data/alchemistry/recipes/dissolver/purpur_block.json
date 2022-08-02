@@ -1,0 +1,30 @@
+{
+  "type": "alchemistry:dissolver",
+  "group": "alchemistry:dissolver",
+  "input": {
+    "item": "minecraft:purpur_block"
+  },
+  "output": {
+    "rolls": 1,
+    "weighted": false,
+    "groups": [
+      {
+        "probability": 100.0,
+        "results": [
+          {
+            "item": "chemlib:silicon_dioxide",
+            "count": 4
+          }
+        ]
+      },
+      {
+        "probability": 50.0,
+        "results": [
+          {
+            "item": "chemlib:lutetium"
+          }
+        ]
+      }
+    ]
+  }
+}

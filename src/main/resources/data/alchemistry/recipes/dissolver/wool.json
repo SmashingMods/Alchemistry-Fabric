@@ -1,0 +1,24 @@
+{
+  "type": "alchemistry:dissolver",
+  "group": "alchemistry:dissolver",
+  "input": {
+    "tag": "minecraft:wool"
+  },
+  "output": {
+    "rolls": 1,
+    "weighted": false,
+    "groups": [
+      {
+        "probability": 100.0,
+        "results": [
+          {
+            "item": "minecraft:air"
+          },
+          {
+            "item": "chemlib:triglyceride"
+          }
+        ]
+      }
+    ]
+  }
+}
