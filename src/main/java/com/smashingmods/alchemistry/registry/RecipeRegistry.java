@@ -9,6 +9,8 @@ import com.smashingmods.alchemistry.common.recipe.compactor.CompactorRecipe;
 import com.smashingmods.alchemistry.common.recipe.compactor.CompactorRecipeSerializer;
 import com.smashingmods.alchemistry.common.recipe.dissolver.DissolverRecipe;
 import com.smashingmods.alchemistry.common.recipe.dissolver.DissolverRecipeSerializer;
+import com.smashingmods.alchemistry.common.recipe.fission.FissionRecipe;
+import com.smashingmods.alchemistry.common.recipe.fission.FissionRecipeSerializer;
 import com.smashingmods.alchemistry.common.recipe.liquifier.LiquifierRecipe;
 import com.smashingmods.alchemistry.common.recipe.liquifier.LiquifierRecipeSerializer;
 import net.minecraft.util.Identifier;
@@ -36,5 +38,9 @@ public class RecipeRegistry {
         // Combiner
         Registry.register(Registry.RECIPE_SERIALIZER, new Identifier(Alchemistry.MOD_ID, CombinerRecipeSerializer.ID), CombinerRecipeSerializer.INSTANCE);
         Registry.register(Registry.RECIPE_TYPE, new Identifier(Alchemistry.MOD_ID, CombinerRecipe.Type.ID), CombinerRecipe.Type.INSTANCE);
+
+        // Fission
+        Registry.register(Registry.RECIPE_SERIALIZER, new Identifier(Alchemistry.MOD_ID, FissionRecipeSerializer.ID), FissionRecipeSerializer.INSTANCE);
+        Registry.register(Registry.RECIPE_TYPE, new Identifier(Alchemistry.MOD_ID, FissionRecipe.Type.ID), FissionRecipe.Type.INSTANCE);
     }
 }
