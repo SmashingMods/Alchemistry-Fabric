@@ -4,6 +4,7 @@ import com.smashingmods.alchemistry.Config;
 import com.smashingmods.alchemistry.api.blockentity.AbstractReactorBlockEntity;
 import com.smashingmods.alchemistry.api.blockentity.PowerState;
 import com.smashingmods.alchemistry.api.blockentity.ReactorType;
+import com.smashingmods.alchemistry.common.recipe.fusion.FusionRecipe;
 import com.smashingmods.alchemistry.registry.BlockEntityRegistry;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
@@ -21,6 +22,7 @@ public class FusionControllerBlockEntity extends AbstractReactorBlockEntity {
 
     public static final int INVENTORY_SIZE = 3;
 
+    private FusionRecipe currentRecipe;
     protected final PropertyDelegate propertyDelegate;
     private final int maxProgress;
 
@@ -72,29 +74,67 @@ public class FusionControllerBlockEntity extends AbstractReactorBlockEntity {
 
     @Override
     public void updateRecipe() {
-        // TODO: Implement
+        if (world != null && !world.isClient()) {
+            if (!getStackInSlot(0).isEmpty()) {
+                world.getRecipeManager().getAllMatches(FusionRecipe.Type.INSTANCE, new SimpleInventory(1), world).stream()
+                        .filter(recipe -> {
+                            ItemStack input1 = getStackInSlot(0);
+                            ItemStack input2 = getStackInSlot(1);
+                            return ItemStack.canCombine(recipe.getInput1(), input1) && ItemStack.canCombine(recipe.getInput2(), input2)
+                                    || ItemStack.canCombine(recipe.getInput2(), input1) && ItemStack.canCombine(recipe.getInput1(), input2);
+                        })
+                        .findFirst()
+                        .ifPresent(recipe -> {
+                            if (currentRecipe == null || !currentRecipe.equals(recipe)) {
+                                setProgress(0);
+                                currentRecipe = recipe;
+                            }
+                        });
+            } else {
+                setProgress(0);
+                currentRecipe = null;
+            }
+        }
     }
 
     @Override
     public boolean canProcessRecipe() {
-        // TODO: Implement
+        if (currentRecipe != null) {
+            ItemStack input1 = getStackInSlot(0);
+            ItemStack input2 = getStackInSlot(1);
+            ItemStack output = getStackInSlot(2);
+            return getEnergyStorage().getAmount() >= Config.Common.fusionEnergyPerTick.get()
+                    && (((ItemStack.canCombine(input1, currentRecipe.getInput1()) && input1.getCount() >= currentRecipe.getInput1().getCount())
+                    && (ItemStack.canCombine(input2, currentRecipe.getInput2()) && input2.getCount() >= currentRecipe.getInput2().getCount()))
+                    || ((ItemStack.canCombine(input1, currentRecipe.getInput2()) && input1.getCount() >= currentRecipe.getInput2().getCount())
+                    && (ItemStack.canCombine(input2, currentRecipe.getInput1()) && input2.getCount() >= currentRecipe.getInput1().getCount())))
+                    && ((ItemStack.canCombine(output, currentRecipe.getOutput()) || output.isEmpty()) && (currentRecipe.getOutput().getCount() + output.getCount()) <= currentRecipe.getOutput().getMaxCount());
+        }
         return false;
     }
 
     @Override
     public void processRecipe() {
-        // TODO: Implement
+        if (getProgress() < maxProgress) {
+            incrementProgress();
+        } else {
+            setProgress(0);
+            decrementSlot(0, currentRecipe.getInput1().getCount());
+            decrementSlot(1, currentRecipe.getInput2().getCount());
+            setOrIncrement(2, currentRecipe.getOutput().copy());
+        }
+        extractEnergy(Config.Common.fusionEnergyPerTick.get());
+        markDirty();
     }
 
     @Override
-    public <T extends Recipe<SimpleInventory>> void setRecipe(@Nullable T pRecipe) {
-        // TODO: Implement
+    public <T extends Recipe<SimpleInventory>> void setRecipe(@Nullable T recipe) {
+        currentRecipe = (FusionRecipe) recipe;
     }
 
     @Override
     public Recipe<SimpleInventory> getRecipe() {
-        // TODO: Implement
-        return null;
+        return currentRecipe;
     }
 
     @Nullable

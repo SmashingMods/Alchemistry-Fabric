@@ -11,6 +11,8 @@ import com.smashingmods.alchemistry.common.recipe.dissolver.DissolverRecipe;
 import com.smashingmods.alchemistry.common.recipe.dissolver.DissolverRecipeSerializer;
 import com.smashingmods.alchemistry.common.recipe.fission.FissionRecipe;
 import com.smashingmods.alchemistry.common.recipe.fission.FissionRecipeSerializer;
+import com.smashingmods.alchemistry.common.recipe.fusion.FusionRecipe;
+import com.smashingmods.alchemistry.common.recipe.fusion.FusionRecipeSerializer;
 import com.smashingmods.alchemistry.common.recipe.liquifier.LiquifierRecipe;
 import com.smashingmods.alchemistry.common.recipe.liquifier.LiquifierRecipeSerializer;
 import net.minecraft.util.Identifier;
@@ -42,5 +44,9 @@ public class RecipeRegistry {
         // Fission
         Registry.register(Registry.RECIPE_SERIALIZER, new Identifier(Alchemistry.MOD_ID, FissionRecipeSerializer.ID), FissionRecipeSerializer.INSTANCE);
         Registry.register(Registry.RECIPE_TYPE, new Identifier(Alchemistry.MOD_ID, FissionRecipe.Type.ID), FissionRecipe.Type.INSTANCE);
+
+        // Fusion
+        Registry.register(Registry.RECIPE_SERIALIZER, new Identifier(Alchemistry.MOD_ID, FusionRecipeSerializer.ID), FusionRecipeSerializer.INSTANCE);
+        Registry.register(Registry.RECIPE_TYPE, new Identifier(Alchemistry.MOD_ID, FusionRecipe.Type.ID), FusionRecipe.Type.INSTANCE);
     }
 }
