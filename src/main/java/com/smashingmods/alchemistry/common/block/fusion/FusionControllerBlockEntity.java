@@ -16,6 +16,7 @@ import net.minecraft.screen.PropertyDelegate;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
 import org.jetbrains.annotations.Nullable;
 
 public class FusionControllerBlockEntity extends AbstractReactorBlockEntity {
@@ -50,6 +51,16 @@ public class FusionControllerBlockEntity extends AbstractReactorBlockEntity {
                 return 4;
             }
         };
+    }
+
+    @Override
+    public boolean canExtract(int slot, ItemStack stack, Direction side) {
+        return slot == 2;
+    }
+
+    @Override
+    public boolean canInsert(int slot, ItemStack stack, @Nullable Direction side) {
+        return slot < 2;
     }
 
     @Override
