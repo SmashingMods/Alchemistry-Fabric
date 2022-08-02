@@ -2,6 +2,7 @@ package com.smashingmods.alchemistry.common.block.reactor;
 
 import com.smashingmods.alchemistry.api.blockentity.AbstractReactorBlockEntity;
 import com.smashingmods.alchemistry.api.blockentity.ImplementedInventory;
+import com.smashingmods.alchemistry.api.blockentity.ReactorType;
 import com.smashingmods.alchemistry.registry.BlockEntityRegistry;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
@@ -34,7 +35,14 @@ public class ReactorInputBlockEntity extends BlockEntity implements ImplementedI
 
     @Override
     public boolean canInsert(int slot, ItemStack stack, @org.jetbrains.annotations.Nullable Direction side) {
-        return true;
+        if (controller != null) {
+            if (controller.getReactorType() == ReactorType.FISSION) {
+                return slot == 0;
+            } else if (controller.getReactorType() == ReactorType.FUSION) {
+                return slot != 2;
+            }
+        }
+        return false;
     }
 
     @Override
