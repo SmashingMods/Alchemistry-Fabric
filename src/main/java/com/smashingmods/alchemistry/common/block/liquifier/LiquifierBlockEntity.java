@@ -30,7 +30,7 @@ public class LiquifierBlockEntity extends AbstractFluidBlockEntity {
     private final int maxProgress;
 
     public LiquifierBlockEntity(BlockPos pos, BlockState state) {
-        super(DefaultedList.ofSize(INVENTORY_SIZE, ItemStack.EMPTY), BlockEntityRegistry.LIQUIFIER_BLOCK_ENTITY, pos, state, Config.Common.liquifierEnergyCapacity.get(), Config.Common.liquifierFluidCapacity.get());
+        super(DefaultedList.ofSize(INVENTORY_SIZE, ItemStack.EMPTY), BlockEntityRegistry.LIQUIFIER_BLOCK_ENTITY, pos, state, Config.Common.liquifierEnergyCapacity.get(), 81L * Config.Common.liquifierFluidCapacity.get());
         this.maxProgress = Config.Common.liquifierTicksPerOperation.get();
         this.propertyDelegate = new PropertyDelegate() {
             public int get(int index) {
@@ -104,7 +104,7 @@ public class LiquifierBlockEntity extends AbstractFluidBlockEntity {
         } else {
             setProgress(0);
             decrementSlot(0, currentRecipe.getInputAmount());
-            insertFluid(currentRecipe.getFluidOutput(), currentRecipe.getFluidAmount());
+            insertFluid(currentRecipe.getFluidOutput(), currentRecipe.getFluidAmount() * 81);
         }
         extractEnergy(Config.Common.liquifierEnergyPerTick.get());
         markDirty();

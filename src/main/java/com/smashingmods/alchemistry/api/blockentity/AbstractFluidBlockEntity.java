@@ -1,7 +1,7 @@
 package com.smashingmods.alchemistry.api.blockentity;
 
 import com.smashingmods.alchemistry.mixin.BucketItemMixin;
-import com.smashingmods.chemlib.common.fluids.ChemicalBucketItem;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidConstants;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.base.SingleVariantStorage;
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
@@ -22,7 +22,7 @@ import net.minecraft.world.World;
 
 public abstract class AbstractFluidBlockEntity extends AbstractInventoryBlockEntity {
 
-    public static final int BUCKET_CONSTANT = 1000;
+    public static final long BUCKET_CONSTANT = FluidConstants.BUCKET;
 
     private final SingleVariantStorage<FluidVariant> fluidStorage;
 

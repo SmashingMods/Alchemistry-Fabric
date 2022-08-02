@@ -55,8 +55,8 @@ public class FluidDisplayData extends DisplayData {
         for (int i = 0; i < splitted.length-1; i++) {
             fluidName += (splitted[i].charAt(0)+"").toUpperCase() + splitted[i].substring(1) + " ";
         }
-        String stored = numFormat.format(getValue()).toLowerCase();;
-        String capacity = numFormat.format(getMaxValue()).toLowerCase();;
+        String stored = numFormat.format(getValue()/81).toLowerCase();;
+        String capacity = numFormat.format(getMaxValue()/81).toLowerCase();;
 
         List<Text> tooltip = new ArrayList<>();
         tooltip.add(Text.literal(String.format("%s/%s mb", stored, capacity)));

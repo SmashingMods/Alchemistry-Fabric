@@ -28,7 +28,7 @@ public class AtomizerBlockEntity extends AbstractFluidBlockEntity {
     private final int maxProgress;
 
     public AtomizerBlockEntity(BlockPos pos, BlockState state) {
-        super(DefaultedList.ofSize(INVENTORY_SIZE, ItemStack.EMPTY), BlockEntityRegistry.ATOMIZER_BLOCK_ENTITY, pos, state, Config.Common.atomizerEnergyCapacity.get(), Config.Common.atomizerFluidCapacity.get());
+        super(DefaultedList.ofSize(INVENTORY_SIZE, ItemStack.EMPTY), BlockEntityRegistry.ATOMIZER_BLOCK_ENTITY, pos, state, Config.Common.atomizerEnergyCapacity.get(), 81L * Config.Common.atomizerFluidCapacity.get());
         this.maxProgress = Config.Common.atomizerTicksPerOperation.get();
         this.propertyDelegate = new PropertyDelegate() {
             public int get(int index) {
@@ -99,7 +99,7 @@ public class AtomizerBlockEntity extends AbstractFluidBlockEntity {
         } else {
             setProgress(0);
             setOrIncrement(0, currentRecipe.getOutput().copy());
-            extractFluid(currentRecipe.getFluidInput(), currentRecipe.getFluidAmount());
+            extractFluid(currentRecipe.getFluidInput(), currentRecipe.getFluidAmount() * 81);
         }
         extractEnergy(Config.Common.atomizerEnergyPerTick.get());
         markDirty();
