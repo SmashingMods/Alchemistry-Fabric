@@ -2,6 +2,7 @@ package com.smashingmods.alchemistry.common.block.fission;
 
 import com.smashingmods.alchemistry.Config;
 import com.smashingmods.alchemistry.api.blockentity.AbstractReactorBlockEntity;
+import com.smashingmods.alchemistry.api.blockentity.PowerState;
 import com.smashingmods.alchemistry.api.blockentity.ReactorType;
 import com.smashingmods.alchemistry.registry.BlockEntityRegistry;
 import net.minecraft.block.BlockState;
@@ -47,6 +48,26 @@ public class FissionControllerBlockEntity extends AbstractReactorBlockEntity {
                 return 4;
             }
         };
+    }
+
+    @Override
+    public void tick() {
+        if (!isProcessingPaused()) {
+            if (!isRecipeLocked()) {
+                updateRecipe();
+            }
+            if (canProcessRecipe()) {
+                setPowerState(PowerState.ON);
+                processRecipe();
+            } else {
+                if (getEnergyStorage().getAmount() > Config.Common.fissionEnergyPerTick.get()) {
+                    setPowerState(PowerState.STANDBY);
+                } else {
+                    setPowerState(PowerState.OFF);
+                }
+            }
+        }
+        super.tick();
     }
 
     @Override
