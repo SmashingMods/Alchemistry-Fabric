@@ -16,10 +16,11 @@ public class ReactorInputBlockEntity extends BlockEntity implements ImplementedI
 
     @Nullable
     private AbstractReactorBlockEntity controller;
-    private DefaultedList<ItemStack> tempInv = DefaultedList.ofSize(1, ItemStack.EMPTY);
+    private final DefaultedList<ItemStack> tempInv;
 
     public ReactorInputBlockEntity(BlockPos pos, BlockState state) {
         super(BlockEntityRegistry.REACTOR_INPUT_BLOCK_ENTITY, pos, state);
+        tempInv = DefaultedList.ofSize(1, ItemStack.EMPTY);
     }
 
     @Nullable
