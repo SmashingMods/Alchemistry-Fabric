@@ -1,6 +1,6 @@
 {
   "tooltip.alchemistry.evaporator": "Fonctionne %d%% plus lentement dans les biomes humides.",
-  "tooltip.alchemistry.energy_requirement":"Requiert %d FE/t.",
+  "tooltip.alchemistry.energy_requirement":"Requiert %d E/t.",
 
   "block.alchemistry.chemical_dissolver": "Dissolveur chimique",
   "block.alchemistry.chemical_combiner": "Mélangeur chimique",

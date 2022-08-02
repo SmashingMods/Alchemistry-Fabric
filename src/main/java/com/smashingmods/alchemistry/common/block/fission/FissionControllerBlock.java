@@ -18,6 +18,7 @@ import net.minecraft.state.StateManager;
 import net.minecraft.state.property.Properties;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
+import net.minecraft.util.Formatting;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
@@ -48,7 +49,7 @@ public class FissionControllerBlock extends AbstractAlchemistryBlock {
     @Override
     public void appendTooltip(ItemStack stack, @Nullable BlockView world, List<Text> tooltip, TooltipContext options) {
         super.appendTooltip(stack, world, tooltip, options);
-        tooltip.add(Text.translatable("tooltip.alchemistry.energy_requirement", Config.Common.fissionEnergyPerTick.get()));
+        tooltip.add(Text.translatable("tooltip.alchemistry.energy_requirement", Config.Common.fissionEnergyPerTick.get()).formatted(Formatting.GRAY));
     }
 
     @Override

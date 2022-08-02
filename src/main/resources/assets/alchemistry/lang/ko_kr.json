@@ -1,6 +1,6 @@
 {
   "tooltip.alchemistry.evaporator": "건조하지 않은 생물군계에서 %d배 느리게 작동합니다.",
-  "tooltip.alchemistry.energy_requirement":"%d FE/t가 필요합니다.",
+  "tooltip.alchemistry.energy_requirement":"%d E/t가 필요합니다.",
 
   "block.alchemistry.chemical_dissolver": "화학 분해기",
   "block.alchemistry.chemical_combiner": "화학 결합기",

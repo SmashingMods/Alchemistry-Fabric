@@ -46,6 +46,6 @@
   "guide.alchemistry.landing": "Bienvenido a la Guía de Alquímica. Este libro le presentará algunos de los conceptos básicos del mod.",
   "guide.alchemistry.title": "Guía de alquimia",
   "itemGroup.alchemistry": "Alchemistry",
-  "tooltip.alchemistry.energy_requirement": "Requiere %d FE/t",
+  "tooltip.alchemistry.energy_requirement": "Requiere %d E/t",
   "tooltip.alchemistry.requires": "Requiere"
 }
