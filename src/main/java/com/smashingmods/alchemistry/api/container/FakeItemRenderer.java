@@ -2,15 +2,19 @@ package com.smashingmods.alchemistry.api.container;
 
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.smashingmods.chemlib.client.ElementRenderer;
+import com.smashingmods.chemlib.common.items.ElementItem;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.*;
 import net.minecraft.client.render.item.ItemRenderer;
 import net.minecraft.client.render.model.BakedModel;
 import net.minecraft.client.render.model.json.ModelTransformation;
 import net.minecraft.client.texture.TextureManager;
+import net.minecraft.client.util.ModelIdentifier;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.item.ItemStack;
 import net.minecraft.screen.PlayerScreenHandler;
+import net.minecraft.util.math.Vec3f;
 
 public class FakeItemRenderer {
 
@@ -21,7 +25,20 @@ public class FakeItemRenderer {
     public static void renderFakeItem(ItemStack pItemStack, int pX, int pY, float pAlpha) {
 
         if (!pItemStack.isEmpty()) {
-            BakedModel model = ITEM_RENDERER.getModel(pItemStack, null, MINECRAFT.player, 0);
+            BakedModel model;
+
+            if (pItemStack.getItem() instanceof ElementItem element) {
+                ModelIdentifier elementModel =
+                        switch (element.getMatterState()) {
+                            case LIQUID -> ElementRenderer.LIQUID_MODEL_LOCATION;
+                            case SOLID -> ElementRenderer.SOLID_MODEL_LOCATION;
+                            case GAS -> ElementRenderer.GAS_MODEL_LOCATION;
+                        };
+
+                model = ITEM_RENDERER.getModels().getModelManager().getModel(elementModel);
+            } else {
+                model = ITEM_RENDERER.getModel(pItemStack, null, MINECRAFT.player, 0);
+            }
 
             TEXTURE_MANAGER.getTexture(PlayerScreenHandler.BLOCK_ATLAS_TEXTURE).setFilter(true, false);
             RenderSystem.setShaderTexture(0, PlayerScreenHandler.BLOCK_ATLAS_TEXTURE);
@@ -40,15 +57,25 @@ public class FakeItemRenderer {
             }
 
             VertexConsumerProvider.Immediate bufferSource = MINECRAFT.getBufferBuilders().getEntityVertexConsumers();
+            MatrixStack stack = new MatrixStack();
             ITEM_RENDERER.renderItem(pItemStack,
                     ModelTransformation.Mode.GUI,
                     false,
-                    new MatrixStack(),
+                    stack,
                     getWrappedBuffer(bufferSource, pAlpha),
                     LightmapTextureManager.MAX_LIGHT_COORDINATE,
                     OverlayTexture.DEFAULT_UV,
                     model);
             bufferSource.draw();
+
+            if (pItemStack.getItem() instanceof ElementItem element) {
+                stack.push();
+                stack.multiply(Vec3f.NEGATIVE_X.getRadialQuaternion(180));
+                stack.translate(-0.16D, 0, -0.55D);
+                stack.scale(0.05F, 0.08F, 0.08F);
+                MINECRAFT.textRenderer.drawWithShadow(stack, element.getAbbreviation(), -5, 0, 0xFFFFFF);
+                stack.pop();
+            }
 
             RenderSystem.enableDepthTest();
 
@@ -89,7 +116,7 @@ class WrappedVertexConsumer implements VertexConsumer {
 
     @Override
     public VertexConsumer color(int pRed, int pGreen, int pBlue, int pAlpha) {
-        return consumer.color((int)(pRed * red), (int)(pGreen * green), (int)(pBlue * blue), (int)(pAlpha * alpha));
+        return consumer.color((int) (pRed * red), (int) (pGreen * green), (int) (pBlue * blue), (int) (pAlpha * alpha));
     }
 
     @Override
