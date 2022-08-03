@@ -3,11 +3,13 @@
   "group": "alchemistry:combiner",
   "input": [
     {
-      "item": "chemlib:potassium"
+      "item": "chemlib:cellulose"
     },
     {
-      "item": "chemlib:cellulose",
-      "count": 2
+      "item": "chemlib:sucrose"
+    },
+    {
+      "item": "chemlib:nitrate"
     }
   ],
   "result": {

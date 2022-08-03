@@ -36,9 +36,10 @@
     "fabric": "*",
     "minecraft": "~1.19",
     "java": ">=17",
-    "chemlib": ">=1.0.0"
+    "chemlib": ">=1.0.3"
   },
   "suggests": {
-    "patchouli": ">=1.19-72-FABRIC"
+    "patchouli": ">=1.19-72-FABRIC",
+    "roughlyenoughitems": ">=9.1.520"
   }
 }

@@ -9,11 +9,11 @@
     "weighted": false,
     "groups": [
       {
-        "probability": 1.0,
+        "probability": 100.0,
         "results": [
           {
             "item": "chemlib:graphite",
-            "count": 512
+            "count": 128
           }
         ]
       }

@@ -23,10 +23,8 @@ public class FakeItemRenderer {
     private static final TextureManager TEXTURE_MANAGER = MINECRAFT.getTextureManager();
 
     public static void renderFakeItem(ItemStack pItemStack, int pX, int pY, float pAlpha) {
-
         if (!pItemStack.isEmpty()) {
             BakedModel model;
-
             if (pItemStack.getItem() instanceof ElementItem element) {
                 ModelIdentifier elementModel =
                         switch (element.getMatterState()) {
@@ -34,7 +32,6 @@ public class FakeItemRenderer {
                             case SOLID -> ElementRenderer.SOLID_MODEL_LOCATION;
                             case GAS -> ElementRenderer.GAS_MODEL_LOCATION;
                         };
-
                 model = ITEM_RENDERER.getModels().getModelManager().getModel(elementModel);
             } else {
                 model = ITEM_RENDERER.getModel(pItemStack, null, MINECRAFT.player, 0);
