@@ -65,22 +65,29 @@ public class CombinerScreen extends AbstractAlchemistryScreen<CombinerScreenHand
 
     @Override
     protected void handledScreenTick() {
-        if (editBox.getText().isEmpty()) {
-            blockEntity.setEditBoxText("");
-            handler.resetDisplayedRecipes();
-            editBox.setSuggestion(I18n.translate("alchemistry.container.combiner.search"));
-        } else if (blockEntity.getEditBoxText().length() != editBoxCharacters) {
+        if (blockEntity.getEditBoxText().length() != editBoxCharacters) {
             editBoxCharacters = blockEntity.getEditBoxText().length();
             mouseScrolled(0, 0, 0);
             blockEntity.setEditBoxText(editBox.getText());
             handler.searchRecipeList(editBox.getText());
             editBox.setSuggestion("");
+            resetScrollbar();
+        } else if (editBox.getText().isEmpty()) {
+            blockEntity.setEditBoxText("");
+            handler.resetDisplayedRecipes();
+            editBox.setSuggestion(I18n.translate("alchemistry.container.combiner.search"));
         } else {
             mouseScrolled(0, 0, 0);
             blockEntity.setEditBoxText(editBox.getText());
             editBox.setSuggestion("");
         }
         super.handledScreenTick();
+    }
+
+    private void resetScrollbar() {
+        scrollOffset = 0;
+        scrolling = false;
+        startIndex = 0;
     }
 
     @Override
