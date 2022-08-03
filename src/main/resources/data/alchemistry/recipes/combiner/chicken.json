@@ -4,10 +4,10 @@
   "input": [
     {
       "item": "chemlib:protein",
-      "count": 3
+      "count": 4
     }
   ],
   "result": {
-    "item": "minecraft:rotten_flesh"
+    "item": "minecraft:chicken"
   }
 }
