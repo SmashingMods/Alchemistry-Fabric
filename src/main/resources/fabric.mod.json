@@ -36,7 +36,7 @@
     "fabric": "*",
     "minecraft": "~1.19",
     "java": ">=17",
-    "chemlib": ">=1.0.3"
+    "chemlib": ">=1.0.0"
   },
   "suggests": {
     "patchouli": ">=1.19-72-FABRIC",
