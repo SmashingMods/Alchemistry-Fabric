@@ -3,10 +3,11 @@
   "group": "alchemistry:combiner",
   "input": [
     {
-      "item": "chemlib:cellulose"
+      "item": "chemlib:potassium"
     },
     {
-      "item": "minecraft:air"
+      "item": "chemlib:cellulose",
+      "count": 2
     }
   ],
   "result": {

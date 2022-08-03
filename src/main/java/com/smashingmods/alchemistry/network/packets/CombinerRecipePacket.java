@@ -33,11 +33,12 @@ public class CombinerRecipePacket implements AlchemistryPacket {
         tag.putString("path", recipe.getId().getPath());
         tag.putInt("output", Registry.ITEM.getRawId(recipe.getOutput().getItem()));
         NbtCompound inputs = new NbtCompound();
-        for (ItemStack stack : recipe.getInput()) {
+        for (int i = 0; i < recipe.getInput().size(); i++) {
+            ItemStack stack = recipe.getInput().get(i);
             NbtCompound entry = new NbtCompound();
             entry.putInt("count", stack.getCount());
             entry.putInt("item", Registry.ITEM.getRawId(stack.getItem()));
-            inputs.put(stack.getItem().getName().getString(), entry);
+            inputs.put(String.valueOf(i), entry);
         }
         tag.put("input", inputs);
     }
