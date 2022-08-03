@@ -1,14 +1,14 @@
 {
   "rewards": {
     "recipes": [
-      "alchemistry:rotten_flesh"
+      "minecraft:light_gray_concrete_powder"
     ]
   },
   "criteria": {
     "has_the_recipe": {
       "trigger": "minecraft:recipe_unlocked",
       "conditions": {
-        "recipe": "alchemistry:combiner/rotten_flesh"
+        "recipe": "minecraft:light_gray_concrete_powder"
       }
     }
   },
