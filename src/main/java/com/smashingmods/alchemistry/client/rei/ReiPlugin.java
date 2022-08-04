@@ -22,6 +22,7 @@ import com.smashingmods.alchemistry.common.recipe.fission.FissionRecipe;
 import com.smashingmods.alchemistry.common.recipe.fusion.FusionRecipe;
 import com.smashingmods.alchemistry.common.recipe.liquifier.LiquifierRecipe;
 import me.shedaniel.math.Point;
+import me.shedaniel.rei.api.client.gui.widgets.Arrow;
 import me.shedaniel.rei.api.client.gui.widgets.Slot;
 import me.shedaniel.rei.api.client.gui.widgets.Widgets;
 import me.shedaniel.rei.api.client.plugins.REIClientPlugin;
@@ -96,5 +97,9 @@ public class ReiPlugin implements REIClientPlugin {
         }
         EntryIngredient outputIngredient = display.getOutputEntries().get(index);
         return Widgets.createSlot(new Point(x, y)).entries(outputIngredient).disableBackground().markOutput();
+    }
+
+    public static Arrow createAnimatedArrow(int x, int y, int ticksPerOperation) {
+        return Widgets.createArrow(new Point(x, y)).animationDurationTicks(ticksPerOperation);
     }
 }

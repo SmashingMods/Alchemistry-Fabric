@@ -1,6 +1,7 @@
 package com.smashingmods.alchemistry.client.rei.category.fission;
 
 import com.google.common.collect.Lists;
+import com.smashingmods.alchemistry.Config;
 import com.smashingmods.alchemistry.client.rei.category.combiner.CombinerRecipeDisplay;
 import com.smashingmods.alchemistry.registry.ItemRegistry;
 import me.shedaniel.math.Point;
@@ -45,7 +46,7 @@ public class FissionRecipeCategory implements DisplayCategory<FissionRecipeDispl
         widgets.add(Widgets.createRecipeBase(bounds));
 
         // Add arrow
-        widgets.add(Widgets.createArrow(new Point(startPoint.x + 27, startPoint.y + 4)));
+        widgets.add(createAnimatedArrow(startPoint.x + 27, startPoint.y + 4, Config.Common.fissionTicksPerOperation.get()));
 
         //Add output slots
         widgets.add(Widgets.createSlot(new Point(startPoint.x + 61, startPoint.y - 5))

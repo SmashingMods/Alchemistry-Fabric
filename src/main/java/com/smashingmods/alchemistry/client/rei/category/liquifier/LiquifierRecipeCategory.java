@@ -1,6 +1,7 @@
 package com.smashingmods.alchemistry.client.rei.category.liquifier;
 
 import com.google.common.collect.Lists;
+import com.smashingmods.alchemistry.Config;
 import com.smashingmods.alchemistry.registry.ItemRegistry;
 import me.shedaniel.math.Point;
 import me.shedaniel.math.Rectangle;
@@ -16,8 +17,7 @@ import net.minecraft.text.Text;
 
 import java.util.List;
 
-import static com.smashingmods.alchemistry.client.rei.ReiPlugin.createInputSlot;
-import static com.smashingmods.alchemistry.client.rei.ReiPlugin.createOutputSlot;
+import static com.smashingmods.alchemistry.client.rei.ReiPlugin.*;
 
 @Environment(EnvType.CLIENT)
 public class LiquifierRecipeCategory implements DisplayCategory<LiquifierRecipeDisplay> {
@@ -45,7 +45,7 @@ public class LiquifierRecipeCategory implements DisplayCategory<LiquifierRecipeD
         widgets.add(Widgets.createRecipeBase(bounds));
 
         // Add arrow
-        widgets.add(Widgets.createArrow(new Point(startPoint.x + 27, startPoint.y + 4)));
+        widgets.add(createAnimatedArrow(startPoint.x + 27, startPoint.y + 4, Config.Common.liquifierTicksPerOperation.get()));
 
         //Add output slot
         widgets.add(Widgets.createResultSlotBackground(new Point(startPoint.x + 61, startPoint.y + 5)));
