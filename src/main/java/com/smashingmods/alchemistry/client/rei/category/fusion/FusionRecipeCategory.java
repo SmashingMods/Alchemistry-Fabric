@@ -45,7 +45,7 @@ public class FusionRecipeCategory implements DisplayCategory<FusionRecipeDisplay
         widgets.add(Widgets.createRecipeBase(bounds));
 
         // Add arrow
-        widgets.add(createAnimatedArrow(startPoint.x + 27, startPoint.y + 4, Config.Common.fusionTicksPerOperation.get()));
+        widgets.add(createAnimatedArrow(startPoint.x + 27, startPoint.y + 4));
 
         //Add output slots
         widgets.add(Widgets.createResultSlotBackground(new Point(startPoint.x + 61, startPoint.y + 5)));

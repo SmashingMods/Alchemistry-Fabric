@@ -45,7 +45,7 @@ public class CompactorRecipeCategory implements DisplayCategory<CompactorRecipeD
         widgets.add(Widgets.createRecipeBase(bounds));
 
         // Add arrow
-        widgets.add(createAnimatedArrow(startPoint.x + 27, startPoint.y + 4, Config.Common.compactorTicksPerOperation.get()));
+        widgets.add(createAnimatedArrow(startPoint.x + 27, startPoint.y + 4));
         widgets.add(Widgets.createArrow(new Point(startPoint.x + 27, startPoint.y + 4)).animationDurationTicks(20*3));
 
         //Add output slot

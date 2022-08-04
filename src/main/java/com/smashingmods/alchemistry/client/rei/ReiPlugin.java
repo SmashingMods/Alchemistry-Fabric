@@ -99,7 +99,14 @@ public class ReiPlugin implements REIClientPlugin {
         return Widgets.createSlot(new Point(x, y)).entries(outputIngredient).disableBackground().markOutput();
     }
 
-    public static Arrow createAnimatedArrow(int x, int y, int ticksPerOperation) {
-        return Widgets.createArrow(new Point(x, y)).animationDurationTicks(ticksPerOperation);
+    /**
+     * Creates an animated progress bar starting at point x,y.
+     *
+     * @param x the x-coordinate of the starting point.
+     * @param y the y-coordinate of the starting point.
+     * @return arrow widget object to be added to display widget list.
+     */
+    public static Arrow createAnimatedArrow(int x, int y) {
+        return Widgets.createArrow(new Point(x, y)).animationDurationTicks(20*3);
     }
 }
