@@ -1,0 +1,20 @@
+{
+  "rewards": {
+    "recipes": [
+      "c:blue_dyes"
+    ]
+  },
+  "criteria": {
+    "has_the_recipe": {
+      "trigger": "minecraft:recipe_unlocked",
+      "conditions": {
+        "recipe": "c:blue_dyes"
+      }
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe"
+    ]
+  ]
+}

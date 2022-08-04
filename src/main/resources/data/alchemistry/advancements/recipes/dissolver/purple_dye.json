@@ -1,0 +1,20 @@
+{
+  "rewards": {
+    "recipes": [
+      "c:purple_dyes"
+    ]
+  },
+  "criteria": {
+    "has_the_recipe": {
+      "trigger": "minecraft:recipe_unlocked",
+      "conditions": {
+        "recipe": "c:purple_dyes"
+      }
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe"
+    ]
+  ]
+}

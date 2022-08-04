@@ -1,0 +1,26 @@
+{
+  "type": "alchemistry:dissolver",
+  "group": "alchemistry:dissolver",
+  "input": {
+    "tag": "c:light_blue_dyes"
+  },
+  "output": {
+    "rolls": 1,
+    "weighted": false,
+    "groups": [
+      {
+        "probability": 100.0,
+        "results": [
+          {
+            "item": "chemlib:cobalt_aluminate",
+            "count": 2
+          },
+          {
+            "item": "chemlib:antimony_trioxide",
+            "count": 2
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -14,6 +14,13 @@ import com.smashingmods.alchemistry.client.rei.category.fusion.FusionRecipeCateg
 import com.smashingmods.alchemistry.client.rei.category.fusion.FusionRecipeDisplay;
 import com.smashingmods.alchemistry.client.rei.category.liquifier.LiquifierRecipeCategory;
 import com.smashingmods.alchemistry.client.rei.category.liquifier.LiquifierRecipeDisplay;
+import com.smashingmods.alchemistry.common.block.atomizer.AtomizerScreen;
+import com.smashingmods.alchemistry.common.block.combiner.CombinerScreen;
+import com.smashingmods.alchemistry.common.block.compactor.CompactorScreen;
+import com.smashingmods.alchemistry.common.block.dissolver.DissolverScreen;
+import com.smashingmods.alchemistry.common.block.fission.FissionControllerScreen;
+import com.smashingmods.alchemistry.common.block.fusion.FusionControllerScreen;
+import com.smashingmods.alchemistry.common.block.liquifier.LiquifierScreen;
 import com.smashingmods.alchemistry.common.recipe.atomizer.AtomizerRecipe;
 import com.smashingmods.alchemistry.common.recipe.combiner.CombinerRecipe;
 import com.smashingmods.alchemistry.common.recipe.compactor.CompactorRecipe;
@@ -22,12 +29,14 @@ import com.smashingmods.alchemistry.common.recipe.fission.FissionRecipe;
 import com.smashingmods.alchemistry.common.recipe.fusion.FusionRecipe;
 import com.smashingmods.alchemistry.common.recipe.liquifier.LiquifierRecipe;
 import me.shedaniel.math.Point;
+import me.shedaniel.math.Rectangle;
 import me.shedaniel.rei.api.client.gui.widgets.Arrow;
 import me.shedaniel.rei.api.client.gui.widgets.Slot;
 import me.shedaniel.rei.api.client.gui.widgets.Widgets;
 import me.shedaniel.rei.api.client.plugins.REIClientPlugin;
 import me.shedaniel.rei.api.client.registry.category.CategoryRegistry;
 import me.shedaniel.rei.api.client.registry.display.DisplayRegistry;
+import me.shedaniel.rei.api.client.registry.screen.ScreenRegistry;
 import me.shedaniel.rei.api.common.display.basic.BasicDisplay;
 import me.shedaniel.rei.api.common.entry.EntryIngredient;
 import net.fabricmc.api.EnvType;
@@ -63,6 +72,17 @@ public class ReiPlugin implements REIClientPlugin {
         registry.registerFiller(AtomizerRecipe.class, AtomizerRecipeDisplay::new);
         registry.registerFiller(FissionRecipe.class, FissionRecipeDisplay::new);
         registry.registerFiller(FusionRecipe.class, FusionRecipeDisplay::new);
+    }
+
+    @Override
+    public void registerScreens(ScreenRegistry registry) {
+        registry.registerContainerClickArea(new Rectangle(89, 34, 5, 27), DissolverScreen.class, DissolverRecipeDisplay.ID);
+        registry.registerContainerClickArea(new Rectangle(58, 41, 27, 5), AtomizerScreen.class, AtomizerRecipeDisplay.ID);
+        registry.registerContainerClickArea(new Rectangle(90, 41, 27, 5), LiquifierScreen.class, LiquifierRecipeDisplay.ID);
+        registry.registerContainerClickArea(new Rectangle(75, 41, 27, 5), CompactorScreen.class, CompactorRecipeDisplay.ID);
+        registry.registerContainerClickArea(new Rectangle(64, 86, 27, 5), CombinerScreen.class, CombinerRecipeDisplay.ID);
+        registry.registerContainerClickArea(new Rectangle(74, 41, 27, 5), FissionControllerScreen.class, FissionRecipeDisplay.ID);
+        registry.registerContainerClickArea(new Rectangle(91, 41, 27, 5), FusionControllerScreen.class, FusionRecipeDisplay.ID);
     }
 
     /**

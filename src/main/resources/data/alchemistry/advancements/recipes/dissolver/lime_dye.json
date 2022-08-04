@@ -1,0 +1,20 @@
+{
+  "rewards": {
+    "recipes": [
+      "c:lime_dyes"
+    ]
+  },
+  "criteria": {
+    "has_the_recipe": {
+      "trigger": "minecraft:recipe_unlocked",
+      "conditions": {
+        "recipe": "c:lime_dyes"
+      }
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe"
+    ]
+  ]
+}

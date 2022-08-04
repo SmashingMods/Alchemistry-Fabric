@@ -1,0 +1,20 @@
+{
+  "rewards": {
+    "recipes": [
+      "c:orange_dyes"
+    ]
+  },
+  "criteria": {
+    "has_the_recipe": {
+      "trigger": "minecraft:recipe_unlocked",
+      "conditions": {
+        "recipe": "c:orange_dyes"
+      }
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe"
+    ]
+  ]
+}
