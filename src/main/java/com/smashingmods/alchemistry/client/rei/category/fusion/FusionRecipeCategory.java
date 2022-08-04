@@ -33,7 +33,7 @@ public class FusionRecipeCategory implements DisplayCategory<FusionRecipeDisplay
 
     @Override
     public Renderer getIcon() {
-        return EntryStacks.of(ItemRegistry.COMBINER);
+        return EntryStacks.of(ItemRegistry.FUSION_CONTROLLER);
     }
 
     @Override

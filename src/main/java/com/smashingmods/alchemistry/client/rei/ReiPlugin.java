@@ -6,6 +6,8 @@ import com.smashingmods.alchemistry.client.rei.category.combiner.CombinerRecipeC
 import com.smashingmods.alchemistry.client.rei.category.compactor.CompactorRecipeCategory;
 import com.smashingmods.alchemistry.client.rei.category.combiner.CombinerRecipeDisplay;
 import com.smashingmods.alchemistry.client.rei.category.compactor.CompactorRecipeDisplay;
+import com.smashingmods.alchemistry.client.rei.category.dissolver.DissolverRecipeCategory;
+import com.smashingmods.alchemistry.client.rei.category.dissolver.DissolverRecipeDisplay;
 import com.smashingmods.alchemistry.client.rei.category.fission.FissionRecipeCategory;
 import com.smashingmods.alchemistry.client.rei.category.fission.FissionRecipeDisplay;
 import com.smashingmods.alchemistry.client.rei.category.fusion.FusionRecipeCategory;
@@ -15,6 +17,7 @@ import com.smashingmods.alchemistry.client.rei.category.liquifier.LiquifierRecip
 import com.smashingmods.alchemistry.common.recipe.atomizer.AtomizerRecipe;
 import com.smashingmods.alchemistry.common.recipe.combiner.CombinerRecipe;
 import com.smashingmods.alchemistry.common.recipe.compactor.CompactorRecipe;
+import com.smashingmods.alchemistry.common.recipe.dissolver.DissolverRecipe;
 import com.smashingmods.alchemistry.common.recipe.fission.FissionRecipe;
 import com.smashingmods.alchemistry.common.recipe.fusion.FusionRecipe;
 import com.smashingmods.alchemistry.common.recipe.liquifier.LiquifierRecipe;
@@ -41,6 +44,7 @@ public class ReiPlugin implements REIClientPlugin {
 
     @Override
     public void registerCategories(CategoryRegistry registry) {
+        registry.add(new DissolverRecipeCategory());
         registry.add(new CombinerRecipeCategory());
         registry.add(new CompactorRecipeCategory());
         registry.add(new LiquifierRecipeCategory());
@@ -51,6 +55,7 @@ public class ReiPlugin implements REIClientPlugin {
 
     @Override
     public void registerDisplays(DisplayRegistry registry) {
+        registry.registerFiller(DissolverRecipe.class, DissolverRecipeDisplay::new);
         registry.registerFiller(CombinerRecipe.class, CombinerRecipeDisplay::new);
         registry.registerFiller(CompactorRecipe.class, CompactorRecipeDisplay::new);
         registry.registerFiller(LiquifierRecipe.class, LiquifierRecipeDisplay::new);

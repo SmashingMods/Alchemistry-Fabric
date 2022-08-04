@@ -1,4 +1,4 @@
-package com.smashingmods.alchemistry.client.rei.category.atomizer;
+package com.smashingmods.alchemistry.client.rei.category.dissolver;
 
 import com.google.common.collect.Lists;
 import com.smashingmods.alchemistry.registry.ItemRegistry;
@@ -16,29 +16,28 @@ import net.minecraft.text.Text;
 
 import java.util.List;
 
-import static com.smashingmods.alchemistry.client.rei.ReiPlugin.createInputSlot;
-import static com.smashingmods.alchemistry.client.rei.ReiPlugin.createOutputSlot;
+import static com.smashingmods.alchemistry.client.rei.ReiPlugin.*;
 
 @Environment(EnvType.CLIENT)
-public class AtomizerRecipeCategory implements DisplayCategory<AtomizerRecipeDisplay> {
+public class DissolverRecipeCategory implements DisplayCategory<DissolverRecipeDisplay> {
 
     @Override
-    public CategoryIdentifier<AtomizerRecipeDisplay> getCategoryIdentifier() {
-        return AtomizerRecipeDisplay.ID;
+    public CategoryIdentifier<DissolverRecipeDisplay> getCategoryIdentifier() {
+        return DissolverRecipeDisplay.ID;
     }
 
     @Override
     public Text getTitle() {
-        return Text.translatable("alchemistry.jei."+AtomizerRecipeDisplay.ID.getPath());
+        return Text.translatable("alchemistry.jei."+DissolverRecipeDisplay.ID.getPath());
     }
 
     @Override
     public Renderer getIcon() {
-        return EntryStacks.of(ItemRegistry.ATOMIZER);
+        return EntryStacks.of(ItemRegistry.DISSOLVER);
     }
 
     @Override
-    public List<Widget> setupDisplay(AtomizerRecipeDisplay display, Rectangle bounds) {
+    public List<Widget> setupDisplay(DissolverRecipeDisplay display, Rectangle bounds) {
         // Setup background
         Point startPoint = new Point(bounds.getCenterX() - 36, bounds.getCenterY() - 13);
         List<Widget> widgets = Lists.newArrayList();

@@ -5,7 +5,11 @@ import net.minecraft.inventory.SimpleInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.recipe.*;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.world.World;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class DissolverRecipe extends AbstractAlchemistryRecipe {
 
@@ -37,6 +41,19 @@ public class DissolverRecipe extends AbstractAlchemistryRecipe {
 
     public ProbabilitySet getProbabilityOutput() {
         return output;
+    }
+
+    public List<ItemStack> getAllResults() {
+        List<ItemStack> results = new ArrayList<>();
+        for (ProbabilityGroup group : output.getProbabilityGroups()) {
+            results.addAll(group.getOutput());
+        }
+        return results;
+    }
+
+    @Override
+    public DefaultedList<Ingredient> getIngredients() {
+        return DefaultedList.ofSize(1, input);
     }
 
     @Override

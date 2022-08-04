@@ -34,7 +34,7 @@ public class FissionRecipeCategory implements DisplayCategory<FissionRecipeDispl
 
     @Override
     public Renderer getIcon() {
-        return EntryStacks.of(ItemRegistry.COMBINER);
+        return EntryStacks.of(ItemRegistry.FISSION_CONTROLLER);
     }
 
     @Override
