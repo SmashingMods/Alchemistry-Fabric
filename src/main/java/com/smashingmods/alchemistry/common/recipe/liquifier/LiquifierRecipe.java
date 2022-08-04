@@ -3,10 +3,12 @@ package com.smashingmods.alchemistry.common.recipe.liquifier;
 import com.smashingmods.alchemistry.api.recipe.AbstractAlchemistryRecipe;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.minecraft.inventory.SimpleInventory;
+import net.minecraft.item.ItemStack;
 import net.minecraft.recipe.Ingredient;
 import net.minecraft.recipe.RecipeSerializer;
 import net.minecraft.recipe.RecipeType;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.world.World;
 
 public class LiquifierRecipe extends AbstractAlchemistryRecipe {
@@ -46,6 +48,12 @@ public class LiquifierRecipe extends AbstractAlchemistryRecipe {
 
     public int getInputAmount() {
         return inputAmount;
+    }
+
+    @Override
+    public DefaultedList<Ingredient> getIngredients() {
+        ItemStack stack = new ItemStack(input.getMatchingStacks()[0].getItem(), inputAmount);
+        return DefaultedList.ofSize(1, Ingredient.ofStacks(stack));
     }
 
     @Override
