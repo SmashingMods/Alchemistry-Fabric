@@ -4,9 +4,11 @@ import com.smashingmods.alchemistry.api.recipe.AbstractAlchemistryRecipe;
 import com.smashingmods.alchemistry.common.recipe.fission.FissionRecipeSerializer;
 import net.minecraft.inventory.SimpleInventory;
 import net.minecraft.item.ItemStack;
+import net.minecraft.recipe.Ingredient;
 import net.minecraft.recipe.RecipeSerializer;
 import net.minecraft.recipe.RecipeType;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.world.World;
 
 import java.util.List;
@@ -46,6 +48,14 @@ public class FusionRecipe extends AbstractAlchemistryRecipe {
 
     public ItemStack getOutput() {
         return output;
+    }
+
+    @Override
+    public DefaultedList<Ingredient> getIngredients() {
+        DefaultedList<Ingredient> ingredients = DefaultedList.ofSize(2);
+        ingredients.add(0, Ingredient.ofStacks(input1));
+        ingredients.add(1, Ingredient.ofStacks(input2));
+        return ingredients;
     }
 
     @Override

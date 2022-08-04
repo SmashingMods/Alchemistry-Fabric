@@ -8,12 +8,15 @@ import com.smashingmods.alchemistry.client.rei.category.combiner.CombinerRecipeD
 import com.smashingmods.alchemistry.client.rei.category.compactor.CompactorRecipeDisplay;
 import com.smashingmods.alchemistry.client.rei.category.fission.FissionRecipeCategory;
 import com.smashingmods.alchemistry.client.rei.category.fission.FissionRecipeDisplay;
+import com.smashingmods.alchemistry.client.rei.category.fusion.FusionRecipeCategory;
+import com.smashingmods.alchemistry.client.rei.category.fusion.FusionRecipeDisplay;
 import com.smashingmods.alchemistry.client.rei.category.liquifier.LiquifierRecipeCategory;
 import com.smashingmods.alchemistry.client.rei.category.liquifier.LiquifierRecipeDisplay;
 import com.smashingmods.alchemistry.common.recipe.atomizer.AtomizerRecipe;
 import com.smashingmods.alchemistry.common.recipe.combiner.CombinerRecipe;
 import com.smashingmods.alchemistry.common.recipe.compactor.CompactorRecipe;
 import com.smashingmods.alchemistry.common.recipe.fission.FissionRecipe;
+import com.smashingmods.alchemistry.common.recipe.fusion.FusionRecipe;
 import com.smashingmods.alchemistry.common.recipe.liquifier.LiquifierRecipe;
 import me.shedaniel.math.Point;
 import me.shedaniel.rei.api.client.gui.widgets.Slot;
@@ -43,6 +46,7 @@ public class ReiPlugin implements REIClientPlugin {
         registry.add(new LiquifierRecipeCategory());
         registry.add(new AtomizerRecipeCategory());
         registry.add(new FissionRecipeCategory());
+        registry.add(new FusionRecipeCategory());
     }
 
     @Override
@@ -52,6 +56,7 @@ public class ReiPlugin implements REIClientPlugin {
         registry.registerFiller(LiquifierRecipe.class, LiquifierRecipeDisplay::new);
         registry.registerFiller(AtomizerRecipe.class, AtomizerRecipeDisplay::new);
         registry.registerFiller(FissionRecipe.class, FissionRecipeDisplay::new);
+        registry.registerFiller(FusionRecipe.class, FusionRecipeDisplay::new);
     }
 
     /**
