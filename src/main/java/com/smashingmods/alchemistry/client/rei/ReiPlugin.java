@@ -1,15 +1,17 @@
 package com.smashingmods.alchemistry.client.rei;
 
+import com.smashingmods.alchemistry.client.rei.category.atomizer.AtomizerRecipeCategory;
+import com.smashingmods.alchemistry.client.rei.category.atomizer.AtomizerRecipeDisplay;
 import com.smashingmods.alchemistry.client.rei.category.combiner.CombinerRecipeCategory;
 import com.smashingmods.alchemistry.client.rei.category.compactor.CompactorRecipeCategory;
 import com.smashingmods.alchemistry.client.rei.category.combiner.CombinerRecipeDisplay;
 import com.smashingmods.alchemistry.client.rei.category.compactor.CompactorRecipeDisplay;
 import com.smashingmods.alchemistry.client.rei.category.liquifier.LiquifierRecipeCategory;
 import com.smashingmods.alchemistry.client.rei.category.liquifier.LiquifierRecipeDisplay;
+import com.smashingmods.alchemistry.common.recipe.atomizer.AtomizerRecipe;
 import com.smashingmods.alchemistry.common.recipe.combiner.CombinerRecipe;
 import com.smashingmods.alchemistry.common.recipe.compactor.CompactorRecipe;
 import com.smashingmods.alchemistry.common.recipe.liquifier.LiquifierRecipe;
-import com.smashingmods.chemlib.common.fluids.ChemicalFluid;
 import dev.architectury.event.CompoundEventResult;
 import dev.architectury.fluid.FluidStack;
 import me.shedaniel.math.Point;
@@ -22,10 +24,8 @@ import me.shedaniel.rei.api.common.display.basic.BasicDisplay;
 import me.shedaniel.rei.api.common.entry.EntryIngredient;
 import me.shedaniel.rei.api.common.entry.EntryStack;
 import me.shedaniel.rei.api.common.fluid.FluidSupportProvider;
-import me.shedaniel.rei.api.common.util.EntryStacks;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.fluid.Fluid;
 import net.minecraft.item.ItemStack;
 
 import java.util.stream.Stream;
@@ -45,6 +45,7 @@ public class ReiPlugin implements REIClientPlugin {
         registry.add(new CombinerRecipeCategory());
         registry.add(new CompactorRecipeCategory());
         registry.add(new LiquifierRecipeCategory());
+        registry.add(new AtomizerRecipeCategory());
     }
 
     @Override
@@ -52,6 +53,7 @@ public class ReiPlugin implements REIClientPlugin {
         registry.registerFiller(CombinerRecipe.class, CombinerRecipeDisplay::new);
         registry.registerFiller(CompactorRecipe.class, CompactorRecipeDisplay::new);
         registry.registerFiller(LiquifierRecipe.class, LiquifierRecipeDisplay::new);
+        registry.registerFiller(AtomizerRecipe.class, AtomizerRecipeDisplay::new);
     }
 
     @Override

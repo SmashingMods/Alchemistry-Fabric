@@ -1,4 +1,4 @@
-package com.smashingmods.alchemistry.client.rei.category.liquifier;
+package com.smashingmods.alchemistry.client.rei.category.atomizer;
 
 import com.google.common.collect.Lists;
 import com.smashingmods.alchemistry.registry.ItemRegistry;
@@ -20,16 +20,16 @@ import static com.smashingmods.alchemistry.client.rei.ReiPlugin.createInputSlot;
 import static com.smashingmods.alchemistry.client.rei.ReiPlugin.createOutputSlot;
 
 @Environment(EnvType.CLIENT)
-public class LiquifierRecipeCategory implements DisplayCategory<LiquifierRecipeDisplay> {
+public class AtomizerRecipeCategory implements DisplayCategory<AtomizerRecipeDisplay> {
 
     @Override
-    public CategoryIdentifier<LiquifierRecipeDisplay> getCategoryIdentifier() {
-        return LiquifierRecipeDisplay.ID;
+    public CategoryIdentifier<AtomizerRecipeDisplay> getCategoryIdentifier() {
+        return AtomizerRecipeDisplay.ID;
     }
 
     @Override
     public Text getTitle() {
-        return Text.translatable("alchemistry.jei."+LiquifierRecipeDisplay.ID.getPath());
+        return Text.translatable("alchemistry.jei."+AtomizerRecipeDisplay.ID.getPath());
     }
 
     @Override
@@ -38,7 +38,7 @@ public class LiquifierRecipeCategory implements DisplayCategory<LiquifierRecipeD
     }
 
     @Override
-    public List<Widget> setupDisplay(LiquifierRecipeDisplay display, Rectangle bounds) {
+    public List<Widget> setupDisplay(AtomizerRecipeDisplay display, Rectangle bounds) {
         // Setup background
         Point startPoint = new Point(bounds.getCenterX() - 36, bounds.getCenterY() - 13);
         List<Widget> widgets = Lists.newArrayList();

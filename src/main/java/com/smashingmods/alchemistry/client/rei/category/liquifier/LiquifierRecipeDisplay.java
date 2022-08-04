@@ -1,7 +1,6 @@
 package com.smashingmods.alchemistry.client.rei.category.liquifier;
 
 import com.smashingmods.alchemistry.Alchemistry;
-import com.smashingmods.alchemistry.common.recipe.compactor.CompactorRecipe;
 import com.smashingmods.alchemistry.common.recipe.liquifier.LiquifierRecipe;
 import me.shedaniel.rei.api.common.category.CategoryIdentifier;
 import me.shedaniel.rei.api.common.display.basic.BasicDisplay;
