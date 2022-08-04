@@ -3,9 +3,11 @@ package com.smashingmods.alchemistry.common.recipe.compactor;
 import com.smashingmods.alchemistry.api.recipe.AbstractAlchemistryRecipe;
 import net.minecraft.inventory.SimpleInventory;
 import net.minecraft.item.ItemStack;
+import net.minecraft.recipe.Ingredient;
 import net.minecraft.recipe.RecipeSerializer;
 import net.minecraft.recipe.RecipeType;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.world.World;
 
 public class CompactorRecipe extends AbstractAlchemistryRecipe {
@@ -37,6 +39,11 @@ public class CompactorRecipe extends AbstractAlchemistryRecipe {
 
     public ItemStack getOutput() {
         return output;
+    }
+
+    @Override
+    public DefaultedList<Ingredient> getIngredients() {
+        return DefaultedList.ofSize(1, Ingredient.ofStacks(input));
     }
 
     @Override

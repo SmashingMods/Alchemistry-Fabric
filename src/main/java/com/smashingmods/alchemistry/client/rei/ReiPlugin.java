@@ -1,17 +1,19 @@
 package com.smashingmods.alchemistry.client.rei;
 
-import com.smashingmods.alchemistry.client.rei.category.CombinerRecipeCategory;
-import com.smashingmods.alchemistry.client.rei.display.CombinerRecipeDisplay;
+import com.smashingmods.alchemistry.client.rei.category.combiner.CombinerRecipeCategory;
+import com.smashingmods.alchemistry.client.rei.category.compactor.CompactorRecipeCategory;
+import com.smashingmods.alchemistry.client.rei.category.combiner.CombinerRecipeDisplay;
+import com.smashingmods.alchemistry.client.rei.category.compactor.CompactorRecipeDisplay;
 import com.smashingmods.alchemistry.common.recipe.combiner.CombinerRecipe;
-import com.smashingmods.alchemistry.registry.BlockRegistry;
+import com.smashingmods.alchemistry.common.recipe.compactor.CompactorRecipe;
 import me.shedaniel.math.Point;
 import me.shedaniel.rei.api.client.gui.widgets.Slot;
 import me.shedaniel.rei.api.client.gui.widgets.Widgets;
 import me.shedaniel.rei.api.client.plugins.REIClientPlugin;
 import me.shedaniel.rei.api.client.registry.category.CategoryRegistry;
 import me.shedaniel.rei.api.client.registry.display.DisplayRegistry;
+import me.shedaniel.rei.api.common.display.basic.BasicDisplay;
 import me.shedaniel.rei.api.common.entry.EntryIngredient;
-import me.shedaniel.rei.api.common.util.EntryStacks;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 
@@ -28,12 +30,13 @@ public class ReiPlugin implements REIClientPlugin {
     @Override
     public void registerCategories(CategoryRegistry registry) {
         registry.add(new CombinerRecipeCategory());
-        registry.addWorkstations(CombinerRecipeDisplay.ID, EntryStacks.of(BlockRegistry.COMBINER));
+        registry.add(new CompactorRecipeCategory());
     }
 
     @Override
     public void registerDisplays(DisplayRegistry registry) {
         registry.registerFiller(CombinerRecipe.class, CombinerRecipeDisplay::new);
+        registry.registerFiller(CompactorRecipe.class, CompactorRecipeDisplay::new);
     }
 
     /**
@@ -45,7 +48,7 @@ public class ReiPlugin implements REIClientPlugin {
      * @param y the y-coordinate of the top left corner of the slot.
      * @return a widget object to be added to display widget list.
      */
-    public static Slot createInputSlot(CombinerRecipeDisplay display, int index, int x, int y) {
+    public static Slot createInputSlot(BasicDisplay display, int index, int x, int y) {
         if (index >= display.getInputEntries().size()) {
             return Widgets.createSlot(new Point(x, y));
         }
@@ -62,7 +65,7 @@ public class ReiPlugin implements REIClientPlugin {
      * @param y the y-coordinate of the top left corner of the slot.
      * @return a widget object to be added to display widget list.
      */
-    public static Slot createOutputSlot(CombinerRecipeDisplay display, int index, int x, int y) {
+    public static Slot createOutputSlot(BasicDisplay display, int index, int x, int y) {
         if (index >= display.getOutputEntries().size()) {
             return Widgets.createSlot(new Point(x, y));
         }

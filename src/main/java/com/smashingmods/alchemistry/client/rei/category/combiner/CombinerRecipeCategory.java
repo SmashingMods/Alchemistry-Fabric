@@ -1,7 +1,6 @@
-package com.smashingmods.alchemistry.client.rei.category;
+package com.smashingmods.alchemistry.client.rei.category.combiner;
 
 import com.google.common.collect.Lists;
-import com.smashingmods.alchemistry.client.rei.display.CombinerRecipeDisplay;
 import com.smashingmods.alchemistry.registry.ItemRegistry;
 import me.shedaniel.math.Point;
 import me.shedaniel.math.Rectangle;
@@ -29,7 +28,7 @@ public class CombinerRecipeCategory implements DisplayCategory<CombinerRecipeDis
 
     @Override
     public Text getTitle() {
-        return Text.translatable("alchemistry.jei.combiner");
+        return Text.translatable("alchemistry.jei."+CombinerRecipeDisplay.ID.getPath());
     }
 
     @Override

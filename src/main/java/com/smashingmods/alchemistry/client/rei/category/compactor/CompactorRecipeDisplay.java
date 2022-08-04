@@ -1,7 +1,7 @@
-package com.smashingmods.alchemistry.client.rei.display;
+package com.smashingmods.alchemistry.client.rei.category.compactor;
 
 import com.smashingmods.alchemistry.Alchemistry;
-import com.smashingmods.alchemistry.common.recipe.combiner.CombinerRecipe;
+import com.smashingmods.alchemistry.common.recipe.compactor.CompactorRecipe;
 import me.shedaniel.rei.api.common.category.CategoryIdentifier;
 import me.shedaniel.rei.api.common.display.basic.BasicDisplay;
 import me.shedaniel.rei.api.common.entry.EntryIngredient;
@@ -15,15 +15,15 @@ import java.util.List;
 import java.util.Optional;
 
 @Environment(EnvType.CLIENT)
-public class CombinerRecipeDisplay extends BasicDisplay {
+public class CompactorRecipeDisplay extends BasicDisplay {
 
-    public static final CategoryIdentifier<CombinerRecipeDisplay> ID = CategoryIdentifier.of(Alchemistry.MOD_ID, "combiner");
+    public static final CategoryIdentifier<CompactorRecipeDisplay> ID = CategoryIdentifier.of(Alchemistry.MOD_ID, "compactor");
 
-    public CombinerRecipeDisplay(CombinerRecipe recipe) {
+    public CompactorRecipeDisplay(CompactorRecipe recipe) {
         this(EntryIngredients.ofIngredients(recipe.getIngredients()), Collections.singletonList(EntryIngredients.of(recipe.getOutput())), Optional.ofNullable(recipe.getId()));
     }
 
-    public CombinerRecipeDisplay(List<EntryIngredient> inputs, List<EntryIngredient> outputs, Optional<Identifier> location) {
+    public CompactorRecipeDisplay(List<EntryIngredient> inputs, List<EntryIngredient> outputs, Optional<Identifier> location) {
         super(inputs, outputs, location);
     }
 
