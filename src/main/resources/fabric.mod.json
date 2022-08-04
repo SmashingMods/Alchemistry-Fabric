@@ -25,6 +25,9 @@
     ],
     "client": [
       "com.smashingmods.alchemistry.AlchemistryClient"
+    ],
+    "rei_client": [
+      "com.smashingmods.alchemistry.client.rei.ReiPlugin"
     ]
   },
   "mixins": [

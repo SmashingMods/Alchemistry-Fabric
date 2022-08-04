@@ -3,9 +3,11 @@ package com.smashingmods.alchemistry.common.recipe.combiner;
 import com.smashingmods.alchemistry.api.recipe.AbstractAlchemistryRecipe;
 import net.minecraft.inventory.SimpleInventory;
 import net.minecraft.item.ItemStack;
+import net.minecraft.recipe.Ingredient;
 import net.minecraft.recipe.RecipeSerializer;
 import net.minecraft.recipe.RecipeType;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.NotNull;
@@ -43,6 +45,15 @@ public class CombinerRecipe extends AbstractAlchemistryRecipe implements Compara
 
     public ItemStack getOutput() {
         return output;
+    }
+
+    @Override
+    public DefaultedList<Ingredient> getIngredients() {
+        DefaultedList<Ingredient> ingredients = DefaultedList.ofSize(4, Ingredient.EMPTY);
+        for (int i = 0; i < input.size(); i++) {
+            ingredients.set(i, Ingredient.ofStacks(input.get(i)));
+        }
+        return ingredients;
     }
 
     @Override

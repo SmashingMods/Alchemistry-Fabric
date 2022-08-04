@@ -46,4 +46,9 @@ public abstract class AbstractAlchemistryRecipe implements Recipe<SimpleInventor
 
     @Override
     public abstract RecipeType<?> getType();
+
+    @Override
+    public boolean isIgnoredInRecipeBook() {
+        return true;
+    }
 }

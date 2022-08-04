@@ -15,6 +15,7 @@ repositories {
 	mavenCentral()
 	maven { url 'https://jitpack.io' }
 	maven { url 'https://maven.blamejared.com' }
+	maven { url "https://maven.shedaniel.me" }
 	maven {
 		name = 'Curse Maven'
 		url = 'https://cursemaven.com'
@@ -35,6 +36,10 @@ dependencies {
 
 	// Patchouli
 	modImplementation "vazkii.patchouli:Patchouli:1.19-74-FABRIC"
+
+	// Roughly Enough Items (REI)
+	modCompileOnly "me.shedaniel:RoughlyEnoughItems-api-fabric:9.1.520"
+	modRuntimeOnly "me.shedaniel:RoughlyEnoughItems-fabric:9.1.520"
 
 	// Tech Reborn Energy API
 	include modApi('teamreborn:energy:2.2.0') {
