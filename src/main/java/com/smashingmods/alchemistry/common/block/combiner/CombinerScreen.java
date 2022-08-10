@@ -9,6 +9,7 @@ import com.smashingmods.chemlib.api.ChemicalItemType;
 import com.smashingmods.chemlib.common.items.ChemicalItem;
 import com.smashingmods.chemlib.common.items.CompoundItem;
 import com.smashingmods.chemlib.common.items.ElementItem;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.render.GameRenderer;
@@ -232,7 +233,7 @@ public class CombinerScreen extends AbstractAlchemistryScreen<CombinerScreenHand
 
     private void renderItemTooltip(MatrixStack matrices, ItemStack pItemStack, String pTranslationKey, int pMouseX, int pMouseY) {
         List<Text> components = new ArrayList<>();
-        String namespace = StringUtils.capitalize(Registry.ITEM.getId(pItemStack.getItem()).getNamespace());
+        String namespace = FabricLoader.getInstance().getModContainer(Registry.ITEM.getId(pItemStack.getItem()).getNamespace()).get().getMetadata().getName();
 
         components.add(Text.translatable(pTranslationKey).formatted(Formatting.UNDERLINE, Formatting.YELLOW));
         components.add(Text.literal(String.format("%dx %s", pItemStack.getCount(), pItemStack.getItem().getName().getString())));
