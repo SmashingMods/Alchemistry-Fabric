@@ -1,5 +1,6 @@
 package com.smashingmods.alchemistry.api.block;
 
+import com.smashingmods.alchemistry.api.blockentity.AbstractReactorBlockEntity;
 import com.smashingmods.alchemistry.api.blockentity.ProcessingBlockEntity;
 import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
 import net.minecraft.block.*;
@@ -61,13 +62,10 @@ public abstract class AbstractAlchemistryBlock extends BlockWithEntity implement
                 processingBlockEntity.dropContents();
                 world.updateComparators(pos, this);
             }
-            // TODO: Uncomment this code once ProcessingBlockEntity and AbstractReactorBlockEntity are implemented
-            /**
             if (blockEntity instanceof AbstractReactorBlockEntity reactorBlockEntity) {
                 reactorBlockEntity.onRemove();
                 world.updateComparators(pos, this);
             }
-             */
         }
         super.onStateReplaced(state, world, pos, newState, moved);
     }
