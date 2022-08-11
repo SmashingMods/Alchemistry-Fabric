@@ -47,7 +47,7 @@ public class LiquifierRecipeSerializer implements RecipeSerializer<LiquifierReci
 
     @Override
     public void write(PacketByteBuf buf, LiquifierRecipe recipe) {
-        for (Ingredient ing : recipe.getIngredients()) { ing.write(buf); }
+        recipe.getInput().write(buf);
         buf.writeNbt(recipe.getFluidOutput().toNbt());
         buf.writeLong(recipe.getFluidAmount());
         buf.writeInt(recipe.getInputAmount());

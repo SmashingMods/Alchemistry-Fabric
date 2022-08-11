@@ -34,8 +34,8 @@ public class AtomizerRecipeSerializer implements RecipeSerializer<AtomizerRecipe
 
     @Override
     public AtomizerRecipe read(Identifier id, PacketByteBuf buf) {
-        FluidVariant input = FluidVariant.fromNbt(buf.readNbt());
         ItemStack output = buf.readItemStack();
+        FluidVariant input = FluidVariant.fromNbt(buf.readNbt());
         long fluidAmount = buf.readLong();
         return new AtomizerRecipe(id, input, output, fluidAmount);
     }
