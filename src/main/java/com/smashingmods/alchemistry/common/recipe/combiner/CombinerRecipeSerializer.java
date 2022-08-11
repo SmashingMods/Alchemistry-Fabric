@@ -48,7 +48,11 @@ public class CombinerRecipeSerializer implements RecipeSerializer<CombinerRecipe
     @Override
     public void write(PacketByteBuf buf, CombinerRecipe recipe) {
         for (int i = 0; i < 4; i++) {
-            buf.writeItemStack(recipe.getInput().get(i));
+            try {
+                buf.writeItemStack(recipe.getInput().get(i));
+            } catch (IndexOutOfBoundsException e) {
+                buf.writeItemStack(ItemStack.EMPTY);
+            }
         }
         buf.writeItemStack(recipe.getOutput());
     }
