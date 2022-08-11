@@ -59,10 +59,7 @@ public class DissolverRecipeSerializer implements RecipeSerializer<DissolverReci
 
     @Override
     public void write(PacketByteBuf buf, DissolverRecipe recipe) {
-        buf.writeInt(recipe.getIngredients().size());
-        for (Ingredient ing : recipe.getIngredients()) {
-            ing.write(buf);
-        }
+        recipe.getInput().write(buf);
         recipe.getProbabilityOutput().write(buf);
     }
 
