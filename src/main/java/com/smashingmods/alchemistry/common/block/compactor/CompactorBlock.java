@@ -3,7 +3,9 @@ package com.smashingmods.alchemistry.common.block.compactor;
 import com.smashingmods.alchemistry.Config;
 import com.smashingmods.alchemistry.api.block.AbstractAlchemistryBlock;
 import com.smashingmods.alchemistry.common.block.dissolver.DissolverBlockEntity;
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.ShapeContext;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityTicker;
 import net.minecraft.block.entity.BlockEntityType;
@@ -17,6 +19,8 @@ import net.minecraft.util.Formatting;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.shape.VoxelShape;
+import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
@@ -25,6 +29,10 @@ import java.util.List;
 
 public class CompactorBlock extends AbstractAlchemistryBlock {
 
+    public static final VoxelShape base = Block.createCuboidShape(0, 0, 0, 16, 1, 16);
+    public static final VoxelShape rest = Block.createCuboidShape(2, 1, 2, 14, 16, 14);
+    public static final VoxelShape SHAPE = VoxelShapes.union(base, rest);
+
     public CompactorBlock() {
         super(CompactorBlockEntity::new);
     }
@@ -32,6 +40,11 @@ public class CompactorBlock extends AbstractAlchemistryBlock {
     @Override
     public void appendTooltip(ItemStack stack, @Nullable BlockView world, List<Text> tooltip, TooltipContext options) {
         tooltip.add(Text.translatable("tooltip.alchemistry.energy_requirement", Config.Common.compactorEnergyPerTick.get()).formatted(Formatting.GRAY));
+    }
+
+    @Override
+    public VoxelShape getOutlineShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
+        return SHAPE;
     }
 
     @Override
