@@ -1,11 +1,10 @@
 package com.smashingmods.alchemistry.api.blockentity;
 
-import com.smashingmods.alchemistry.common.block.reactor.ReactorCoreBlock;
-import com.smashingmods.alchemistry.common.block.reactor.ReactorEnergyBlockEntity;
-import com.smashingmods.alchemistry.common.block.reactor.ReactorInputBlockEntity;
-import com.smashingmods.alchemistry.common.block.reactor.ReactorOutputBlockEntity;
+import com.smashingmods.alchemistry.common.block.reactor.*;
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
+import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
@@ -203,25 +202,28 @@ public abstract class AbstractReactorBlockEntity extends AbstractInventoryBlockE
     public void resetIO() {
         if (world != null && !world.isClient()) {
             setMultiblockHandlers();
-            if (reactorEnergyBlockEntity != null) {
+            if (reactorEnergyBlockEntity != null && getBlock(reactorEnergyBlockEntity) instanceof ReactorEnergyBlock) {
                 BlockState energyState = reactorEnergyBlockEntity.getCachedState();
                 BlockPos energyPos = reactorEnergyBlockEntity.getPos();
                 world.setBlockState(energyPos, Blocks.AIR.getDefaultState());
                 world.setBlockState(energyPos, energyState);
             }
-            if (reactorInputBlockEntity != null) {
+            if (reactorInputBlockEntity != null && getBlock(reactorInputBlockEntity) instanceof ReactorInputBlock) {
                 BlockState inputState = reactorInputBlockEntity.getCachedState();
                 BlockPos inputPos = reactorInputBlockEntity.getPos();
                 world.setBlockState(inputPos, Blocks.AIR.getDefaultState());
                 world.setBlockState(inputPos, inputState);
             }
-            if (reactorOutputBlockEntity != null) {
+            if (reactorOutputBlockEntity != null && getBlock(reactorOutputBlockEntity) instanceof ReactorOutputBlock) {
                 BlockState outputState = reactorOutputBlockEntity.getCachedState();
                 BlockPos outputPos = reactorOutputBlockEntity.getPos();
                 world.setBlockState(outputPos, Blocks.AIR.getDefaultState());
                 world.setBlockState(outputPos, outputState);
             }
         }
+    }
+    private Block getBlock(BlockEntity block) {
+        return world.getBlockState(block.getPos()).getBlock();
     }
 
     public void onRemove() {
