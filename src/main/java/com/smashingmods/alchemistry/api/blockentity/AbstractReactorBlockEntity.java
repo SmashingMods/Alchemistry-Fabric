@@ -205,19 +205,16 @@ public abstract class AbstractReactorBlockEntity extends AbstractInventoryBlockE
             if (reactorEnergyBlockEntity != null && getBlock(reactorEnergyBlockEntity) instanceof ReactorEnergyBlock) {
                 BlockState energyState = reactorEnergyBlockEntity.getCachedState();
                 BlockPos energyPos = reactorEnergyBlockEntity.getPos();
-                world.setBlockState(energyPos, Blocks.AIR.getDefaultState());
                 world.setBlockState(energyPos, energyState);
             }
             if (reactorInputBlockEntity != null && getBlock(reactorInputBlockEntity) instanceof ReactorInputBlock) {
                 BlockState inputState = reactorInputBlockEntity.getCachedState();
                 BlockPos inputPos = reactorInputBlockEntity.getPos();
-                world.setBlockState(inputPos, Blocks.AIR.getDefaultState());
                 world.setBlockState(inputPos, inputState);
             }
             if (reactorOutputBlockEntity != null && getBlock(reactorOutputBlockEntity) instanceof ReactorOutputBlock) {
                 BlockState outputState = reactorOutputBlockEntity.getCachedState();
                 BlockPos outputPos = reactorOutputBlockEntity.getPos();
-                world.setBlockState(outputPos, Blocks.AIR.getDefaultState());
                 world.setBlockState(outputPos, outputState);
             }
         }
