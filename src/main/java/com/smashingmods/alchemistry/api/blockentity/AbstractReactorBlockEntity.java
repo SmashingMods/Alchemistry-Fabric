@@ -102,7 +102,6 @@ public abstract class AbstractReactorBlockEntity extends AbstractInventoryBlockE
                         .findFirst()
                         .ifPresent(blockPos -> {
                             BlockState energyState = world.getBlockState(blockPos);
-                            world.setBlockState(blockPos, Blocks.AIR.getDefaultState());
                             world.setBlockState(blockPos, energyState);
                             setEnergyFound(true);
                             reactorEnergyBlockEntity = (ReactorEnergyBlockEntity) world.getBlockEntity(blockPos);
