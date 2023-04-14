@@ -37,8 +37,29 @@ public class ReactorInputBlockEntity extends BlockEntity implements ImplementedI
     public boolean canInsert(int slot, ItemStack stack, @org.jetbrains.annotations.Nullable Direction side) {
         if (controller != null) {
             if (controller.getReactorType() == ReactorType.FISSION) {
+
+                if (controller.isRecipeLocked() && controller.getRecipe() != null) {
+                    // there is only one input slot in recipe no matter what
+                    boolean validInsert = controller.getRecipe().getIngredients().get(0).test(stack);
+                    return validInsert && slot == 0;
+                }
                 return slot == 0;
             } else if (controller.getReactorType() == ReactorType.FUSION) {
+                if (controller.isRecipeLocked() && controller.getRecipe() != null) {
+                    int validInsert = 0;
+                    for (int i = 0; i < controller.getRecipe().getIngredients().size(); i++) {
+                        if (controller.getRecipe().getIngredients().get(i).test(stack)) {
+                            validInsert++;
+                        }
+                    }
+                    int totalItems = 0;
+                    ItemStack item;
+                    for (int i = 0; i < getItems().size(); i++) {
+                        item = getItems().get(i);
+                        totalItems += item.isOf(stack.getItem()) ? item.getCount() : 0;
+                    }
+                    return slot < 2 && totalItems < validInsert * stack.getMaxCount();
+                }
                 return slot != 2;
             }
         }
