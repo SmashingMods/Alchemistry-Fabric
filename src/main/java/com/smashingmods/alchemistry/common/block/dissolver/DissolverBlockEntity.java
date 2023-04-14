@@ -62,6 +62,12 @@ public class DissolverBlockEntity extends AbstractInventoryBlockEntity {
 
     @Override
     public boolean canInsert(int slot, ItemStack stack, @Nullable Direction side) {
+        if (isRecipeLocked() && currentRecipe != null) {
+            // there is only one input slot in recipe no matter what
+            boolean validInsert = currentRecipe.getIngredients().get(0).test(stack);
+            return validInsert && slot == 0;
+        }
+
         return slot == 0;
     }
 

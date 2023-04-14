@@ -72,6 +72,22 @@ public class CombinerBlockEntity extends AbstractInventoryBlockEntity {
 
     @Override
     public boolean canInsert(int slot, ItemStack stack, @Nullable Direction side) {
+        if (isRecipeLocked() && currentRecipe != null) {
+            int validInsert = 0;
+            for (int i = 0; i < currentRecipe.getIngredients().size(); i++) {
+                if (currentRecipe.getIngredients().get(i).test(stack)) {
+                    validInsert++;
+                }
+            }
+            int totalItems = 0;
+            ItemStack item;
+            for (int i = 0; i < getItems().size(); i++) {
+                item = getItems().get(i);
+                totalItems += item.isOf(stack.getItem()) ? item.getCount() : 0;
+            }
+            return slot < OUTPUT_SLOT_INDEX && totalItems < validInsert * stack.getMaxCount();
+        }
+
         return slot < OUTPUT_SLOT_INDEX;
     }
 
