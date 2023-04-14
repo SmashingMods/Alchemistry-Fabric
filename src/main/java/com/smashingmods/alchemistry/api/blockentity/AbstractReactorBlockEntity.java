@@ -103,12 +103,8 @@ public abstract class AbstractReactorBlockEntity extends AbstractInventoryBlockE
                         .findFirst()
                         .ifPresent(blockPos -> {
                             BlockState energyState = world.getBlockState(blockPos);
-<<<<<<< Updated upstream
                             world.setBlockState(blockPos, Blocks.AIR.getDefaultState());
                             world.setBlockState(blockPos, energyState);
-=======
-                            world.setBlockState(blockPos, energyState, 7);
->>>>>>> Stashed changes
                             setEnergyFound(true);
                             reactorEnergyBlockEntity = (ReactorEnergyBlockEntity) world.getBlockEntity(blockPos);
                         });
@@ -124,7 +120,7 @@ public abstract class AbstractReactorBlockEntity extends AbstractInventoryBlockE
                             BlockState inputState = world.getBlockState(blockPos);
                             world.setBlockState(blockPos, Blocks.AIR.getDefaultState(), 7);
                             world.setBlockState(blockPos, inputState, 7);
-                            setInputFound(true);
+                            inputFound = true;
                             reactorInputBlockEntity = (ReactorInputBlockEntity) world.getBlockEntity(blockPos);
                         });
             } else {
@@ -140,7 +136,7 @@ public abstract class AbstractReactorBlockEntity extends AbstractInventoryBlockE
                             BlockState outputState = world.getBlockState(blockPos);
                             world.setBlockState(blockPos, Blocks.AIR.getDefaultState(), 7);
                             world.setBlockState(blockPos, outputState, 7);
-                            setOutputFound(true);
+                            outputFound = true;
                             reactorOutputBlockEntity = (ReactorOutputBlockEntity) world.getBlockEntity(blockPos);
                         });
             } else {
