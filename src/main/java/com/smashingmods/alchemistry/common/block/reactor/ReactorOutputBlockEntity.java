@@ -18,6 +18,9 @@ public class ReactorOutputBlockEntity extends BlockEntity implements Implemented
     @Nullable
     private AbstractReactorBlockEntity controller;
     private final NonNullList<ItemStack> tempInv;
+    private final ReactorItemStorage itemStorage = new ReactorItemStorage(this, this::getController, false);
+
+    public ReactorItemStorage getItemStorage() { return itemStorage; }
 
     public ReactorOutputBlockEntity(BlockPos worldPosition, BlockState state) {
         super(BlockEntityRegistry.REACTOR_OUTPUT_BLOCK_ENTITY, worldPosition, state);

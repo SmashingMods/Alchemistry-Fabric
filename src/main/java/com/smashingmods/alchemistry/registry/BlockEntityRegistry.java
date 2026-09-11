@@ -13,6 +13,7 @@ import com.smashingmods.alchemistry.common.block.reactor.ReactorInputBlockEntity
 import com.smashingmods.alchemistry.common.block.reactor.ReactorOutputBlockEntity;
 import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorage;
+import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.resources.Identifier;
 import net.minecraft.core.Registry;
@@ -54,6 +55,12 @@ public class BlockEntityRegistry {
         EnergyStorage.SIDED.registerForBlockEntity((myBlockEntity, direction) -> myBlockEntity.getEnergyStorage(), FISSION_CONTROLLER_BLOCK_ENTITY);
         EnergyStorage.SIDED.registerForBlockEntity((myBlockEntity, direction) -> myBlockEntity.getEnergyStorage(), FUSION_CONTROLLER_BLOCK_ENTITY);
         EnergyStorage.SIDED.registerForBlockEntity((myBlockEntity, direction) -> myBlockEntity.getEnergyStorage(), REACTOR_ENERGY_BLOCK_ENTITY);
+
+        // Use controller-owned transaction snapshots instead of wrapping each port's aliased inventory.
+        ItemStorage.SIDED.registerForBlockEntity(
+                (port, direction) -> port.getItemStorage(), REACTOR_INPUT_BLOCK_ENTITY);
+        ItemStorage.SIDED.registerForBlockEntity(
+                (port, direction) -> port.getItemStorage(), REACTOR_OUTPUT_BLOCK_ENTITY);
 
         // Register fluid storage for block entity
         FluidStorage.SIDED.registerForBlockEntity((myTank, direction) -> myTank.getFluidStorage(), LIQUIFIER_BLOCK_ENTITY);

@@ -18,6 +18,9 @@ public class ReactorInputBlockEntity extends BlockEntity implements ImplementedI
     @Nullable
     private AbstractReactorBlockEntity controller;
     private final NonNullList<ItemStack> tempInv;
+    private final ReactorItemStorage itemStorage = new ReactorItemStorage(this, this::getController, true);
+
+    public ReactorItemStorage getItemStorage() { return itemStorage; }
 
     public ReactorInputBlockEntity(BlockPos worldPosition, BlockState state) {
         super(BlockEntityRegistry.REACTOR_INPUT_BLOCK_ENTITY, worldPosition, state);

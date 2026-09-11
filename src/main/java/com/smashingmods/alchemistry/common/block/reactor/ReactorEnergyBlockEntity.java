@@ -5,7 +5,8 @@ import com.smashingmods.alchemistry.registry.BlockEntityRegistry;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.core.BlockPos;
-import team.reborn.energy.api.base.SimpleEnergyStorage;
+import team.reborn.energy.api.EnergyStorage;
+import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -13,16 +14,23 @@ public class ReactorEnergyBlockEntity extends BlockEntity {
 
     @Nullable
     private AbstractReactorBlockEntity controller;
-    private final SimpleEnergyStorage tempEnergy;
+    private final EnergyStorage energyStorage = new EnergyStorage() {
+        private EnergyStorage backing() {
+            return !isRemoved() && controller != null && !controller.isRemoved()
+                    && level != null && controller.getLevel() == level
+                    ? controller.getEnergyStorage() : EnergyStorage.EMPTY;
+        }
+
+        @Override public boolean supportsInsertion() { return backing().supportsInsertion(); }
+        @Override public boolean supportsExtraction() { return backing().supportsExtraction(); }
+        @Override public long insert(long amount, TransactionContext transaction) { return backing().insert(amount, transaction); }
+        @Override public long extract(long amount, TransactionContext transaction) { return backing().extract(amount, transaction); }
+        @Override public long getAmount() { return backing().getAmount(); }
+        @Override public long getCapacity() { return backing().getCapacity(); }
+    };
 
     public ReactorEnergyBlockEntity(BlockPos worldPosition, BlockState state) {
         super(BlockEntityRegistry.REACTOR_ENERGY_BLOCK_ENTITY, worldPosition, state);
-        tempEnergy = new SimpleEnergyStorage(1, 1, 1) {
-            @Override
-            protected void onFinalCommit() {
-                setChanged();
-            }
-        };
     }
 
     @Nullable
@@ -34,8 +42,8 @@ public class ReactorEnergyBlockEntity extends BlockEntity {
         this.controller = controller;
     }
 
-    public SimpleEnergyStorage getEnergyStorage() {
-        return controller == null ? tempEnergy : controller.getEnergyStorage();
+    public EnergyStorage getEnergyStorage() {
+        return energyStorage;
     }
 
 

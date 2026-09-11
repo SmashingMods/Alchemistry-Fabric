@@ -30,6 +30,106 @@ import java.util.Random;
 
 public class ReactorAndDissolverGameTest {
     @GameTest
+    public void auditCachedReactorEnergy(GameTestHelper test) {
+        var level = test.getLevel();
+        var pos = test.absolutePos(new BlockPos(3, 2, 1));
+        for (var type : ReactorType.values()) {
+            level.destroyBlock(pos, false);
+            var machine = buildReactor(test, pos, type);
+            machine.getEnergyStorage().amount = 0;
+            var portPos = pos.below();
+            var port = level.getBlockEntity(portPos);
+            var early = team.reborn.energy.api.EnergyStorage.SIDED.find(level, portPos, Direction.UP);
+            try (var transaction = Transaction.openOuter()) {
+                test.assertTrue(early.insert(1000, transaction) == 0 && early.extract(1, transaction) == 0,
+                        "Unattached energy ports must reject transfers");
+                transaction.commit();
+            }
+            machine.tick();
+            test.assertTrue(machine.isValidMultiblock(), "Energy audit reactor must form");
+            try (var transaction = Transaction.openOuter()) {
+                test.assertTrue(early.insert(1000, transaction) == 1000, "Connection cached before formation must power the controller");
+                transaction.commit();
+            }
+            test.assertTrue(machine.getEnergyStorage().amount == 1000, "Early connection must power the formed reactor");
+            var connected = team.reborn.energy.api.EnergyStorage.SIDED.find(level, portPos, Direction.UP);
+            var controllerBlock = level.getBlockState(pos).getBlock();
+            level.destroyBlock(pos, false);
+            try (var transaction = Transaction.openOuter()) {
+                test.assertTrue(connected.insert(1000, transaction) == 0 && connected.extract(1, transaction) == 0,
+                        "Cached connection must reject transfers after controller removal");
+                transaction.commit();
+            }
+            level.setBlockAndUpdate(pos, controllerBlock.defaultBlockState());
+            var replacement = (AbstractReactorBlockEntity) level.getBlockEntity(pos);
+            replacement.setPaused(true);
+            replacement.tick();
+            test.assertTrue(replacement.isValidMultiblock() && level.getBlockEntity(portPos) == port, "Replacement must reuse the unchanged energy port");
+            try (var transaction = Transaction.openOuter()) {
+                test.assertTrue(connected.insert(1000, transaction) == 1000, "Retained connection reports accepting power");
+                transaction.commit();
+            }
+            test.assertTrue(machine.isRemoved() && machine.getEnergyStorage().amount == 1000 && replacement.getEnergyStorage().amount == 1000,
+                    "Cached connection must power only the replacement controller");
+            try (var transaction = Transaction.openOuter()) {
+                test.assertTrue(connected.extract(400, transaction) == 400, "Reconnected energy extraction must work");
+            }
+            test.assertTrue(replacement.getEnergyStorage().amount == 1000, "Aborted energy extraction must roll back");
+            level.destroyBlock(portPos, false);
+            try (var transaction = Transaction.openOuter()) {
+                test.assertTrue(connected.insert(1000, transaction) == 0 && connected.extract(1, transaction) == 0,
+                        "Removed energy ports must reject cached transfers");
+                transaction.commit();
+            }
+        }
+        test.succeed();
+    }
+
+    @GameTest
+    public void auditSharedPortTransactions(GameTestHelper test) {
+        var level = test.getLevel();
+        var pos = test.absolutePos(new BlockPos(3, 2, 1));
+        var machine = buildReactor(test, pos, ReactorType.FISSION);
+        var secondPort = pos.below().west(2);
+        level.setBlockAndUpdate(secondPort, BlockRegistry.REACTOR_OUTPUT.defaultBlockState());
+        machine.tick();
+        var outputs = List.of(ItemStorage.SIDED.find(level, pos.below().east(), Direction.UP), ItemStorage.SIDED.find(level, secondPort, Direction.UP));
+        var sink = new net.minecraft.world.SimpleContainer(8);
+        var destination = net.fabricmc.fabric.api.transfer.v1.item.ContainerStorage.of(sink, null);
+        var random = new Random(9931);
+        for (int trial = 0; trial < 1000; trial++) {
+            machine.setStackInSlot(1, new ItemStack(Items.DIAMOND, 64));
+            sink.clearContent();
+            try (var transaction = Transaction.openOuter()) {
+                auditTransfers(outputs, destination, transaction, random, 3);
+                if (random.nextBoolean()) transaction.commit();
+            }
+            int received = 0;
+            for (int slot = 0; slot < sink.getContainerSize(); slot++) received += sink.getItem(slot).getCount();
+            test.assertTrue(machine.getStackInSlot(1).getCount() + received == 64, "Shared-port nested transactions must conserve items");
+        }
+        System.out.println("REMAINING AUDIT: 1000 shared-port nested transaction trials conserved all items");
+        test.succeed();
+    }
+
+    private void auditTransfers(List<net.fabricmc.fabric.api.transfer.v1.storage.Storage<ItemVariant>> outputs,
+                               net.fabricmc.fabric.api.transfer.v1.storage.Storage<ItemVariant> destination,
+                               Transaction transaction, Random random, int depth) {
+        for (int operation = 0; operation < 4; operation++) {
+            if (depth > 0 && random.nextBoolean()) {
+                try (var nested = transaction.openNested()) {
+                    auditTransfers(outputs, destination, nested, random, depth - 1);
+                    if (random.nextBoolean()) nested.commit();
+                }
+            } else {
+                var item = ItemVariant.of(Items.DIAMOND);
+                long extracted = outputs.get(random.nextInt(outputs.size())).extract(item, random.nextInt(12) + 1, transaction);
+                if (destination.insert(item, extracted, transaction) != extracted) throw new AssertionError("Test sink unexpectedly full");
+            }
+        }
+    }
+
+    @GameTest
     public void portRemovalPreservesInventoryAcrossChunkSaves(GameTestHelper test) {
         var level = test.getLevel();
         var origin = test.absolutePos(new BlockPos(0, 2, 0));

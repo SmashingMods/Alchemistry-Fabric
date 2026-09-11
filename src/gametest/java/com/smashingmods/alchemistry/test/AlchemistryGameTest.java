@@ -35,6 +35,33 @@ import java.util.*;
 public class AlchemistryGameTest {
     private Identifier id(String path) { return Identifier.parse("alchemistry:" + path); }
 
+    @GameTest public void auditControlAccess(GameTestHelper test) {
+        var pos = new BlockPos(1, 1, 1);
+        test.setBlock(pos, BlockRegistry.COMPACTOR);
+        var machine = test.getBlockEntity(pos, CompactorBlockEntity.class);
+        var player = (net.minecraft.server.level.ServerPlayer) test.makeMockServerPlayer(net.minecraft.world.level.GameType.SURVIVAL);
+        player.setPos(net.minecraft.world.phys.Vec3.atCenterOf(machine.getBlockPos()));
+        var packet = new com.smashingmods.alchemistry.network.packets.ProcessingButtonPacket(machine.getBlockPos(), true, true);
+        com.smashingmods.alchemistry.network.packets.ProcessingButtonPacket.handle(player, packet);
+        test.assertTrue(!machine.isRecipeLocked() && !machine.isProcessingPaused(), "Controls must reject no open machine");
+        player.containerMenu = machine.createMenu(1, player.getInventory(), player);
+        var wrongPos = new com.smashingmods.alchemistry.network.packets.ProcessingButtonPacket(machine.getBlockPos().east(), true, true);
+        com.smashingmods.alchemistry.network.packets.ProcessingButtonPacket.handle(player, wrongPos);
+        test.assertTrue(!machine.isRecipeLocked(), "Controls must reject wrong position");
+        player.setPos(net.minecraft.world.phys.Vec3.atCenterOf(machine.getBlockPos().above(100)));
+        com.smashingmods.alchemistry.network.packets.ProcessingButtonPacket.handle(player, packet);
+        test.assertTrue(!machine.isRecipeLocked(), "Controls must reject distant player");
+        player.setPos(net.minecraft.world.phys.Vec3.atCenterOf(machine.getBlockPos()));
+        com.smashingmods.alchemistry.network.packets.ProcessingButtonPacket.handle(player, packet);
+        test.assertTrue(machine.isRecipeLocked() && machine.isProcessingPaused(), "Controls must accept valid open machine");
+        machine.setRecipeLocked(false); machine.setPaused(false);
+        test.getLevel().destroyBlock(machine.getBlockPos(), false);
+        com.smashingmods.alchemistry.network.packets.ProcessingButtonPacket.handle(player, packet);
+        test.assertTrue(!machine.isRecipeLocked() && !machine.isProcessingPaused(), "Controls must reject removed machine");
+        System.out.println("REMAINING AUDIT: control access checks rejected missing menu, wrong position, distance, and removed machine");
+        test.succeed();
+    }
+
     @GameTest public void diamondRequiresBothGraphiteStacks(GameTestHelper test) {
         var pos = new BlockPos(1, 1, 1);
         test.setBlock(pos, BlockRegistry.COMBINER);
@@ -280,7 +307,13 @@ public class AlchemistryGameTest {
                 test.assertTrue(ItemStack.matches(controller.getStackInSlot(2),recipe.getOutput()),"Fusion must combine both inputs");
             }
             var energy=(com.smashingmods.alchemistry.common.block.reactor.ReactorEnergyBlockEntity)test.getLevel().getBlockEntity(bottom);
-            test.assertTrue(energy.getEnergyStorage()==controller.getEnergyStorage(),"Energy port must share controller storage");
+            long storedEnergy = controller.getEnergyStorage().amount;
+            try (var transaction = net.fabricmc.fabric.api.transfer.v1.transaction.Transaction.openOuter()) {
+                test.assertTrue(energy.getEnergyStorage().extract(1, transaction) == 1
+                                && controller.getEnergyStorage().amount == storedEnergy - 1,
+                        "Energy port must forward to controller storage");
+            }
+            test.assertTrue(controller.getEnergyStorage().amount == storedEnergy, "Aborted port transfer must restore controller energy");
             test.getLevel().setBlock(bottom,net.minecraft.world.level.block.Blocks.AIR.defaultBlockState(),3);
             controller.tick();
             test.assertTrue(controller.getPowerState()==PowerState.DISABLED,"Breaking a required port must disable the reactor");
