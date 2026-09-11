@@ -2,12 +2,12 @@ package com.smashingmods.alchemistry.common.block.reactor;
 
 import com.smashingmods.alchemistry.api.blockentity.AbstractReactorBlockEntity;
 import com.smashingmods.alchemistry.registry.BlockEntityRegistry;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.core.BlockPos;
 import team.reborn.energy.api.base.SimpleEnergyStorage;
 
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 public class ReactorEnergyBlockEntity extends BlockEntity {
 
@@ -15,12 +15,12 @@ public class ReactorEnergyBlockEntity extends BlockEntity {
     private AbstractReactorBlockEntity controller;
     private final SimpleEnergyStorage tempEnergy;
 
-    public ReactorEnergyBlockEntity(BlockPos pos, BlockState state) {
-        super(BlockEntityRegistry.REACTOR_ENERGY_BLOCK_ENTITY, pos, state);
+    public ReactorEnergyBlockEntity(BlockPos worldPosition, BlockState state) {
+        super(BlockEntityRegistry.REACTOR_ENERGY_BLOCK_ENTITY, worldPosition, state);
         tempEnergy = new SimpleEnergyStorage(1, 1, 1) {
             @Override
             protected void onFinalCommit() {
-                markDirty();
+                setChanged();
             }
         };
     }

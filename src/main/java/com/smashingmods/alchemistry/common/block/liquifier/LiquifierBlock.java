@@ -2,79 +2,77 @@ package com.smashingmods.alchemistry.common.block.liquifier;
 
 import com.smashingmods.alchemistry.Config;
 import com.smashingmods.alchemistry.api.block.AbstractAlchemistryBlock;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockRenderType;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.ShapeContext;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.block.entity.BlockEntityTicker;
-import net.minecraft.block.entity.BlockEntityType;
-import net.minecraft.client.item.TooltipContext;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.screen.NamedScreenHandlerFactory;
-import net.minecraft.text.Text;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Formatting;
-import net.minecraft.util.Hand;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.shape.VoxelShape;
-import net.minecraft.util.shape.VoxelShapes;
-import net.minecraft.world.BlockView;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.RenderShape;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.ChatFormatting;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.shapes.VoxelShape;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
 public class LiquifierBlock extends AbstractAlchemistryBlock {
 
-    public static final VoxelShape base = Block.createCuboidShape(0, 0, 0, 16, 1, 16);
-    public static final VoxelShape rest = Block.createCuboidShape(2, 1, 2, 14, 16, 14);
-    public static final VoxelShape SHAPE = VoxelShapes.union(base, rest);
+    public static final VoxelShape base = Block.box(0, 0, 0, 16, 1, 16);
+    public static final VoxelShape rest = Block.box(2, 1, 2, 14, 16, 14);
+    public static final VoxelShape SHAPE = Shapes.or(base, rest);
 
-    public LiquifierBlock() {
-        super(LiquifierBlockEntity::new);
+    public LiquifierBlock(net.minecraft.world.level.block.state.BlockBehaviour.Properties properties) {
+        super(LiquifierBlockEntity::new, properties);
+    }
+
+    public void appendHoverText(ItemStack stack, net.minecraft.world.item.Item.TooltipContext context, net.minecraft.world.item.component.TooltipDisplay display, java.util.function.Consumer<Component> tooltip, TooltipFlag options) {
+        tooltip.accept(Component.translatable("tooltip.alchemistry.energy_requirement", Config.Common.liquifierEnergyPerTick.get()).withStyle(ChatFormatting.GRAY));
     }
 
     @Override
-    public void appendTooltip(ItemStack stack, @Nullable BlockView world, List<Text> tooltip, TooltipContext options) {
-        tooltip.add(Text.translatable("tooltip.alchemistry.energy_requirement", Config.Common.liquifierEnergyPerTick.get()).formatted(Formatting.GRAY));
-    }
-
-    @Override
-    public VoxelShape getOutlineShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
+    public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos worldPosition, CollisionContext context) {
         return SHAPE;
     }
 
     @Override
-    public BlockRenderType getRenderType(BlockState state) {
-        return BlockRenderType.MODEL;
+    public RenderShape getRenderShape(BlockState state) {
+        return RenderShape.MODEL;
     }
 
     @Override
-    public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
-        BlockEntity blockEntity = world.getBlockEntity(pos);
-        boolean interactionSuccessful = true;
-
-        if (blockEntity instanceof LiquifierBlockEntity liquifierBlockEntity) {
-            interactionSuccessful = liquifierBlockEntity.onBlockActivated(world, pos, player, hand);
+    protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+        if (level.getBlockEntity(pos) instanceof LiquifierBlockEntity machine && machine.onBlockActivated(level, pos, player, hand)) {
+            return InteractionResult.SUCCESS;
         }
+        return InteractionResult.TRY_WITH_EMPTY_HAND;
+    }
 
-        if (!world.isClient() && !interactionSuccessful) {
-            NamedScreenHandlerFactory screenHandlerFactory = state.createScreenHandlerFactory(world, pos);
-            if (screenHandlerFactory != null) {
-                player.openHandledScreen(screenHandlerFactory);
-            }
+    @Override
+    public InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
+        if (!level.isClientSide()) {
+            MenuProvider provider = state.getMenuProvider(level, pos);
+            if (provider != null) player.openMenu(provider);
         }
-        return ActionResult.SUCCESS;
+        return InteractionResult.SUCCESS;
     }
 
     @Nullable
     @Override
-    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(World world, BlockState state, BlockEntityType<T> type) {
-        if (!world.isClient()) {
-            return (level, pos, blockState, blockEntity) -> {
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
+        if (!level.isClientSide()) {
+            return (tickLevel, worldPosition, blockState, blockEntity) -> {
                 if (blockEntity instanceof LiquifierBlockEntity liquifierBlockEntity) {
                     liquifierBlockEntity.tick();
                 }

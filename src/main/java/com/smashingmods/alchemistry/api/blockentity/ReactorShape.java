@@ -1,13 +1,13 @@
 package com.smashingmods.alchemistry.api.blockentity;
 
 import com.smashingmods.alchemistry.registry.BlockRegistry;
-import net.minecraft.block.Block;
-import net.minecraft.state.property.Properties;
-import net.minecraft.util.math.BlockBox;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.Vec3i;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.levelgen.structure.BoundingBox;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.Vec3i;
+import net.minecraft.world.level.Level;
 
 import java.util.HashMap;
 import java.util.List;
@@ -17,49 +17,49 @@ public class ReactorShape {
 
     private final ReactorType reactorType;
 
-    private final BlockBox fullBoundingBox;
-    private final BlockBox core;
-    private final BlockBox innerFrontPlane;
-    private final BlockBox innerRearPlane;
-    private final BlockBox innerTopPlane;
-    private final BlockBox innerBottomPlane;
-    private final BlockBox innerLeftPlane;
-    private final BlockBox innerRightPlane;
+    private final BoundingBox fullBoundingBox;
+    private final BoundingBox core;
+    private final BoundingBox innerFrontPlane;
+    private final BoundingBox innerRearPlane;
+    private final BoundingBox innerTopPlane;
+    private final BoundingBox innerBottomPlane;
+    private final BoundingBox innerLeftPlane;
+    private final BoundingBox innerRightPlane;
 
-    private final BlockBox frontTopBorder;
-    private final BlockBox frontBottomBorder;
-    private final BlockBox leftTopBorder;
-    private final BlockBox leftBottomBorder;
-    private final BlockBox rightTopBorder;
-    private final BlockBox rightBottomBorder;
-    private final BlockBox rearTopBorder;
-    private final BlockBox rearBottomBorder;
-    private final BlockBox frontLeftCornerBorder;
-    private final BlockBox frontRightCornerBorder;
-    private final BlockBox rearLeftCornerBorder;
-    private final BlockBox rearRightCornerBorder;
+    private final BoundingBox frontTopBorder;
+    private final BoundingBox frontBottomBorder;
+    private final BoundingBox leftTopBorder;
+    private final BoundingBox leftBottomBorder;
+    private final BoundingBox rightTopBorder;
+    private final BoundingBox rightBottomBorder;
+    private final BoundingBox rearTopBorder;
+    private final BoundingBox rearBottomBorder;
+    private final BoundingBox frontLeftCornerBorder;
+    private final BoundingBox frontRightCornerBorder;
+    private final BoundingBox rearLeftCornerBorder;
+    private final BoundingBox rearRightCornerBorder;
 
-    public ReactorShape(BlockPos pBlockPos, ReactorType pReactorType, World pLevel) {
+    public ReactorShape(BlockPos pBlockPos, ReactorType pReactorType, Level pLevel) {
 
         reactorType = pReactorType;
 
-        Direction facing = pLevel.getBlockState(pBlockPos).get(Properties.HORIZONTAL_FACING);
+        Direction facing = pLevel.getBlockState(pBlockPos).getValue(BlockStateProperties.HORIZONTAL_FACING);
         Direction oppositeFacing = facing.getOpposite();
-        Direction rightFacing = facing.rotateYCounterclockwise();
-        Direction leftFacing = facing.rotateYClockwise();
+        Direction rightFacing = facing.getCounterClockWise();
+        Direction leftFacing = facing.getClockWise();
 
-        BlockPos coreBottom = pBlockPos.offset(oppositeFacing, 2);
-        BlockPos coreTop = coreBottom.offset(Direction.UP, 2);
+        BlockPos coreBottom = pBlockPos.relative(oppositeFacing, 2);
+        BlockPos coreTop = coreBottom.relative(Direction.UP, 2);
         core = fromCorners(coreBottom, coreTop);
 
-        BlockPos frontTopRight = pBlockPos.offset(Direction.UP, 3).offset(rightFacing, 2);
-        BlockPos frontTopLeft = pBlockPos.offset(Direction.UP, 3).offset(leftFacing, 2);
-        BlockPos frontBottomRight = pBlockPos.offset(Direction.DOWN, 1).offset(rightFacing, 2);
-        BlockPos frontBottomLeft = pBlockPos.offset(Direction.DOWN, 1).offset(leftFacing, 2);
-        BlockPos rearTopRight = pBlockPos.offset(Direction.UP, 3).offset(oppositeFacing, 4).offset(rightFacing, 2);
-        BlockPos rearTopLeft = pBlockPos.offset(Direction.UP, 3).offset(oppositeFacing, 4).offset(leftFacing, 2);
-        BlockPos rearBottomRight = pBlockPos.offset(Direction.DOWN, 1).offset(oppositeFacing, 4).offset(rightFacing, 2);
-        BlockPos rearBottomLeft = pBlockPos.offset(Direction.DOWN, 1).offset(oppositeFacing, 4).offset(leftFacing, 2);
+        BlockPos frontTopRight = pBlockPos.relative(Direction.UP, 3).relative(rightFacing, 2);
+        BlockPos frontTopLeft = pBlockPos.relative(Direction.UP, 3).relative(leftFacing, 2);
+        BlockPos frontBottomRight = pBlockPos.relative(Direction.DOWN, 1).relative(rightFacing, 2);
+        BlockPos frontBottomLeft = pBlockPos.relative(Direction.DOWN, 1).relative(leftFacing, 2);
+        BlockPos rearTopRight = pBlockPos.relative(Direction.UP, 3).relative(oppositeFacing, 4).relative(rightFacing, 2);
+        BlockPos rearTopLeft = pBlockPos.relative(Direction.UP, 3).relative(oppositeFacing, 4).relative(leftFacing, 2);
+        BlockPos rearBottomRight = pBlockPos.relative(Direction.DOWN, 1).relative(oppositeFacing, 4).relative(rightFacing, 2);
+        BlockPos rearBottomLeft = pBlockPos.relative(Direction.DOWN, 1).relative(oppositeFacing, 4).relative(leftFacing, 2);
 
         fullBoundingBox = fromCorners(frontTopLeft, rearBottomRight);
         frontTopBorder = fromCorners(frontTopRight, frontTopLeft);
@@ -75,33 +75,33 @@ public class ReactorShape {
         rearLeftCornerBorder = fromCorners(rearTopLeft, rearBottomLeft);
         rearRightCornerBorder = fromCorners(rearTopRight, rearBottomRight);
 
-        BlockPos innerFrontTopClockwise = pBlockPos.offset(Direction.UP, 3).offset(oppositeFacing, 1).offset(rightFacing, 1);
-        BlockPos innerRearTopCounterClockwise = pBlockPos.offset(Direction.UP, 3).offset(oppositeFacing, 3).offset(leftFacing, 1);
+        BlockPos innerFrontTopClockwise = pBlockPos.relative(Direction.UP, 3).relative(oppositeFacing, 1).relative(rightFacing, 1);
+        BlockPos innerRearTopCounterClockwise = pBlockPos.relative(Direction.UP, 3).relative(oppositeFacing, 3).relative(leftFacing, 1);
         innerTopPlane = fromCorners(innerFrontTopClockwise, innerRearTopCounterClockwise);
 
-        BlockPos innerFrontBottomRight = pBlockPos.offset(Direction.DOWN, 1).offset(oppositeFacing, 1).offset(rightFacing, 1);
-        BlockPos innerRearBottomLeft = pBlockPos.offset(Direction.DOWN, 1).offset(oppositeFacing, 3).offset(leftFacing, 1);
+        BlockPos innerFrontBottomRight = pBlockPos.relative(Direction.DOWN, 1).relative(oppositeFacing, 1).relative(rightFacing, 1);
+        BlockPos innerRearBottomLeft = pBlockPos.relative(Direction.DOWN, 1).relative(oppositeFacing, 3).relative(leftFacing, 1);
         innerBottomPlane = fromCorners(innerFrontBottomRight, innerRearBottomLeft);
 
-        BlockPos innerLeftFrontTop = pBlockPos.offset(Direction.UP, 2).offset(oppositeFacing, 1).offset(leftFacing, 2);
-        BlockPos innerLeftRearBottom = pBlockPos.offset(oppositeFacing, 3).offset(leftFacing, 2);
+        BlockPos innerLeftFrontTop = pBlockPos.relative(Direction.UP, 2).relative(oppositeFacing, 1).relative(leftFacing, 2);
+        BlockPos innerLeftRearBottom = pBlockPos.relative(oppositeFacing, 3).relative(leftFacing, 2);
         innerLeftPlane = fromCorners(innerLeftFrontTop, innerLeftRearBottom);
 
-        BlockPos innerRightFrontTop = pBlockPos.offset(Direction.UP, 2).offset(oppositeFacing, 1).offset(rightFacing, 2);
-        BlockPos innerRightRearBottom = pBlockPos.offset(oppositeFacing, 3).offset(rightFacing, 2);
+        BlockPos innerRightFrontTop = pBlockPos.relative(Direction.UP, 2).relative(oppositeFacing, 1).relative(rightFacing, 2);
+        BlockPos innerRightRearBottom = pBlockPos.relative(oppositeFacing, 3).relative(rightFacing, 2);
         innerRightPlane = fromCorners(innerRightFrontTop, innerRightRearBottom);
 
-        BlockPos innerFrontLeftTop = pBlockPos.offset(Direction.UP, 2).offset(leftFacing, 1);
-        BlockPos innerFrontRightBottom = pBlockPos.offset(rightFacing, 1);
+        BlockPos innerFrontLeftTop = pBlockPos.relative(Direction.UP, 2).relative(leftFacing, 1);
+        BlockPos innerFrontRightBottom = pBlockPos.relative(rightFacing, 1);
         innerFrontPlane = fromCorners(innerFrontLeftTop, innerFrontRightBottom);
 
-        BlockPos innerRearLeftTop = pBlockPos.offset(Direction.UP, 2).offset(oppositeFacing, 4).offset(leftFacing, 1);
-        BlockPos innerRearRightBottom = pBlockPos.offset(oppositeFacing, 4).offset(rightFacing, 1);
+        BlockPos innerRearLeftTop = pBlockPos.relative(Direction.UP, 2).relative(oppositeFacing, 4).relative(leftFacing, 1);
+        BlockPos innerRearRightBottom = pBlockPos.relative(oppositeFacing, 4).relative(rightFacing, 1);
         innerRearPlane = fromCorners(innerRearLeftTop, innerRearRightBottom);
     }
 
-    public Map<BlockBox, List<Block>> createShapeMap() {
-        Map<BlockBox, List<Block>> reactorShapeMap = new HashMap<>();
+    public Map<BoundingBox, List<Block>> createShapeMap() {
+        Map<BoundingBox, List<Block>> reactorShapeMap = new HashMap<>();
 
         Block coreComponent = switch (reactorType) {
             case FUSION -> BlockRegistry.FUSION_CORE;
@@ -138,19 +138,19 @@ public class ReactorShape {
         return reactorShapeMap;
     }
 
-    private static BlockBox fromCorners(BlockPos pStart, BlockPos pEnd) {
-        return BlockBox.create(blockPosToVec3i(pStart), blockPosToVec3i(pEnd));
+    private static BoundingBox fromCorners(BlockPos pStart, BlockPos pEnd) {
+        return BoundingBox.fromCorners(blockPosToVec3i(pStart), blockPosToVec3i(pEnd));
     }
 
     private static Vec3i blockPosToVec3i(BlockPos pBlockPos) {
         return new Vec3i(pBlockPos.getX(), pBlockPos.getY(), pBlockPos.getZ());
     }
 
-    public BlockBox getFullBoundingBox() {
+    public BoundingBox getFullBoundingBox() {
         return fullBoundingBox;
     }
 
-    public BlockBox getCoreBoundingBox() {
+    public BoundingBox getCoreBoundingBox() {
         return core;
     }
 }

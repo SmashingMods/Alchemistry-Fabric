@@ -1,102 +1,104 @@
 package com.smashingmods.alchemistry.api.container;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.smashingmods.alchemistry.Alchemistry;
 import com.smashingmods.alchemistry.network.AlchemistryNetwork;
 import com.smashingmods.alchemistry.network.packets.ProcessingButtonPacket;
-import net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry;
 import net.fabricmc.fabric.api.transfer.v1.client.fluid.FluidVariantRenderHandler;
 import net.fabricmc.fabric.api.transfer.v1.client.fluid.FluidVariantRendering;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariantAttributes;
-import net.fabricmc.fabric.impl.client.rendering.ColorProviderRegistryImpl;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.Drawable;
-import net.minecraft.client.gui.DrawableHelper;
-import net.minecraft.client.gui.Element;
-import net.minecraft.client.gui.Selectable;
-import net.minecraft.client.gui.screen.ingame.HandledScreen;
-import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.client.gui.widget.ClickableWidget;
-import net.minecraft.client.render.BufferBuilder;
-import net.minecraft.client.render.Tessellator;
-import net.minecraft.client.render.VertexFormat;
-import net.minecraft.client.render.VertexFormats;
-import net.minecraft.client.texture.Sprite;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.fluid.FlowableFluid;
-import net.minecraft.fluid.Fluids;
-import net.minecraft.item.ItemStack;
-import net.minecraft.screen.PlayerScreenHandler;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.components.events.GuiEventListener;
+import net.minecraft.client.gui.narration.NarratableEntry;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.AbstractWidget;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.level.material.FlowingFluid;
+import net.minecraft.world.level.material.Fluids;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.inventory.InventoryMenu;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
 
 import java.util.List;
 
-public abstract class AbstractAlchemistryScreen<M extends AbstractAlchemistryScreenHandler> extends HandledScreen<M> {
+public abstract class AbstractAlchemistryScreen<M extends AbstractAlchemistryScreenHandler> extends AbstractContainerScreen<M> {
+    protected Identifier texture;
+    protected GuiGraphicsExtractor graphics;
+    protected abstract void drawBackground(GuiGraphicsExtractor graphics, float delta, int mouseX, int mouseY);
+    protected void drawTexture(GuiGraphicsExtractor graphics, int x, int y, int u, int v, int w, int h) {
+        graphics.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, texture, x, y, u, v, w, h, 256, 256);
+    }
+    protected void renderTooltip(GuiGraphicsExtractor graphics, List<Component> lines, int x, int y) {
+        graphics.setTooltipForNextFrame(font, lines, java.util.Optional.empty(), x, y);
+    }
+    protected void renderTooltip(GuiGraphicsExtractor graphics, List<Component> lines, java.util.Optional<net.minecraft.world.inventory.tooltip.TooltipComponent> image, int x, int y) {
+        graphics.setTooltipForNextFrame(font, lines, image, x, y);
+    }
 
-    protected final ButtonWidget lockButton;
-    protected final ButtonWidget unlockButton;
 
-    protected final ButtonWidget pauseButton;
-    protected final ButtonWidget resumeButton;
+    protected final Button lockButton;
+    protected final Button unlockButton;
 
-    public AbstractAlchemistryScreen(M handler, PlayerInventory inventory, Text title) {
-        super(handler, inventory, title);
-        lockButton = new ButtonWidget(0, 0, 100, 20, Text.translatable("alchemistry.container.lock_recipe"), handleLock());
-        unlockButton = new ButtonWidget(0, 0, 100, 20, Text.translatable("alchemistry.container.unlock_recipe"), handleLock());
-        pauseButton = new ButtonWidget(0, 0, 100, 20, Text.translatable("alchemistry.container.pause"), handlePause());
-        resumeButton = new ButtonWidget(0, 0, 100, 20, Text.translatable("alchemistry.container.resume"), handlePause());
+    protected final Button pauseButton;
+    protected final Button resumeButton;
+
+    public AbstractAlchemistryScreen(M menu, Inventory inventory, Component title) {
+        this(menu, inventory, title, 176, 166);
+    }
+
+    public AbstractAlchemistryScreen(M menu, Inventory inventory, Component title, int width, int height) {
+        super(menu, inventory, title, width, height);
+        lockButton = Button.builder(Component.translatable("alchemistry.container.lock_recipe"), handleLock()).size(100, 20).build();
+        unlockButton = Button.builder(Component.translatable("alchemistry.container.unlock_recipe"), handleLock()).size(100, 20).build();
+        pauseButton = Button.builder(Component.translatable("alchemistry.container.pause"), handlePause()).size(100, 20).build();
+        resumeButton = Button.builder(Component.translatable("alchemistry.container.resume"), handlePause()).size(100, 20).build();
     }
 
     @Override
-    public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
-        renderBackground(matrices);
+    public void extractRenderState(GuiGraphicsExtractor matrices, int mouseX, int mouseY, float delta) {
+        this.graphics = matrices;
+        draw();
         drawBackground(matrices, delta, mouseX, mouseY);
-        super.render(matrices, mouseX, mouseY, delta);
-        renderWidgets();
+        super.extractRenderState(matrices, mouseX, mouseY, delta);
     }
 
-    public <W extends Element & Drawable & Selectable> void renderWidget(W widget, int x, int y) {
-        if (widget instanceof ClickableWidget clickableWidget) {
-            clickableWidget.x = x;
-            clickableWidget.y = y;
-        }
-        addDrawableChild(widget);
+    public void renderWidget(AbstractWidget widget, int x, int y) {
+        widget.setPosition(x, y);
+        if (!children().contains(widget)) addRenderableWidget(widget);
     }
 
-    public void renderWidgets() {
-        clearChildren();
-        if (handler.getBlockEntity().isRecipeLocked()) {
-            renderWidget(unlockButton, x - 104, y);
-        } else {
-            renderWidget(lockButton, x - 104, y);
-        }
-        if (handler.getBlockEntity().isProcessingPaused()) {
-            renderWidget(resumeButton, x - 104, y + 24);
-        } else {
-            renderWidget(pauseButton, x - 104, y + 24);
-        }
+    public void draw() {
+        renderWidget(lockButton, leftPos - 104, topPos);
+        renderWidget(unlockButton, leftPos - 104, topPos);
+        renderWidget(pauseButton, leftPos - 104, topPos + 24);
+        renderWidget(resumeButton, leftPos - 104, topPos + 24);
+        lockButton.visible = !menu.getBlockEntity().isRecipeLocked();
+        unlockButton.visible = !lockButton.visible;
+        pauseButton.visible = !menu.getBlockEntity().isProcessingPaused();
+        resumeButton.visible = !pauseButton.visible;
     }
 
-    private ButtonWidget.PressAction handleLock() {
+    private Button.OnPress handleLock() {
         return buttonWidget -> {
-            boolean lockState = !handler.getBlockEntity().isRecipeLocked();
-            boolean pausedState = handler.getBlockEntity().isProcessingPaused();
-            AlchemistryNetwork.sendToServer(new ProcessingButtonPacket(handler.getBlockEntity().getPos(), lockState, pausedState));
+            boolean lockState = !menu.getBlockEntity().isRecipeLocked();
+            boolean pausedState = menu.getBlockEntity().isProcessingPaused();
+            com.smashingmods.alchemistry.network.AlchemistryClientNetwork.sendToServer(new ProcessingButtonPacket(menu.getBlockEntity().getBlockPos(), lockState, pausedState));
         };
     }
 
-    private ButtonWidget.PressAction handlePause() {
+    private Button.OnPress handlePause() {
         return buttonWidget -> {
-            boolean lockState = handler.getBlockEntity().isRecipeLocked();
-            boolean pausedState = !handler.getBlockEntity().isProcessingPaused();
-            AlchemistryNetwork.sendToServer(new ProcessingButtonPacket(handler.getBlockEntity().getPos(), lockState, pausedState));
+            boolean lockState = menu.getBlockEntity().isRecipeLocked();
+            boolean pausedState = !menu.getBlockEntity().isProcessingPaused();
+            com.smashingmods.alchemistry.network.AlchemistryClientNetwork.sendToServer(new ProcessingButtonPacket(menu.getBlockEntity().getBlockPos(), lockState, pausedState));
         };
     }
 
-    public void renderDisplayTooltip(List<DisplayData> displayData, MatrixStack matrices, int x, int y, int mouseX, int mouseY) {
+    public void renderDisplayTooltip(List<DisplayData> displayData, GuiGraphicsExtractor matrices, int x, int y, int mouseX, int mouseY) {
         displayData.stream().filter(data ->
                 mouseX >= data.getX() + x &&
                         mouseX <= data.getX() + x + data.getWidth() &&
@@ -109,7 +111,7 @@ public abstract class AbstractAlchemistryScreen<M extends AbstractAlchemistryScr
         });
     }
 
-    public void renderDisplayData(List<DisplayData> displayData, MatrixStack matrices, int x, int y) {
+    public void renderDisplayData(List<DisplayData> displayData, GuiGraphicsExtractor matrices, int x, int y) {
         displayData.forEach(data -> {
             if (data instanceof ProgressDisplayData) {
                 directionalArrow(matrices, x + data.getX(), y + data.getY(), data.getValue(), data.getMaxValue(), ((ProgressDisplayData) data).getDirection());
@@ -118,79 +120,32 @@ public abstract class AbstractAlchemistryScreen<M extends AbstractAlchemistryScr
                 drawEnergyBar(matrices, (EnergyDisplayData) data, 0, 40);
             }
             if (data instanceof FluidDisplayData) {
-                drawFluidTank((FluidDisplayData) data, x + data.getX(), y + data.getY());
+                drawFluidTank(matrices, (FluidDisplayData) data, x + data.getX(), y + data.getY());
             }
         });
     }
 
-    public void drawEnergyBar(MatrixStack pPoseStack, EnergyDisplayData data, int textureX, int textureY) {
-        int x = data.getX() + (this.width - this.backgroundWidth) / 2;
-        int y = data.getY() + (this.height - this.backgroundHeight) / 2;
-        this.directionalBlit(pPoseStack, x, y + data.getHeight(), textureX, textureY, data.getWidth(), data.getHeight(), data.getValue(), data.getMaxValue(), Direction2D.UP);
+    public void drawEnergyBar(GuiGraphicsExtractor pGuiGraphicsExtractor, EnergyDisplayData data, int textureX, int textureY) {
+        int x = data.getX() + (this.width - this.imageWidth) / 2;
+        int y = data.getY() + (this.height - this.imageHeight) / 2;
+        this.directionalBlit(pGuiGraphicsExtractor, x, y + data.getHeight(), textureX, textureY, data.getWidth(), data.getHeight(), data.getValue(), data.getMaxValue(), Direction2D.UP);
     }
 
-    public void drawFluidTank(FluidDisplayData data, int textureX, int textureY) {
-        if (data.getValue() > 0) {
-            FluidVariant fluidVariant = data.getFluidVariant();
-            int color = FluidVariantRendering.getColor(fluidVariant);
-            setShaderColor(color);
-            Sprite icon = FluidVariantRendering.getSprite(fluidVariant);
-            drawTexture(data, icon, textureX, textureY);
-            RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
-        }
+    public void drawFluidTank(GuiGraphicsExtractor graphics, FluidDisplayData data, int x, int y) {
+        if (data.getValue() <= 0 || data.getMaxValue() <= 0) return;
+        FluidVariant variant = data.getFluidVariant();
+        TextureAtlasSprite sprite = Minecraft.getInstance().getModelManager().getFluidStateModelSet().get(variant.getFluid().defaultFluidState()).stillMaterial().sprite();
+        if (sprite == null) return;
+        int color = FluidVariantRendering.getColor(variant) | 0xFF000000;
+        int height = getBarScaled(data.getHeight(), data.getValue(), data.getMaxValue());
+        graphics.enableScissor(x, y + data.getHeight() - height, x + data.getWidth(), y + data.getHeight());
+        for (int dy = 0; dy < data.getHeight(); dy += 16)
+            for (int dx = 0; dx < data.getWidth(); dx += 16)
+                graphics.blitSprite(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, sprite, x + dx, y + dy, 16, 16, color);
+        graphics.disableScissor();
     }
 
-    public void drawTexture(DisplayData pData, Sprite sprite, int pTextureX, int pTextureY) {
-        RenderSystem.setShaderTexture(0, PlayerScreenHandler.BLOCK_ATLAS_TEXTURE);
-        int renderAmount = Math.max(Math.min(pData.getHeight(), pData.getValue() * pData.getHeight() / pData.getMaxValue()), 1);
-        int posY = pTextureY + pData.getHeight() - renderAmount;
-
-        float minU = sprite.getMinU();
-        float maxU = sprite.getMaxU();
-        float minV = sprite.getMinV();
-        float maxV = sprite.getMaxV();
-
-        for (int width = 0; width < pData.getWidth(); width++) {
-            for (int height = 0; height < pData.getHeight(); height++) {
-
-                int drawHeight = Math.min(renderAmount - height, 16);
-                int drawWidth = Math.min(pData.getWidth() - width, 16);
-
-                int x1 = pTextureX + width;
-                float x2 = x1 + drawWidth;
-                int y1 = posY + height;
-                float y2 = y1 + drawHeight;
-
-                float scaleV = minV + (maxV - minV) * drawHeight / 16f;
-                float scaleU = minU + (maxU - minU) * drawWidth / 16f;
-
-                float blitOffset = 0;
-
-                Tessellator tesselator = Tessellator.getInstance();
-                BufferBuilder bufferBuilder = tesselator.getBuffer();
-
-                bufferBuilder.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_TEXTURE);
-                bufferBuilder.vertex(x1, y2, blitOffset).texture(minU, scaleV).next();
-                bufferBuilder.vertex(x2, y2, blitOffset).texture(scaleU, scaleV).next();
-                bufferBuilder.vertex(x2, y1, blitOffset).texture(scaleU, minV).next();
-                bufferBuilder.vertex(x1, y1, blitOffset).texture(minU, minV).next();
-                tesselator.draw();
-
-                height += 15;
-            }
-            width += 16;
-        }
-    }
-
-    public static void setShaderColor(int color) {
-        float alpha = (color >> 24 & 255) / 255f;
-        float red = (color >> 16 & 255) / 255f;
-        float green = (color >> 8 & 255) / 255f;
-        float blue = (color & 255) / 255f;
-        RenderSystem.setShaderColor(red, green, blue, alpha);
-    }
-
-    public void directionalArrow(MatrixStack matrices, int x, int y, int progress, int maxProgress, Direction2D direction2D) {
+    public void directionalArrow(GuiGraphicsExtractor matrices, int x, int y, int progress, int maxProgress, Direction2D direction2D) {
         switch (direction2D) {
             case LEFT -> directionalBlit(matrices, x, y, 0, 120, 9, 30, progress, maxProgress, Direction2D.LEFT);
             case UP -> directionalBlit(matrices, x, y, 0, 138, 9, 30, progress, maxProgress, Direction2D.UP);
@@ -199,8 +154,8 @@ public abstract class AbstractAlchemistryScreen<M extends AbstractAlchemistryScr
         }
     }
 
-    private void directionalBlit(MatrixStack matrices, int x, int y, int uOffset, int vOffset, int u, int v, int progress, int maxProgress, Direction2D direction2D) {
-        RenderSystem.setShaderTexture(0, new Identifier(Alchemistry.MOD_ID, "textures/gui/widgets.png"));
+    private void directionalBlit(GuiGraphicsExtractor matrices, int x, int y, int uOffset, int vOffset, int u, int v, int progress, int maxProgress, Direction2D direction2D) {
+        texture = Identifier.fromNamespaceAndPath(Alchemistry.MOD_ID, "textures/gui/widgets.png");
 
         switch (direction2D) {
             case LEFT -> {

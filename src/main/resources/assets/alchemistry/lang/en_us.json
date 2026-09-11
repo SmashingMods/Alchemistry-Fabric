@@ -47,5 +47,6 @@
   "block.alchemistry.reactor_output": "Reactor Output",
   "itemGroup.alchemistry.machine_tab": "Alchemistry",
   "tooltip.alchemistry.energy_requirement": "Requires %d E/t",
-  "tooltip.alchemistry.requires": "Requires"
+  "tooltip.alchemistry.requires": "Requires",
+  "item.alchemistry.guide_book": "Alchemistry Guide"
 }

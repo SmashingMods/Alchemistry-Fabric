@@ -8,19 +8,21 @@ import me.shedaniel.rei.api.common.entry.EntryIngredient;
 import me.shedaniel.rei.api.common.util.EntryIngredients;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.util.Identifier;
+import net.minecraft.resources.Identifier;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-@Environment(EnvType.CLIENT)
 public class AtomizerRecipeDisplay extends BasicDisplay {
+    public static final me.shedaniel.rei.api.common.display.DisplaySerializer<AtomizerRecipeDisplay> SERIALIZER = com.smashingmods.alchemistry.client.rei.ReiDisplayCodecs.create(AtomizerRecipeDisplay::new);
+    @Override public me.shedaniel.rei.api.common.display.DisplaySerializer<AtomizerRecipeDisplay> getSerializer() { return SERIALIZER; }
+
 
     public static final CategoryIdentifier<AtomizerRecipeDisplay> ID = CategoryIdentifier.of(Alchemistry.MOD_ID, "atomizer");
 
     public AtomizerRecipeDisplay(AtomizerRecipe recipe) {
-        this(Collections.singletonList(EntryIngredients.of(recipe.getFluidInput().getFluid())), Collections.singletonList(EntryIngredients.of(recipe.getOutput())), Optional.ofNullable(recipe.getId()));
+        this(Collections.singletonList(EntryIngredients.of(recipe.getFluidInput().getFluid(), recipe.getFluidAmount() * 81L)), Collections.singletonList(EntryIngredients.of(recipe.getOutput())), Optional.ofNullable(recipe.getId()));
     }
 
     public AtomizerRecipeDisplay(List<EntryIngredient> inputs, List<EntryIngredient> outputs, Optional<Identifier> location) {

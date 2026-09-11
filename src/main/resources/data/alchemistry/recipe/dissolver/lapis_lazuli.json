@@ -1,0 +1,32 @@
+{
+  "type": "alchemistry:dissolver",
+  "group": "alchemistry:dissolver",
+  "input": "minecraft:lapis_lazuli",
+  "output": {
+    "rolls": 1,
+    "weighted": false,
+    "groups": [
+      {
+        "probability": 100.0,
+        "results": [
+          {
+            "item": "chemlib:sodium",
+            "count": 6
+          },
+          {
+            "item": "chemlib:mullite",
+            "count": 3
+          },
+          {
+            "item": "chemlib:calcium_sulfide",
+            "count": 2
+          },
+          {
+            "item": "chemlib:silicon",
+            "count": 3
+          }
+        ]
+      }
+    ]
+  }
+}

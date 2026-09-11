@@ -1,19 +1,19 @@
 package com.smashingmods.alchemistry.api.container;
 
-import net.minecraft.screen.PropertyDelegate;
-import net.minecraft.text.MutableText;
-import net.minecraft.text.Text;
+import net.minecraft.world.inventory.ContainerData;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.Component;
 
 import java.util.List;
 
 public class ProgressDisplayData extends DisplayData {
 
-    private final PropertyDelegate delegate;
+    private final ContainerData delegate;
     private final Direction2D direction2D;
     private final int valueSlot;
     private final int maxValueSlot;
 
-    public ProgressDisplayData(PropertyDelegate delegate, int valueSLot, int maxValueSlot, int x, int y, int width, int height, Direction2D direction2D) {
+    public ProgressDisplayData(ContainerData delegate, int valueSLot, int maxValueSlot, int x, int y, int width, int height, Direction2D direction2D) {
         super(x, y, width, height);
         this.delegate = delegate;
         this.direction2D = direction2D;
@@ -36,7 +36,7 @@ public class ProgressDisplayData extends DisplayData {
     }
 
     @Override
-    public List<Text> toText() {
-        return List.of(Text.literal("Show Recipes"));
+    public List<Component> toText() {
+        return List.of(Component.literal("Show Recipes"));
     }
 }

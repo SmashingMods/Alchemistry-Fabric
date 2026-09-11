@@ -1,69 +1,74 @@
 package com.smashingmods.alchemistry.api.blockentity;
 
 import com.smashingmods.alchemistry.Alchemistry;
-import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
+import net.fabricmc.fabric.api.menu.v1.ExtendedMenuProvider;
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.block.entity.BlockEntityType;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.network.Packet;
-import net.minecraft.network.PacketByteBuf;
-import net.minecraft.network.listener.ClientPlayPacketListener;
-import net.minecraft.network.packet.s2c.play.BlockEntityUpdateS2CPacket;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
-import net.minecraft.util.Nameable;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.registry.Registry;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.Nameable;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import team.reborn.energy.api.base.SimpleEnergyStorage;
 
 import java.util.Objects;
 
-public abstract class AbstractProcessingBlockEntity extends BlockEntity implements ProcessingBlockEntity, ExtendedScreenHandlerFactory, Nameable {
+public abstract class AbstractProcessingBlockEntity extends BlockEntity implements ProcessingBlockEntity, ExtendedMenuProvider<BlockPos>, Nameable {
 
-    private final Text name;
+    private final Component name;
     private int progress = 0;
     private boolean recipeLocked = false;
     private boolean paused = false;
     private final SimpleEnergyStorage energyStorage;
 
-    public AbstractProcessingBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state, long energyCapacity) {
-        super(type, pos, state);
-        String blockEntityName = Objects.requireNonNull(Registry.BLOCK_ENTITY_TYPE.getId(getType())).getPath();
-        this.name = Text.translatable(String.format("%s.container.%s", Alchemistry.MOD_ID, blockEntityName));
+    public AbstractProcessingBlockEntity(BlockEntityType<?> type, BlockPos worldPosition, BlockState state, long energyCapacity) {
+        super(type, worldPosition, state);
+        String blockEntityName = Objects.requireNonNull(BuiltInRegistries.BLOCK_ENTITY_TYPE.getKey(getType())).getPath();
+        this.name = Component.translatable(String.format("%s.container.%s", Alchemistry.MOD_ID, blockEntityName));
         energyStorage = new SimpleEnergyStorage(energyCapacity, energyCapacity, energyCapacity) {
             @Override
             protected void onFinalCommit() {
-                markDirty();
+                setChanged();
             }
         };
     }
 
     @Override
-    public Text getName() {
-        return name != null ? name : this.getDefaultName();
+    public Component getName() {
+        return name != null ? name : this.getTypeName();
     }
 
     @Override
-    public Text getDisplayName() {
+    public Component getDisplayName() {
         return getName();
     }
 
-    protected Text getDefaultName() {
+    protected Component getTypeName() {
         return name;
     }
 
     @Override
-    public NbtCompound toInitialChunkDataNbt() {
-        NbtCompound tag = super.toInitialChunkDataNbt();
-        writeNbt(tag);
-        return tag;
+    public CompoundTag getUpdateTag(net.minecraft.core.HolderLookup.Provider registries) {
+        return saveWithoutMetadata(registries);
+    }
+    @Override
+    public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+        dropContents();
+        if (this instanceof AbstractReactorBlockEntity reactor) reactor.onRemove();
+        super.preRemoveSideEffects(pos, state);
     }
 
     @Override
     public void tick() {
-        if (world != null && !world.isClient()) {
+        if (level != null && !level.isClientSide()) {
             if (!paused) {
                 if (!recipeLocked) {
                     updateRecipe();
@@ -103,40 +108,50 @@ public abstract class AbstractProcessingBlockEntity extends BlockEntity implemen
     @Override
     public void setRecipeLocked(boolean recipeLocked) {
         this.recipeLocked = recipeLocked;
+        setChanged();
     }
 
     @Override
     public void setPaused(boolean paused) {
         this.paused = paused;
+        setChanged();
     }
 
     @Override
-    public Packet<ClientPlayPacketListener> toUpdatePacket() {
-        return BlockEntityUpdateS2CPacket.create(this);
+    public Packet<ClientGamePacketListener> getUpdatePacket() {
+        return ClientboundBlockEntityDataPacket.create(this);
     }
 
     @Override
-    protected void writeNbt(NbtCompound nbt) {
+    protected void saveAdditional(net.minecraft.world.level.storage.ValueOutput nbt) {
         nbt.putInt("progress", progress);
         nbt.putBoolean("locked", isRecipeLocked());
         nbt.putBoolean("paused", isProcessingPaused());
         nbt.putLong("energy", energyStorage.amount);
-        super.writeNbt(nbt);
+        if (getRecipe() != null) {
+            nbt.store("recipe", net.minecraft.world.item.crafting.Recipe.CODEC, getRecipe());
+            if (getRecipe() instanceof com.smashingmods.alchemistry.api.recipe.AbstractAlchemistryRecipe recipe) nbt.store("recipeId", net.minecraft.resources.Identifier.CODEC, recipe.getId());
+        }
+        super.saveAdditional(nbt);
     }
 
     @Override
-    public void readNbt(NbtCompound nbt) {
-        super.readNbt(nbt);
-        setProgress(nbt.getInt("progress"));
-        setRecipeLocked(nbt.getBoolean("locked"));
-        setPaused(nbt.getBoolean("paused"));
-        insertEnergy(nbt.getLong("energy"));
+    public void loadAdditional(net.minecraft.world.level.storage.ValueInput nbt) {
+        super.loadAdditional(nbt);
+        nbt.read("recipe", net.minecraft.world.item.crafting.Recipe.CODEC).ifPresent(recipe -> {
+            if (recipe instanceof com.smashingmods.alchemistry.api.recipe.AbstractAlchemistryRecipe machineRecipe) {
+                nbt.read("recipeId", net.minecraft.resources.Identifier.CODEC).ifPresent(machineRecipe::setId);
+                setRecipe(machineRecipe);
+            }
+        });
+        setProgress(nbt.getIntOr("progress", 0));
+        setRecipeLocked(nbt.getBooleanOr("locked", false));
+        setPaused(nbt.getBooleanOr("paused", false));
+        energyStorage.amount = Math.clamp(nbt.getLongOr("energy", 0L), 0L, energyStorage.capacity);
     }
 
     @Override
-    public void writeScreenOpeningData(ServerPlayerEntity player, PacketByteBuf buf) {
-        buf.writeBlockPos(pos);
-    }
+    public BlockPos getScreenOpeningData(ServerPlayer player) { return getBlockPos(); }
 
     public SimpleEnergyStorage getEnergyStorage() {
         return energyStorage;
@@ -161,7 +176,7 @@ public abstract class AbstractProcessingBlockEntity extends BlockEntity implemen
     }
 
     public void forceSync() {
-        this.markDirty();
-        world.updateListeners(this.pos, this.getCachedState(), this.getCachedState(), 3);
+        this.setChanged();
+        level.sendBlockUpdated(this.worldPosition, this.getBlockState(), this.getBlockState(), 3);
     }
 }

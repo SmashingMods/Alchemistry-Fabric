@@ -8,14 +8,16 @@ import me.shedaniel.rei.api.common.entry.EntryIngredient;
 import me.shedaniel.rei.api.common.util.EntryIngredients;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.util.Identifier;
+import net.minecraft.resources.Identifier;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-@Environment(EnvType.CLIENT)
 public class DissolverRecipeDisplay extends BasicDisplay {
+    public static final me.shedaniel.rei.api.common.display.DisplaySerializer<DissolverRecipeDisplay> SERIALIZER = com.smashingmods.alchemistry.client.rei.ReiDisplayCodecs.create(DissolverRecipeDisplay::new);
+    @Override public me.shedaniel.rei.api.common.display.DisplaySerializer<DissolverRecipeDisplay> getSerializer() { return SERIALIZER; }
+
 
     public static final CategoryIdentifier<DissolverRecipeDisplay> ID = CategoryIdentifier.of(Alchemistry.MOD_ID, "dissolver");
 

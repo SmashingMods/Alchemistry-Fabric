@@ -7,19 +7,20 @@ import com.smashingmods.alchemistry.network.AlchemistryNetwork;
 import com.smashingmods.alchemistry.network.packets.CombinerIndexPacket;
 import com.smashingmods.alchemistry.network.packets.CombinerRecipePacket;
 import com.smashingmods.alchemistry.registry.ScreenRegistry;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.Inventory;
-import net.minecraft.inventory.SimpleInventory;
-import net.minecraft.network.PacketByteBuf;
-import net.minecraft.screen.ArrayPropertyDelegate;
-import net.minecraft.screen.PropertyDelegate;
-import net.minecraft.screen.slot.Slot;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.registry.Registry;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.Container;
+import net.minecraft.world.SimpleContainer;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.world.inventory.SimpleContainerData;
+import net.minecraft.world.inventory.ContainerData;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.resources.Identifier;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.world.level.Level;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,19 +28,19 @@ import java.util.Objects;
 
 public class CombinerScreenHandler extends AbstractAlchemistryScreenHandler {
 
-    protected final PropertyDelegate propertyDelegate;
-    private final World world;
-    private final PlayerEntity viewer;
+    protected final ContainerData propertyDelegate;
+    private final Level level;
+    private final Player viewer;
     private final CombinerBlockEntity blockEntity;
     private final List<CombinerRecipe> displayedRecipes = new ArrayList<>();
 
-    public CombinerScreenHandler(int syncId, PlayerInventory playerInventory, PacketByteBuf buffer) {
-        this(syncId, playerInventory,Objects.requireNonNull(playerInventory.player.getWorld().getBlockEntity(buffer.readBlockPos())), new SimpleInventory(CombinerBlockEntity.INVENTORY_SIZE), new ArrayPropertyDelegate(5));
+    public CombinerScreenHandler(int syncId, Inventory playerInventory, net.minecraft.core.BlockPos position) {
+        this(syncId, playerInventory,Objects.requireNonNull(playerInventory.player.level().getBlockEntity(position)), new SimpleContainer(CombinerBlockEntity.INVENTORY_SIZE), new SimpleContainerData(5));
     }
 
-    protected CombinerScreenHandler(int syncId, PlayerInventory playerInventory, BlockEntity blockEntity, Inventory inventory, PropertyDelegate delegate) {
+    protected CombinerScreenHandler(int syncId, Inventory playerInventory, BlockEntity blockEntity, Container inventory, ContainerData delegate) {
         super(ScreenRegistry.COMBINER_SCREEN_HANDLER, syncId, playerInventory, blockEntity, inventory, delegate, 4, 1);
-        this.world = playerInventory.player.getWorld();
+        this.level = playerInventory.player.level();
         this.viewer = playerInventory.player;
         this.blockEntity = (CombinerBlockEntity) blockEntity;
 
@@ -50,25 +51,25 @@ public class CombinerScreenHandler extends AbstractAlchemistryScreenHandler {
         addSlots(OutputSlot::new, inventory, 1, 1, 4, 1, 102, 81);
 
         this.propertyDelegate = delegate;
-        addProperties(delegate);
+        addDataSlots(delegate);
     }
 
     @Override
-    public void addPlayerInventorySlots(Inventory pInventory) {
+    public void addPlayerInventorySlots(Container pInventory) {
         addSlots(Slot::new, pInventory, 3, 9, 9, 27,12, 106);
         addSlots(Slot::new, pInventory, 1, 9, 0,9, 12, 164);
     }
 
     @Override
-    public boolean onButtonClick(PlayerEntity player, int id) {
-        if(player.world.isClient()) {
+    public boolean clickMenuButton(Player player, int id) {
+        if(player.level().isClientSide()) {
             if (!getBlockEntity().isRecipeLocked()) {
                 if (this.isValidRecipeIndex(id)) {
                     int recipeIndex = blockEntity.getRecipes().indexOf(displayedRecipes.get(id));
                     CombinerRecipe recipe = blockEntity.getRecipes().get(recipeIndex);
                     this.setSelectedRecipeIndex(id);
                     this.blockEntity.setRecipe(recipe);
-                    AlchemistryNetwork.sendToServer(new CombinerIndexPacket(getBlockEntity().getPos(), recipeIndex));
+                    com.smashingmods.alchemistry.network.AlchemistryClientNetwork.sendToServer(new CombinerIndexPacket(getBlockEntity().getBlockPos(), recipeIndex));
                 }
             }
         }
@@ -88,11 +89,14 @@ public class CombinerScreenHandler extends AbstractAlchemistryScreenHandler {
     }
 
     private void setupRecipeList() {
-        if (!world.isClient() && !this.blockEntity.isRecipesSynced()) {
-            List<CombinerRecipe> recipes = world.getRecipeManager().getAllMatches(CombinerRecipe.Type.INSTANCE, new SimpleInventory(1), world).stream().sorted().toList();
+        if (!level.isClientSide()) {
+            List<CombinerRecipe> recipes = com.smashingmods.alchemistry.api.recipe.MachineRecipes.all(level, CombinerRecipe.Type.INSTANCE).stream().sorted().toList();
+            this.blockEntity.getRecipes().clear();
+            boolean first = true;
             for (CombinerRecipe recipe : recipes) {
                 this.blockEntity.addRecipe(recipe);
-                AlchemistryNetwork.sendToClient(new CombinerRecipePacket(blockEntity.getPos(), recipe), (ServerPlayerEntity) viewer);
+                AlchemistryNetwork.sendToClient(new CombinerRecipePacket(blockEntity.getBlockPos(), recipe, first), (ServerPlayer) viewer);
+                first = false;
             }
             this.blockEntity.markRecipesSynced();
         }
@@ -110,8 +114,7 @@ public class CombinerScreenHandler extends AbstractAlchemistryScreenHandler {
     public void searchRecipeList(String pKeyword) {
         this.displayedRecipes.clear();
         this.displayedRecipes.addAll(this.blockEntity.getRecipes().stream().filter(recipe -> {
-            Objects.requireNonNull(recipe.getOutput().getItem().getName());
-            Identifier id = Registry.ITEM.getId(recipe.getOutput().getItem());
+            Identifier id = BuiltInRegistries.ITEM.getKey(recipe.getOutput().getItem());
             return id.getPath().contains(pKeyword.toLowerCase().replace(" ", "_"));
         }).toList());
     }

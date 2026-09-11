@@ -1,24 +1,23 @@
 package com.smashingmods.alchemistry.api.blockentity;
 
-import com.smashingmods.alchemistry.mixin.BucketItemMixin;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidConstants;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.base.SingleVariantStorage;
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.entity.BlockEntityType;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.fluid.Fluid;
-import net.minecraft.item.BucketItem;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.sound.SoundEvents;
-import net.minecraft.util.Hand;
-import net.minecraft.util.collection.DefaultedList;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.material.Fluid;
+import net.minecraft.world.item.BucketItem;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.core.NonNullList;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
 
 public abstract class AbstractFluidBlockEntity extends AbstractInventoryBlockEntity {
 
@@ -26,8 +25,8 @@ public abstract class AbstractFluidBlockEntity extends AbstractInventoryBlockEnt
 
     private final SingleVariantStorage<FluidVariant> fluidStorage;
 
-    public AbstractFluidBlockEntity(DefaultedList<ItemStack> inventory, BlockEntityType<?> type, BlockPos pos, BlockState state, long energyCapacity, long fluidCapacity) {
-        super(inventory, type, pos, state, energyCapacity);
+    public AbstractFluidBlockEntity(NonNullList<ItemStack> inventory, BlockEntityType<?> type, BlockPos worldPosition, BlockState state, long energyCapacity, long fluidCapacity) {
+        super(inventory, type, worldPosition, state, energyCapacity);
         this.fluidStorage = new SingleVariantStorage<>() {
             @Override
             protected FluidVariant getBlankVariant() {
@@ -39,7 +38,7 @@ public abstract class AbstractFluidBlockEntity extends AbstractInventoryBlockEnt
             }
             @Override
             protected void onFinalCommit() {
-                markDirty();
+                setChanged();
             }
         };
     }
@@ -48,45 +47,39 @@ public abstract class AbstractFluidBlockEntity extends AbstractInventoryBlockEnt
      * Handles fluid insertion/extraction when using a bucket
      * @return true if fluid was transferred, false if GUI should be opened instead.
      */
-    public boolean onBlockActivated(World world, BlockPos blockPos, PlayerEntity player, Hand hand) {
-        Item item = player.getStackInHand(hand).getItem();
-        if (item instanceof BucketItem bucket) {
-            if (item == Items.BUCKET && getFluidStorage().getAmount() >= BUCKET_CONSTANT) {
-                // Extract fluid if possible
-                FluidVariant fluidVariant = getFluidStorage().getResource();
-                try { extractFluid(fluidVariant); }
-                catch (IllegalArgumentException e) { return false; }
-
-                // Fill bucket in hand
-                if (!world.isClient() && !player.isCreative()) player.setStackInHand(hand, new ItemStack(fluidVariant.getFluid().getBucketItem()));
-                else player.playSound(SoundEvents.ITEM_BUCKET_FILL, 1.0f, 1.0f);
-            } else if (item != Items.BUCKET && getFluidStorage().getAmount() + BUCKET_CONSTANT <= getFluidStorage().getCapacity()) {
-                // Insert fluid if it matches
-                Fluid fluid = ((BucketItemMixin) bucket).getFluid();
-                FluidVariant fluidVariant = FluidVariant.of(fluid);
-                if (getFluidStorage().getAmount() == 0 || fluidVariant.equals(getFluidStorage().getResource())) insertFluid(fluidVariant);
-                else return false;
-
-                // Empty bucket in hand
-                if (!world.isClient() && !player.isCreative()) player.setStackInHand(hand, new ItemStack(Items.BUCKET));
-                else player.playSound(SoundEvents.ITEM_BUCKET_EMPTY, 1.0f, 1.0f);
+    public boolean onBlockActivated(Level level, BlockPos blockPos, Player player, InteractionHand hand) {
+        ItemStack held = player.getItemInHand(hand);
+        if (!(held.getItem() instanceof BucketItem bucket)) return false;
+        boolean extracting = held.is(Items.BUCKET);
+        FluidVariant fluid = extracting ? fluidStorage.getResource() : FluidVariant.of(bucket.getContent());
+        Item result = extracting ? fluid.getFluid().getBucket() : Items.BUCKET;
+        if (fluid.isBlank() || result == Items.AIR) return false;
+        try (Transaction transaction = Transaction.openOuter()) {
+            long transferred = extracting
+                ? fluidStorage.extract(fluid, BUCKET_CONSTANT, transaction)
+                : fluidStorage.insert(fluid, BUCKET_CONSTANT, transaction);
+            if (transferred != BUCKET_CONSTANT) return false;
+            if (!level.isClientSide()) {
+                transaction.commit();
+                player.setItemInHand(hand, net.minecraft.world.item.ItemUtils.createFilledResult(held, player, new ItemStack(result)));
+                level.playSound(null, blockPos, extracting ? SoundEvents.BUCKET_FILL : SoundEvents.BUCKET_EMPTY,
+                    net.minecraft.sounds.SoundSource.BLOCKS, 1.0F, 1.0F);
             }
-            return true;
         }
-        return false;
+        return true;
     }
 
     @Override
-    public void writeNbt(NbtCompound tag) {
-        tag.put("fluidVariant", fluidStorage.variant.toNbt());
+    public void saveAdditional(net.minecraft.world.level.storage.ValueOutput tag) {
+        tag.store("fluidVariant", FluidVariant.CODEC, fluidStorage.variant);
         tag.putLong("fluid", fluidStorage.amount);
-        super.writeNbt(tag);
+        super.saveAdditional(tag);
     }
     @Override
-    public void readNbt(NbtCompound tag) {
-        super.readNbt(tag);
-        fluidStorage.variant = FluidVariant.fromNbt(tag.getCompound("fluidVariant"));
-        fluidStorage.amount = tag.getLong("fluid");
+    public void loadAdditional(net.minecraft.world.level.storage.ValueInput tag) {
+        super.loadAdditional(tag);
+        fluidStorage.variant = tag.read("fluidVariant", FluidVariant.CODEC).orElse(FluidVariant.blank());
+        fluidStorage.amount = tag.getLongOr("fluid", 0L);
     }
 
     public SingleVariantStorage<FluidVariant> getFluidStorage() {

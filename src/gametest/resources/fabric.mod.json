@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "id": "alchemistry-test",
+  "version": "1.0.0",
+  "name": "Alchemistry port tests",
+  "environment": "*",
+  "entrypoints": {
+    "fabric-gametest": [
+      "com.smashingmods.alchemistry.test.AlchemistryGameTest"
+    ],
+    "fabric-client-gametest": [
+      "com.smashingmods.alchemistry.test.AlchemistryClientTest"
+    ]
+  }
+}

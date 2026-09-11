@@ -1,22 +1,24 @@
 package com.smashingmods.alchemistry.common.block.atomizer;
 
+import net.minecraft.world.item.crafting.RecipeInput;
 import com.smashingmods.alchemistry.Config;
 import com.smashingmods.alchemistry.api.blockentity.AbstractFluidBlockEntity;
 import com.smashingmods.alchemistry.common.recipe.atomizer.AtomizerRecipe;
 import com.smashingmods.alchemistry.registry.BlockEntityRegistry;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
-import net.minecraft.block.BlockState;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.SimpleInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.recipe.Recipe;
-import net.minecraft.screen.PropertyDelegate;
-import net.minecraft.screen.ScreenHandler;
-import net.minecraft.util.collection.DefaultedList;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.registry.Registry;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.inventory.ContainerData;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.core.NonNullList;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import org.jetbrains.annotations.Nullable;
 
 public class AtomizerBlockEntity extends AbstractFluidBlockEntity {
@@ -24,13 +26,13 @@ public class AtomizerBlockEntity extends AbstractFluidBlockEntity {
     public static final int INVENTORY_SIZE = 1;
 
     private AtomizerRecipe currentRecipe;
-    protected final PropertyDelegate propertyDelegate;
+    protected final ContainerData propertyDelegate;
     private final int maxProgress;
 
-    public AtomizerBlockEntity(BlockPos pos, BlockState state) {
-        super(DefaultedList.ofSize(INVENTORY_SIZE, ItemStack.EMPTY), BlockEntityRegistry.ATOMIZER_BLOCK_ENTITY, pos, state, Config.Common.atomizerEnergyCapacity.get(), 81L * Config.Common.atomizerFluidCapacity.get());
+    public AtomizerBlockEntity(BlockPos worldPosition, BlockState state) {
+        super(NonNullList.withSize(INVENTORY_SIZE, ItemStack.EMPTY), BlockEntityRegistry.ATOMIZER_BLOCK_ENTITY, worldPosition, state, Config.Common.atomizerEnergyCapacity.get(), 81L * Config.Common.atomizerFluidCapacity.get());
         this.maxProgress = Config.Common.atomizerTicksPerOperation.get();
-        this.propertyDelegate = new PropertyDelegate() {
+        this.propertyDelegate = new ContainerData() {
             public int get(int index) {
                 return switch (index) {
                     case 0 -> getProgress();
@@ -39,7 +41,7 @@ public class AtomizerBlockEntity extends AbstractFluidBlockEntity {
                     case 3 -> (int) getEnergyStorage().getCapacity();
                     case 4 -> (int) getFluidStorage().getAmount();
                     case 5 -> (int) getFluidStorage().getCapacity();
-                    case 6 -> Registry.FLUID.getRawId(getFluidStorage().getResource().getFluid());
+                    case 6 -> BuiltInRegistries.FLUID.getId(getFluidStorage().getResource().getFluid());
                     default -> 0;
                 };
             }
@@ -48,29 +50,29 @@ public class AtomizerBlockEntity extends AbstractFluidBlockEntity {
                     case 0 -> setProgress(value);
                     case 2 -> insertEnergy(value);
                     case 4 -> getFluidStorage().amount = value;
-                    case 6 -> getFluidStorage().variant = FluidVariant.of(Registry.FLUID.get(value));
+                    case 6 -> getFluidStorage().variant = FluidVariant.of(BuiltInRegistries.FLUID.byId(value));
                 }
             }
-            public int size() {
+            public int getCount() {
                 return 7;
             }
         };
     }
 
     @Override
-    public boolean canExtract(int slot, ItemStack stack, Direction side) {
+    public boolean canTakeItemThroughFace(int slot, ItemStack stack, Direction side) {
         return true;
     }
 
     @Override
-    public boolean canInsert(int slot, ItemStack stack, @Nullable Direction side) {
+    public boolean canPlaceItemThroughFace(int slot, ItemStack stack, @Nullable Direction side) {
         return false;
     }
 
     @Override
     public void updateRecipe() {
-        if (world == null || world.isClient() || getFluidStorage().getAmount() == 0) return;
-        world.getRecipeManager().getAllMatches(AtomizerRecipe.Type.INSTANCE, new SimpleInventory(1), world).stream()
+        if (level == null || level.isClientSide() || getFluidStorage().getAmount() == 0) return;
+        com.smashingmods.alchemistry.api.recipe.MachineRecipes.all(level, AtomizerRecipe.Type.INSTANCE).stream()
                 .filter(recipe -> recipe.getFluidInput().equals(getFluidStorage().getResource()))
                 .findFirst()
                 .ifPresentOrElse(recipe -> {
@@ -85,9 +87,10 @@ public class AtomizerBlockEntity extends AbstractFluidBlockEntity {
     public boolean canProcessRecipe() {
         if (currentRecipe != null) {
             return getEnergyStorage().getAmount() >= Config.Common.atomizerEnergyPerTick.get()
-                    && getFluidStorage().getAmount() >= currentRecipe.getFluidAmount()
-                    && ((ItemStack.canCombine(getStackInSlot(0), currentRecipe.getOutput())) || getStackInSlot(0).isEmpty())
-                    && (getStackInSlot(0).getCount() + currentRecipe.getOutput().getCount()) <= currentRecipe.getOutput().getMaxCount();
+                    && getFluidStorage().getAmount() >= currentRecipe.getFluidAmount() * 81L
+                    && getFluidStorage().getResource().equals(currentRecipe.getFluidInput())
+                    && ((ItemStack.isSameItemSameComponents(getStackInSlot(0), currentRecipe.getOutput())) || getStackInSlot(0).isEmpty())
+                    && (getStackInSlot(0).getCount() + currentRecipe.getOutput().getCount()) <= currentRecipe.getOutput().getMaxStackSize();
         }
         return false;
     }
@@ -102,22 +105,22 @@ public class AtomizerBlockEntity extends AbstractFluidBlockEntity {
             extractFluid(currentRecipe.getFluidInput(), currentRecipe.getFluidAmount() * 81);
         }
         extractEnergy(Config.Common.atomizerEnergyPerTick.get());
-        markDirty();
+        setChanged();
     }
 
     @Override
-    public <T extends Recipe<SimpleInventory>> void setRecipe(@Nullable T recipe) {
+    public <T extends Recipe<RecipeInput>> void setRecipe(@Nullable T recipe) {
         currentRecipe = (AtomizerRecipe) recipe;
     }
 
     @Override
-    public Recipe<SimpleInventory> getRecipe() {
+    public Recipe<RecipeInput> getRecipe() {
         return currentRecipe;
     }
 
     @Nullable
     @Override
-    public ScreenHandler createMenu(int syncId, PlayerInventory inv, PlayerEntity player) {
+    public AbstractContainerMenu createMenu(int syncId, Inventory inv, Player player) {
         return new AtomizerScreenHandler(syncId, inv, this, this, this.propertyDelegate);
     }
 }

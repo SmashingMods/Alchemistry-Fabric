@@ -1,43 +1,43 @@
 package com.smashingmods.alchemistry.api.blockentity;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.block.entity.BlockEntityType;
-import net.minecraft.inventory.Inventories;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.util.ItemScatterer;
-import net.minecraft.util.collection.DefaultedList;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.ContainerHelper;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.Containers;
+import net.minecraft.core.NonNullList;
+import net.minecraft.core.BlockPos;
 
 public abstract class AbstractInventoryBlockEntity extends AbstractProcessingBlockEntity implements ImplementedInventory {
 
-    private final DefaultedList<ItemStack> inventory;
+    private final NonNullList<ItemStack> inventory;
 
-    public AbstractInventoryBlockEntity(DefaultedList<ItemStack> inventory, BlockEntityType<?> type, BlockPos pos, BlockState state, long energyCapacity) {
-        super(type, pos, state, energyCapacity);
+    public AbstractInventoryBlockEntity(NonNullList<ItemStack> inventory, BlockEntityType<?> type, BlockPos worldPosition, BlockState state, long energyCapacity) {
+        super(type, worldPosition, state, energyCapacity);
         this.inventory = inventory;
     }
 
     @Override
-    public DefaultedList<ItemStack> getItems() {
+    public NonNullList<ItemStack> getItems() {
         return inventory;
     }
 
     @Override
-    protected void writeNbt(NbtCompound nbt) {
-        super.writeNbt(nbt);
-        Inventories.writeNbt(nbt, inventory);
+    protected void saveAdditional(net.minecraft.world.level.storage.ValueOutput nbt) {
+        super.saveAdditional(nbt);
+        ContainerHelper.saveAllItems(nbt, inventory);
     }
 
     @Override
-    public void readNbt(NbtCompound nbt) {
-        super.readNbt(nbt);
-        Inventories.readNbt(nbt, inventory);
+    public void loadAdditional(net.minecraft.world.level.storage.ValueInput nbt) {
+        super.loadAdditional(nbt);
+        ContainerHelper.loadAllItems(nbt, inventory);
     }
 
     @Override
     public void dropContents() {
-        ItemScatterer.spawn(world, pos, this);
+        Containers.dropContents(level, worldPosition, this);
     }
 
     public ItemStack getStackInSlot(int slot) {
@@ -45,12 +45,14 @@ public abstract class AbstractInventoryBlockEntity extends AbstractProcessingBlo
     }
 
     public ItemStack setStackInSlot(int slot, ItemStack stack) {
-        return inventory.set(slot, stack);
+        ItemStack previous = inventory.set(slot, stack);
+        setChanged();
+        return previous;
     }
 
     public void incrementSlot(int pSlot, int pAmount) {
         ItemStack temp = this.getStackInSlot(pSlot);
-        if (temp.getCount() + pAmount <= temp.getMaxCount()) {
+        if (temp.getCount() + pAmount <= temp.getMaxStackSize()) {
             temp.setCount(temp.getCount() + pAmount);
         }
         this.setStackInSlot(pSlot, temp);
@@ -71,7 +73,7 @@ public abstract class AbstractInventoryBlockEntity extends AbstractProcessingBlo
         if (temp.isEmpty()) return;
         if (temp.getCount() - pAmount < 0) return;
 
-        temp.decrement(pAmount);
+        temp.shrink(pAmount);
         if (temp.getCount() <= 0) {
             this.setStackInSlot(slot, ItemStack.EMPTY);
         } else {

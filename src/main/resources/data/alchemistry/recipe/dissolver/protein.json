@@ -1,0 +1,28 @@
+{
+  "type": "alchemistry:dissolver",
+  "group": "alchemistry:dissolver",
+  "input": "chemlib:protein",
+  "output": {
+    "rolls": 1,
+    "weighted": false,
+    "groups": [
+      {
+        "probability": 100.0,
+        "results": [
+          {
+            "item": "chemlib:ammonia"
+          },
+          {
+            "item": "chemlib:carbon_dioxide"
+          },
+          {
+            "item": "chemlib:ethylene"
+          },
+          {
+            "item": "chemlib:sulfur"
+          }
+        ]
+      }
+    ]
+  }
+}

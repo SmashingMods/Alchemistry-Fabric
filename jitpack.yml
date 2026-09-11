@@ -1,3 +1,8 @@
+jdk:
+  - openjdk25
 before_install:
-  - sdk install java 17.0.4-tem
-  - sdk use java 17.0.4-tem
+  - 'test -n "$CHEMLIB_26_2_JAR_URL" || { echo "Set CHEMLIB_26_2_JAR_URL to the matching Minecraft 26.2 ChemLib JAR"; exit 1; }'
+  - mkdir -p build/dependencies
+  - 'curl --fail --location "$CHEMLIB_26_2_JAR_URL" --output build/dependencies/ChemLib.jar'
+install:
+  - ./gradlew -Pchemlib_jar=build/dependencies/ChemLib.jar build publishToMavenLocal

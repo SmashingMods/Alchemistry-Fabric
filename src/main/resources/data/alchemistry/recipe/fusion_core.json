@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "group": "machines",
+  "pattern": [
+    "TNT",
+    "TNT",
+    "TNT"
+  ],
+  "key": {
+    "T": "chemlib:tungsten_ingot",
+    "N": "minecraft:netherite_scrap"
+  },
+  "result": {
+    "id": "alchemistry:fusion_core"
+  }
+}

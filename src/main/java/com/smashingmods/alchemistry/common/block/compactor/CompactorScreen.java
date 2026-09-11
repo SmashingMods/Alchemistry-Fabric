@@ -1,90 +1,84 @@
 package com.smashingmods.alchemistry.common.block.compactor;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.smashingmods.alchemistry.Alchemistry;
 import com.smashingmods.alchemistry.api.container.*;
 import com.smashingmods.alchemistry.network.AlchemistryNetwork;
 import com.smashingmods.alchemistry.network.packets.CompactorButtonPacket;
-import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.client.item.TooltipContext;
-import net.minecraft.client.render.GameRenderer;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.text.MutableText;
-import net.minecraft.text.Style;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
-import net.minecraft.util.Identifier;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.Style;
+import net.minecraft.network.chat.Component;
+import net.minecraft.ChatFormatting;
+import net.minecraft.resources.Identifier;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class CompactorScreen extends AbstractAlchemistryScreen<CompactorScreenHandler> {
 
-    private static final Identifier TEXTURE = new Identifier(Alchemistry.MOD_ID, "textures/gui/compactor_gui.png");
+    private static final Identifier TEXTURE = Identifier.fromNamespaceAndPath(Alchemistry.MOD_ID, "textures/gui/compactor_gui.png");
 
     protected final List<DisplayData> displayData = new ArrayList<>();
-    private final ButtonWidget resetTargetButton;
+    private final Button resetTargetButton;
 
-    public CompactorScreen(CompactorScreenHandler handler, PlayerInventory inventory, Text title) {
-        super(handler, inventory, title);
-        this.backgroundWidth = 184;
-        this.backgroundHeight = 163;
-        displayData.add(new ProgressDisplayData(handler.getPropertyDelegate(), 0, 1, 75, 39, 60, 9, Direction2D.RIGHT));
-        displayData.add(new EnergyDisplayData(handler.getPropertyDelegate(), 2, 3, 17, 16, 16, 54));
-        resetTargetButton = new ButtonWidget(0, 0, 100, 20, Text.translatable("alchemistry.container.reset_target"), handleResetTargetButton());
+    public CompactorScreen(CompactorScreenHandler menu, Inventory inventory, Component title) {
+        super(menu, inventory, title, 184, 163);
+        displayData.add(new ProgressDisplayData(menu.getPropertyDelegate(), 0, 1, 75, 39, 60, 9, Direction2D.RIGHT));
+        displayData.add(new EnergyDisplayData(menu.getPropertyDelegate(), 2, 3, 17, 16, 16, 54));
+        resetTargetButton = Button.builder(Component.translatable("alchemistry.container.reset_target"), handleResetTargetButton()).size(100, 20).build();
     }
 
     @Override
-    protected void drawBackground(MatrixStack matrices, float delta, int mouseX, int mouseY) {
-        RenderSystem.setShader(GameRenderer::getPositionTexShader);
-        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-        RenderSystem.setShaderTexture(0, TEXTURE);
-        drawTexture(matrices, this.x, this.y, 0, 0, backgroundWidth, backgroundHeight);
+    protected void drawBackground(GuiGraphicsExtractor matrices, float delta, int mouseX, int mouseY) {
+        texture = TEXTURE;
+        drawTexture(matrices, this.leftPos, this.topPos, 0, 0, imageWidth, imageHeight);
     }
 
     @Override
-    public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
-        super.render(matrices, mouseX, mouseY, delta);
-        renderDisplayData(displayData, matrices, this.x, this.y);
-        renderDisplayTooltip(displayData, matrices, this.x, this.y, mouseX, mouseY);
-        drawMouseoverTooltip(matrices, mouseX, mouseY);
+    public void extractRenderState(GuiGraphicsExtractor matrices, int mouseX, int mouseY, float delta) {
+        super.extractRenderState(matrices, mouseX, mouseY, delta);
+        renderDisplayData(displayData, matrices, this.leftPos, this.topPos);
+        renderDisplayTooltip(displayData, matrices, this.leftPos, this.topPos, mouseX, mouseY);
+        extractTooltip(matrices, mouseX, mouseY);
         renderTarget(matrices, mouseX, mouseY);
     }
 
     @Override
-    protected void drawForeground(MatrixStack matrices, int mouseX, int mouseY) {
-        MutableText title = Text.translatable("alchemistry.container.compactor");
-        drawTextWithShadow(matrices, textRenderer, title, backgroundWidth / 2 - textRenderer.getWidth(title) / 2, -10, 0xFFFFFFFF);
+    protected void extractLabels(GuiGraphicsExtractor matrices, int mouseX, int mouseY) {
+        MutableComponent title = Component.translatable("alchemistry.container.compactor");
+        matrices.text(font, title, imageWidth / 2 - font.width(title) / 2, -10, 0xFFFFFFFF);
     }
 
     @Override
-    public void renderWidgets() {
-        super.renderWidgets();
-        renderWidget(resetTargetButton, x - 104, y + 48);
+    public void draw() {
+        super.draw();
+        renderWidget(resetTargetButton, leftPos - 104, topPos + 48);
     }
 
-    private void renderTarget(MatrixStack matrices, int mouseX, int mouseY) {
-        ItemStack target = ((CompactorBlockEntity) this.handler.getBlockEntity()).getTarget();
+    private void renderTarget(GuiGraphicsExtractor matrices, int mouseX, int mouseY) {
+        ItemStack target = ((CompactorBlockEntity) this.menu.getBlockEntity()).getTarget();
 
-        int xStart = x + 80;
+        int xStart = leftPos + 80;
         int xEnd = xStart + 18;
-        int yStart = y + 12;
+        int yStart = topPos + 12;
         int yEnd = yStart + 18;
 
         if (!target.isEmpty()) {
-            FakeItemRenderer.renderFakeItem(target, xStart, yStart, 0.5f);
+            FakeItemRenderer.renderFakeItem(matrices, target, xStart, yStart, 0.5f);
             if (mouseX >= xStart && mouseX < xEnd && mouseY >= yStart && mouseY < yEnd) {
-                List<Text> components = new ArrayList<>();
-                components.add(0, Text.translatable("alchemistry.container.target").setStyle(Style.EMPTY.withColor(Formatting.YELLOW).withUnderline(true)));
-                components.addAll(target.getTooltip(client.player, TooltipContext.Default.NORMAL));
-                renderTooltip(matrices, components, target.getTooltipData(), mouseX, mouseY);
+                List<Component> components = new ArrayList<>();
+                components.add(0, Component.translatable("alchemistry.container.target").setStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW).withUnderlined(true)));
+                components.addAll(getTooltipFromContainerItem(target));
+                renderTooltip(matrices, components, target.getTooltipImage(), mouseX, mouseY);
             }
         }
     }
 
-    private ButtonWidget.PressAction handleResetTargetButton() {
-        return button -> AlchemistryNetwork.sendToServer(new CompactorButtonPacket(handler.getBlockEntity().getPos()));
+    private Button.OnPress handleResetTargetButton() {
+        return button -> com.smashingmods.alchemistry.network.AlchemistryClientNetwork.sendToServer(new CompactorButtonPacket(menu.getBlockEntity().getBlockPos()));
     }
 }

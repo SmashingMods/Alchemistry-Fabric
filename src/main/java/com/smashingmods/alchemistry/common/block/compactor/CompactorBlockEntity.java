@@ -1,21 +1,22 @@
 package com.smashingmods.alchemistry.common.block.compactor;
 
+import net.minecraft.world.item.crafting.RecipeInput;
 import com.smashingmods.alchemistry.Config;
 import com.smashingmods.alchemistry.api.blockentity.AbstractInventoryBlockEntity;
 import com.smashingmods.alchemistry.common.recipe.compactor.CompactorRecipe;
 import com.smashingmods.alchemistry.registry.BlockEntityRegistry;
-import net.minecraft.block.BlockState;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.SimpleInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.recipe.Recipe;
-import net.minecraft.screen.PropertyDelegate;
-import net.minecraft.screen.ScreenHandler;
-import net.minecraft.util.collection.DefaultedList;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.inventory.ContainerData;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.core.NonNullList;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -29,15 +30,15 @@ public class CompactorBlockEntity extends AbstractInventoryBlockEntity {
     public static final int OUTPUT_SLOT_INDEX = 2;
 
     private CompactorRecipe currentRecipe;
-    protected final PropertyDelegate propertyDelegate;
+    protected final ContainerData propertyDelegate;
     private final int maxProgress;
     private ItemStack target;
 
-    public CompactorBlockEntity(BlockPos pos, BlockState state) {
-        super(DefaultedList.ofSize(INVENTORY_SIZE, ItemStack.EMPTY), BlockEntityRegistry.COMPACTOR_BLOCK_ENTITY, pos, state, Config.Common.compactorEnergyCapacity.get());
+    public CompactorBlockEntity(BlockPos worldPosition, BlockState state) {
+        super(NonNullList.withSize(INVENTORY_SIZE, ItemStack.EMPTY), BlockEntityRegistry.COMPACTOR_BLOCK_ENTITY, worldPosition, state, Config.Common.compactorEnergyCapacity.get());
         this.target = ItemStack.EMPTY;
         this.maxProgress = Config.Common.compactorTicksPerOperation.get();
-        this.propertyDelegate = new PropertyDelegate() {
+        this.propertyDelegate = new ContainerData() {
             public int get(int index) {
                 return switch (index) {
                     case 0 -> getProgress();
@@ -53,35 +54,35 @@ public class CompactorBlockEntity extends AbstractInventoryBlockEntity {
                     case 2 -> insertEnergy(value);
                 }
             }
-            public int size() {
+            public int getCount() {
                 return 4;
             }
         };
     }
 
     @Override
-    public boolean canExtract(int slot, ItemStack stack, Direction side) {
+    public boolean canTakeItemThroughFace(int slot, ItemStack stack, Direction side) {
         return slot == OUTPUT_SLOT_INDEX;
     }
 
     @Override
-    public boolean canInsert(int slot, ItemStack stack, @Nullable Direction side) {
+    public boolean canPlaceItemThroughFace(int slot, ItemStack stack, @Nullable Direction side) {
         return slot == INPUT_SLOT_INDEX;
     }
 
     @Override
-    public @Nullable ScreenHandler createMenu(int syncId, PlayerInventory inv, PlayerEntity player) {
+    public @Nullable AbstractContainerMenu createMenu(int syncId, Inventory inv, Player player) {
         return new CompactorScreenHandler(syncId, inv, this, this, this.propertyDelegate);
     }
 
     @Override
     public void updateRecipe() {
-        if (world == null || world.isClient() || isRecipeLocked()) return;
+        if (level == null || level.isClientSide() || isRecipeLocked()) return;
         if (!getStackInSlot(INPUT_SLOT_INDEX).isEmpty()) {
             if (target.isEmpty()) {
                 // Find recipe without target
-                List<CompactorRecipe> recipes = world.getRecipeManager().getAllMatches(CompactorRecipe.Type.INSTANCE, new SimpleInventory(1), world).stream()
-                        .filter(recipe -> ItemStack.canCombine(getStackInSlot(0), recipe.getInput()))
+                List<CompactorRecipe> recipes = com.smashingmods.alchemistry.api.recipe.MachineRecipes.all(level, CompactorRecipe.Type.INSTANCE).stream()
+                        .filter(recipe -> ItemStack.isSameItemSameComponents(getStackInSlot(0), recipe.getInput()))
                         .toList();
                 if (recipes.size() == 1) {
                     if (currentRecipe == null || !currentRecipe.equals(recipes.get(0))) {
@@ -96,8 +97,8 @@ public class CompactorBlockEntity extends AbstractInventoryBlockEntity {
                 }
             } else {
                 // Find recipe with target
-                world.getRecipeManager().getAllMatches(CompactorRecipe.Type.INSTANCE, new SimpleInventory(1), world).stream()
-                        .filter(recipe -> ItemStack.canCombine(target, recipe.getOutput()))
+                com.smashingmods.alchemistry.api.recipe.MachineRecipes.all(level, CompactorRecipe.Type.INSTANCE).stream()
+                        .filter(recipe -> ItemStack.isSameItemSameComponents(target, recipe.getOutput()))
                         .findFirst()
                         .ifPresent(recipe -> {
                             if (currentRecipe == null || !currentRecipe.equals(recipe)) {
@@ -115,9 +116,9 @@ public class CompactorBlockEntity extends AbstractInventoryBlockEntity {
             ItemStack input = getStackInSlot(INPUT_SLOT_INDEX);
             ItemStack output = getStackInSlot(OUTPUT_SLOT_INDEX);
             return getEnergyStorage().getAmount() >= Config.Common.compactorEnergyPerTick.get()
-                    && (ItemStack.canCombine(input, currentRecipe.getInput()) && input.getCount() >= currentRecipe.getInput().getCount())
-                    && (currentRecipe.getOutput().getCount() + output.getCount()) <= currentRecipe.getOutput().getMaxCount()
-                    && (ItemStack.canCombine(output, currentRecipe.getOutput()) || output.isEmpty());
+                    && (ItemStack.isSameItemSameComponents(input, currentRecipe.getInput()) && input.getCount() >= currentRecipe.getInput().getCount())
+                    && (currentRecipe.getOutput().getCount() + output.getCount()) <= currentRecipe.getOutput().getMaxStackSize()
+                    && (ItemStack.isSameItemSameComponents(output, currentRecipe.getOutput()) || output.isEmpty());
         }
         return false;
     }
@@ -132,11 +133,11 @@ public class CompactorBlockEntity extends AbstractInventoryBlockEntity {
             setOrIncrement(OUTPUT_SLOT_INDEX, currentRecipe.getOutput().copy());
         }
         extractEnergy(Config.Common.compactorEnergyPerTick.get());
-        markDirty();
+        setChanged();
     }
 
     @Override
-    public <T extends Recipe<SimpleInventory>> void setRecipe(@Nullable T recipe) {
+    public <T extends Recipe<RecipeInput>> void setRecipe(@Nullable T recipe) {
         if (recipe == null) {
             currentRecipe = null;
         } else {
@@ -145,7 +146,7 @@ public class CompactorBlockEntity extends AbstractInventoryBlockEntity {
     }
 
     @Override
-    public Recipe<SimpleInventory> getRecipe() {
+    public Recipe<RecipeInput> getRecipe() {
         return currentRecipe;
     }
 
@@ -154,7 +155,7 @@ public class CompactorBlockEntity extends AbstractInventoryBlockEntity {
     }
 
     public void setTarget(ItemStack targetStack) {
-        if (world != null && !world.isClient() && !isRecipeLocked()) {
+        if (level != null && !level.isClientSide() && !isRecipeLocked()) {
             if (targetStack == ItemStack.EMPTY || isTargetValid(targetStack)) {
                 this.target = targetStack;
                 forceSync();
@@ -163,9 +164,9 @@ public class CompactorBlockEntity extends AbstractInventoryBlockEntity {
     }
 
     private boolean isTargetValid(ItemStack itemStack) {
-        if (world != null && !world.isClient()) {
-            Optional<CompactorRecipe> match = world.getRecipeManager().getAllMatches(CompactorRecipe.Type.INSTANCE, new SimpleInventory(1), world).stream()
-                    .filter(recipe -> ItemStack.canCombine(recipe.getOutput().copy(), itemStack.copy()))
+        if (level != null && !level.isClientSide()) {
+            Optional<CompactorRecipe> match = com.smashingmods.alchemistry.api.recipe.MachineRecipes.all(level, CompactorRecipe.Type.INSTANCE).stream()
+                    .filter(recipe -> ItemStack.isSameItemSameComponents(recipe.getOutput().copy(), itemStack.copy()))
                     .findFirst();
             return match.isPresent();
         }
@@ -173,16 +174,14 @@ public class CompactorBlockEntity extends AbstractInventoryBlockEntity {
     }
 
     @Override
-    protected void writeNbt(NbtCompound nbt) {
-        super.writeNbt(nbt);
-        nbt.put("target", target.writeNbt(new NbtCompound()));
+    protected void saveAdditional(net.minecraft.world.level.storage.ValueOutput nbt) {
+        super.saveAdditional(nbt);
+        nbt.store("target", ItemStack.OPTIONAL_CODEC, target);
     }
 
     @Override
-    public void readNbt(NbtCompound nbt) {
-        super.readNbt(nbt);
-        if (nbt.contains("target")) {
-            target = ItemStack.fromNbt(nbt.getCompound("target"));
-        }
+    public void loadAdditional(net.minecraft.world.level.storage.ValueInput nbt) {
+        super.loadAdditional(nbt);
+        target = nbt.read("target", ItemStack.OPTIONAL_CODEC).orElse(ItemStack.EMPTY);
     }
 }

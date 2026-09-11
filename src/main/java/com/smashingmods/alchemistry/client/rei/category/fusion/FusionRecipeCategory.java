@@ -13,7 +13,7 @@ import me.shedaniel.rei.api.common.category.CategoryIdentifier;
 import me.shedaniel.rei.api.common.util.EntryStacks;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.Component;
 
 import java.util.List;
 
@@ -28,8 +28,8 @@ public class FusionRecipeCategory implements DisplayCategory<FusionRecipeDisplay
     }
 
     @Override
-    public Text getTitle() {
-        return Text.translatable("alchemistry.jei."+FusionRecipeDisplay.ID.getPath());
+    public Component getTitle() {
+        return Component.translatable("alchemistry.jei."+FusionRecipeDisplay.ID.getPath());
     }
 
     @Override

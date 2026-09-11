@@ -1,30 +1,10 @@
 package com.smashingmods.alchemistry.mixin;
-
-import com.google.gson.JsonElement;
 import com.smashingmods.alchemistry.datagen.RecipeGenerator;
-import net.minecraft.recipe.RecipeManager;
-import net.minecraft.resource.ResourceManager;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.profiler.Profiler;
+import net.minecraft.world.item.crafting.*;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-
-import java.util.Map;
-
-/**
- * Registers recipes for recipe datagen.
- * See RecipeGenerator for details.
- *
- * @author TechnoVision
- */
+import org.spongepowered.asm.mixin.injection.*;
 @Mixin(RecipeManager.class)
-public class RecipeManagerMixin {
-
-    @Inject(method = "apply", at = @At("HEAD"))
-    public void interceptApply(Map<Identifier, JsonElement> map, ResourceManager resourceManager, Profiler profiler, CallbackInfo info) {
-        RecipeGenerator.generateRecipes();
-        map.putAll(RecipeGenerator.RECIPES);
-    }
+public abstract class RecipeManagerMixin {
+    @ModifyVariable(method = "apply(Lnet/minecraft/world/item/crafting/RecipeMap;Lnet/minecraft/server/packs/resources/ResourceManager;Lnet/minecraft/util/profiling/ProfilerFiller;)V", at = @At("HEAD"), argsOnly = true)
+    private RecipeMap alchemistry$generate(RecipeMap recipes) { return RecipeGenerator.addGeneratedRecipes(recipes); }
 }

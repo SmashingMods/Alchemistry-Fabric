@@ -1,54 +1,23 @@
 package com.smashingmods.alchemistry.api.recipe;
 
-import net.minecraft.inventory.SimpleInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.recipe.Recipe;
-import net.minecraft.recipe.RecipeSerializer;
-import net.minecraft.recipe.RecipeType;
-import net.minecraft.util.Identifier;
-import net.minecraft.world.World;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.*;
+import net.minecraft.world.level.Level;
+import net.minecraft.core.NonNullList;
 
-public abstract class AbstractAlchemistryRecipe implements Recipe<SimpleInventory> {
-
-    private final Identifier recipeId;
-
-    public AbstractAlchemistryRecipe(Identifier recipeId) {
-        this.recipeId = recipeId;
-    }
-
-    @Override
-    public boolean matches(SimpleInventory inventory, World world) {
-        return false;
-    }
-
-    @Override
-    public ItemStack craft(SimpleInventory inventory) {
-        return ItemStack.EMPTY;
-    }
-
-    @Override
-    public boolean fits(int width, int height) {
-        return false;
-    }
-
-    @Override
-    public ItemStack getOutput() {
-        return ItemStack.EMPTY;
-    }
-
-    @Override
-    public Identifier getId() {
-        return recipeId;
-    }
-
-    @Override
-    public abstract RecipeSerializer<?> getSerializer();
-
-    @Override
-    public abstract RecipeType<?> getType();
-
-    @Override
-    public boolean isIgnoredInRecipeBook() {
-        return true;
-    }
+public abstract class AbstractAlchemistryRecipe implements Recipe<RecipeInput> {
+    private Identifier recipeId;
+    protected AbstractAlchemistryRecipe(Identifier id) { recipeId = id; }
+    public Identifier getId() { return recipeId; }
+    public void setId(Identifier id) { recipeId = id; }
+    @Override public boolean matches(RecipeInput input, Level level) { return !level.isClientSide(); }
+    @Override public ItemStack assemble(RecipeInput input) { return getOutput().copy(); }
+    public ItemStack getOutput() { return ItemStack.EMPTY; }
+    public NonNullList<Ingredient> getIngredients() { return NonNullList.create(); }
+    @Override public boolean isSpecial() { return true; }
+    @Override public boolean showNotification() { return false; }
+    @Override public String group() { return "alchemistry"; }
+    @Override public PlacementInfo placementInfo() { return PlacementInfo.NOT_PLACEABLE; }
+    @Override public RecipeBookCategory recipeBookCategory() { return RecipeBookCategories.CRAFTING_MISC; }
 }

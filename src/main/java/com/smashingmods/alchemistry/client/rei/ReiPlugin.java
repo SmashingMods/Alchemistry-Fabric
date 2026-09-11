@@ -63,16 +63,6 @@ public class ReiPlugin implements REIClientPlugin {
         registry.add(new FusionRecipeCategory());
     }
 
-    @Override
-    public void registerDisplays(DisplayRegistry registry) {
-        registry.registerFiller(DissolverRecipe.class, DissolverRecipeDisplay::new);
-        registry.registerFiller(CombinerRecipe.class, CombinerRecipeDisplay::new);
-        registry.registerFiller(CompactorRecipe.class, CompactorRecipeDisplay::new);
-        registry.registerFiller(LiquifierRecipe.class, LiquifierRecipeDisplay::new);
-        registry.registerFiller(AtomizerRecipe.class, AtomizerRecipeDisplay::new);
-        registry.registerFiller(FissionRecipe.class, FissionRecipeDisplay::new);
-        registry.registerFiller(FusionRecipe.class, FusionRecipeDisplay::new);
-    }
 
     @Override
     public void registerScreens(ScreenRegistry registry) {

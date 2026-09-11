@@ -6,29 +6,38 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import net.minecraft.item.ItemStack;
-import net.minecraft.network.PacketByteBuf;
+import net.minecraft.world.item.ItemStack;
+import com.smashingmods.alchemistry.api.recipe.RecipeStack;
+import net.minecraft.network.FriendlyByteBuf;
 
 import java.util.List;
 import java.util.Objects;
 
 public class ProbabilityGroup {
+    public static final com.mojang.serialization.Codec<ProbabilityGroup> CODEC = com.mojang.serialization.codecs.RecordCodecBuilder.create(i -> i.group(
+        com.smashingmods.alchemistry.api.recipe.RecipeCodecs.STACK.listOf().fieldOf("results").forGetter(ProbabilityGroup::getOutputData),
+        com.mojang.serialization.Codec.doubleRange(0, Double.MAX_VALUE).fieldOf("probability").forGetter(ProbabilityGroup::getProbability)
+    ).apply(i, ProbabilityGroup::fromData));
 
-    private final List<ItemStack> output;
+
+    private final List<RecipeStack> output;
     private final double probability;
 
     public ProbabilityGroup(List<ItemStack> pOutput, double pProbability) {
-        this.output = pOutput;
+        this.output = pOutput.stream().map(RecipeStack::of).toList();
         this.probability = pProbability;
     }
 
     public ProbabilityGroup(List<ItemStack> pOutput) {
-        this.output = pOutput;
+        this.output = pOutput.stream().map(RecipeStack::of).toList();
         this.probability = 1;
     }
 
+    private ProbabilityGroup(List<RecipeStack> data, double probability, boolean deferred) { this.output = data; this.probability = probability; }
+    public static ProbabilityGroup fromData(List<RecipeStack> data, double probability) { return new ProbabilityGroup(data, probability, true); }
+    public List<RecipeStack> getOutputData() { return output; }
     public List<ItemStack> getOutput() {
-        return this.output;
+        return this.output.stream().map(RecipeStack::create).toList();
     }
 
     public double getProbability() {
@@ -40,10 +49,10 @@ public class ProbabilityGroup {
         output.add("probability", new JsonPrimitive(probability));
         JsonArray results = new JsonArray();
 
-        for (ItemStack itemStack : this.output) {
-            Objects.requireNonNull(itemStack.getItem().getName());
+        for (ItemStack itemStack : getOutput()) {
+            Objects.requireNonNull(net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(itemStack.getItem()));
             JsonObject jsonObject = new JsonObject();
-            jsonObject.add("item", new JsonPrimitive(itemStack.getItem().getName().toString()));
+            jsonObject.add("item", new JsonPrimitive(net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(itemStack.getItem()).toString()));
 
             if (itemStack.getCount() > 1) {
                 jsonObject.add("count", new JsonPrimitive(itemStack.getCount()));
@@ -54,21 +63,5 @@ public class ProbabilityGroup {
         return output;
     }
 
-    public void write(PacketByteBuf buf) {
-        buf.writeInt(output.size());
-        for (ItemStack stack : output) {
-            buf.writeItemStack(stack);
-        }
-        buf.writeDouble(probability);
-    }
 
-    public static ProbabilityGroup read(PacketByteBuf buf) {
-        List<ItemStack> stacks = Lists.newArrayList();
-        int size = buf.readInt();
-        for (int i = 0; i < size; i++) {
-            stacks.add(buf.readItemStack());
-        }
-        double probability = buf.readDouble();
-        return new ProbabilityGroup(stacks, probability);
-    }
 }

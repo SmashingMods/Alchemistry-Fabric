@@ -1,47 +1,16 @@
 package com.smashingmods.alchemistry.network.packets;
-
-import com.smashingmods.alchemistry.Alchemistry;
-import com.smashingmods.alchemistry.common.block.compactor.CompactorBlockEntity;
-import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
-import net.minecraft.item.ItemStack;
-import net.minecraft.network.PacketByteBuf;
-import net.minecraft.server.network.ServerPlayNetworkHandler;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.BlockPos;
-
-import java.util.Objects;
-
-public class CompactorButtonPacket implements AlchemistryPacket {
-
-    public static final Identifier PACKET_ID = new Identifier(Alchemistry.MOD_ID, "target_update");
-
-    private final BlockPos blockPos;
-
-    public CompactorButtonPacket(BlockPos blockPos) {
-        this.blockPos = blockPos;
-    }
-
-    public CompactorButtonPacket(PacketByteBuf buffer) {
-        this.blockPos = buffer.readBlockPos();
-    }
-
-    public void encode(PacketByteBuf buffer) {
-        buffer.writeBlockPos(blockPos);
-    }
-
-    public PacketByteBuf toByteBuf() {
-        PacketByteBuf buf = PacketByteBufs.create();
-        buf.writeBlockPos(blockPos);
-        return buf;
-    }
-
-    public static void handle(ServerPlayNetworkHandler handler, CompactorButtonPacket packet) {
-        // Get block entity from position
-        CompactorBlockEntity blockEntity = (CompactorBlockEntity) handler.getPlayer().getWorld().getBlockEntity(packet.blockPos);
-        Objects.requireNonNull(blockEntity);
-
-        // Set new values
-        blockEntity.setTarget(ItemStack.EMPTY);
-        blockEntity.forceSync();
+import net.minecraft.core.BlockPos;
+import net.minecraft.resources.Identifier;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.*;
+import net.minecraft.server.level.ServerPlayer;
+import com.smashingmods.alchemistry.network.AlchemistryNetwork;
+public record CompactorButtonPacket(BlockPos blockPos) implements AlchemistryPacket {
+    public static final Type<CompactorButtonPacket> TYPE = new Type<>(Identifier.fromNamespaceAndPath("alchemistry", "target_update"));
+    public static final StreamCodec<RegistryFriendlyByteBuf,CompactorButtonPacket> CODEC = StreamCodec.composite(BlockPos.STREAM_CODEC, CompactorButtonPacket::blockPos, CompactorButtonPacket::new);
+    @Override public Type<CompactorButtonPacket> type() { return TYPE; }
+    public static void handle(ServerPlayer player, CompactorButtonPacket packet) {
+        var entity = AlchemistryNetwork.getOpenMachine(player, packet.blockPos());
+        if (entity instanceof com.smashingmods.alchemistry.common.block.compactor.CompactorBlockEntity compactor) { compactor.setTarget(net.minecraft.world.item.ItemStack.EMPTY); compactor.forceSync(); }
     }
 }
