@@ -12,7 +12,12 @@ public record CombinerIndexPacket(BlockPos blockPos, int recipeIndex) implements
     public static void handle(ServerPlayer player, CombinerIndexPacket packet) {
         var entity = AlchemistryNetwork.getOpenMachine(player, packet.blockPos());
         if (entity instanceof com.smashingmods.alchemistry.common.block.combiner.CombinerBlockEntity combiner && !combiner.isRecipeLocked() && packet.recipeIndex() >= 0 && packet.recipeIndex() < combiner.getRecipes().size()) {
-            combiner.setRecipe(combiner.getRecipes().get(packet.recipeIndex())); combiner.forceSync();
+            var recipe = combiner.getRecipes().get(packet.recipeIndex());
+            if (combiner.getRecipe() != recipe) {
+                combiner.setProgress(0);
+                combiner.setRecipe(recipe);
+            }
+            combiner.forceSync();
         }
     }
 }

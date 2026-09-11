@@ -20,7 +20,6 @@ import net.minecraft.core.Direction;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-import java.util.Optional;
 
 public class CompactorBlockEntity extends AbstractInventoryBlockEntity {
 
@@ -156,21 +155,19 @@ public class CompactorBlockEntity extends AbstractInventoryBlockEntity {
 
     public void setTarget(ItemStack targetStack) {
         if (level != null && !level.isClientSide() && !isRecipeLocked()) {
-            if (targetStack == ItemStack.EMPTY || isTargetValid(targetStack)) {
-                this.target = targetStack;
-                forceSync();
+            var matches = com.smashingmods.alchemistry.api.recipe.MachineRecipes.all(level, CompactorRecipe.Type.INSTANCE).stream()
+                    .filter(recipe -> ItemStack.isSameItemSameComponents(recipe.getOutput(), targetStack)).toList();
+            if (!targetStack.isEmpty() && matches.isEmpty()) return;
+            // Resolve immediately, even while paused or before ingredients arrive, so locking freezes this target.
+            var selected = targetStack.isEmpty() ? null
+                    : matches.contains(currentRecipe) ? currentRecipe : matches.getFirst();
+            if (selected != currentRecipe) {
+                setProgress(0);
+                setRecipe(selected);
             }
+            this.target = targetStack.copy();
+            forceSync();
         }
-    }
-
-    private boolean isTargetValid(ItemStack itemStack) {
-        if (level != null && !level.isClientSide()) {
-            Optional<CompactorRecipe> match = com.smashingmods.alchemistry.api.recipe.MachineRecipes.all(level, CompactorRecipe.Type.INSTANCE).stream()
-                    .filter(recipe -> ItemStack.isSameItemSameComponents(recipe.getOutput().copy(), itemStack.copy()))
-                    .findFirst();
-            return match.isPresent();
-        }
-        return false;
     }
 
     @Override

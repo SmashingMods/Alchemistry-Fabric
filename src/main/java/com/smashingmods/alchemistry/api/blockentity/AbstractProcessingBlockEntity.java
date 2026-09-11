@@ -1,12 +1,19 @@
 package com.smashingmods.alchemistry.api.blockentity;
 
 import com.smashingmods.alchemistry.Alchemistry;
+import com.smashingmods.alchemistry.api.recipe.AbstractAlchemistryRecipe;
 import net.fabricmc.fabric.api.menu.v1.ExtendedMenuProvider;
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtOps;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.RecipeInput;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
@@ -69,6 +76,7 @@ public abstract class AbstractProcessingBlockEntity extends BlockEntity implemen
     @Override
     public void tick() {
         if (level != null && !level.isClientSide()) {
+            refreshRecipe();
             if (!paused) {
                 if (!recipeLocked) {
                     updateRecipe();
@@ -78,6 +86,28 @@ public abstract class AbstractProcessingBlockEntity extends BlockEntity implemen
                 }
             }
         }
+    }
+
+    /** Saved and selected recipes are snapshots; only the current server recipe may be processed. */
+    protected void refreshRecipe() {
+        if (!(level instanceof ServerLevel server) || !(getRecipe() instanceof AbstractAlchemistryRecipe selected)) return;
+        var current = server.getServer().getRecipeManager()
+                .byKey(ResourceKey.create(Registries.RECIPE, selected.getId()))
+                .map(holder -> holder.value())
+                .filter(recipe -> recipe.getType() == selected.getType())
+                .orElse(null);
+        if (current == selected) return;
+
+        // Rebind identical recipes after loading/reloading without losing work already paid for.
+        var ops = server.registryAccess().createSerializationContext(NbtOps.INSTANCE);
+        var savedData = Recipe.CODEC.encodeStart(ops, selected).result();
+        boolean unchanged = current != null && savedData.isPresent()
+                && savedData.equals(Recipe.CODEC.encodeStart(ops, current).result());
+        @SuppressWarnings("unchecked")
+        var recipe = (Recipe<RecipeInput>) current;
+        setRecipe(recipe);
+        if (!unchanged) setProgress(0);
+        setChanged();
     }
 
     @Override
@@ -138,6 +168,7 @@ public abstract class AbstractProcessingBlockEntity extends BlockEntity implemen
     @Override
     public void loadAdditional(net.minecraft.world.level.storage.ValueInput nbt) {
         super.loadAdditional(nbt);
+        setRecipe(null);
         nbt.read("recipe", net.minecraft.world.item.crafting.Recipe.CODEC).ifPresent(recipe -> {
             if (recipe instanceof com.smashingmods.alchemistry.api.recipe.AbstractAlchemistryRecipe machineRecipe) {
                 nbt.read("recipeId", net.minecraft.resources.Identifier.CODEC).ifPresent(machineRecipe::setId);

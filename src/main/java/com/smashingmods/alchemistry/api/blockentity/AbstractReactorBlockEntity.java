@@ -1,6 +1,8 @@
 package com.smashingmods.alchemistry.api.blockentity;
 
 import com.smashingmods.alchemistry.common.block.reactor.ReactorCoreBlock;
+import net.fabricmc.fabric.api.transfer.v1.item.ContainerStorage;
+import net.minecraft.core.Direction;
 import com.smashingmods.alchemistry.common.block.reactor.ReactorEnergyBlockEntity;
 import com.smashingmods.alchemistry.common.block.reactor.ReactorInputBlockEntity;
 import com.smashingmods.alchemistry.common.block.reactor.ReactorOutputBlockEntity;
@@ -20,6 +22,13 @@ import java.util.function.Consumer;
 
 public abstract class AbstractReactorBlockEntity extends AbstractInventoryBlockEntity implements ReactorBlockEntity {
 
+    // Keep one adapter alive so ports and direct controller access share its slot snapshots.
+    private final ContainerStorage itemStorage = ContainerStorage.of(this, Direction.UP);
+
+    public ContainerStorage getItemStorage() {
+        return itemStorage;
+    }
+
     private ReactorShape reactorShape;
     private ReactorType reactorType;
 
@@ -38,6 +47,7 @@ public abstract class AbstractReactorBlockEntity extends AbstractInventoryBlockE
     @Override
     public void tick() {
         if (level != null && !level.isClientSide()) {
+            refreshRecipe();
             if (reactorShape == null) {
                 setReactorShape(new ReactorShape(getBlockPos(), getReactorType(), level));
             }

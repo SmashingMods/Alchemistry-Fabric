@@ -113,17 +113,27 @@ public class FusionControllerBlockEntity extends AbstractReactorBlockEntity {
     @Override
     public boolean canProcessRecipe() {
         if (currentRecipe != null) {
-            ItemStack input1 = getStackInSlot(0);
-            ItemStack input2 = getStackInSlot(1);
             ItemStack output = getStackInSlot(2);
             return getEnergyStorage().getAmount() >= Config.Common.fusionEnergyPerTick.get()
-                    && (((ItemStack.isSameItemSameComponents(input1, currentRecipe.getInput1()) && input1.getCount() >= currentRecipe.getInput1().getCount())
-                    && (ItemStack.isSameItemSameComponents(input2, currentRecipe.getInput2()) && input2.getCount() >= currentRecipe.getInput2().getCount()))
-                    || ((ItemStack.isSameItemSameComponents(input1, currentRecipe.getInput2()) && input1.getCount() >= currentRecipe.getInput2().getCount())
-                    && (ItemStack.isSameItemSameComponents(input2, currentRecipe.getInput1()) && input2.getCount() >= currentRecipe.getInput1().getCount())))
+                    && getInputConsumption() != null
                     && ((ItemStack.isSameItemSameComponents(output, currentRecipe.getOutput()) || output.isEmpty()) && (currentRecipe.getOutput().getCount() + output.getCount()) <= currentRecipe.getOutput().getMaxStackSize());
         }
         return false;
+    }
+
+    @Nullable
+    private int[] getInputConsumption() {
+        if (currentRecipe == null) return null;
+        ItemStack first = currentRecipe.getInput1();
+        ItemStack second = currentRecipe.getInput2();
+        if (matchesInput(0, first) && matchesInput(1, second)) return new int[] { first.getCount(), second.getCount() };
+        if (matchesInput(0, second) && matchesInput(1, first)) return new int[] { second.getCount(), first.getCount() };
+        return null;
+    }
+
+    private boolean matchesInput(int slot, ItemStack ingredient) {
+        ItemStack stack = getStackInSlot(slot);
+        return ItemStack.isSameItemSameComponents(stack, ingredient) && stack.getCount() >= ingredient.getCount();
     }
 
     @Override
@@ -131,9 +141,11 @@ public class FusionControllerBlockEntity extends AbstractReactorBlockEntity {
         if (getProgress() < maxProgress) {
             incrementProgress();
         } else {
+            int[] consumption = getInputConsumption();
+            if (consumption == null) return;
             setProgress(0);
-            decrementSlot(0, currentRecipe.getInput1().getCount());
-            decrementSlot(1, currentRecipe.getInput2().getCount());
+            decrementSlot(0, consumption[0]);
+            decrementSlot(1, consumption[1]);
             setOrIncrement(2, currentRecipe.getOutput().copy());
         }
         extractEnergy(Config.Common.fusionEnergyPerTick.get());

@@ -6,7 +6,10 @@
   "environment": "*",
   "entrypoints": {
     "fabric-gametest": [
-      "com.smashingmods.alchemistry.test.AlchemistryGameTest"
+      "com.smashingmods.alchemistry.test.AlchemistryGameTest",
+      "com.smashingmods.alchemistry.test.ReactorAndDissolverGameTest",
+      "com.smashingmods.alchemistry.test.RecipeValidationGameTest",
+      "com.smashingmods.alchemistry.test.ReleaseAuditGameTest"
     ],
     "fabric-client-gametest": [
       "com.smashingmods.alchemistry.test.AlchemistryClientTest"
