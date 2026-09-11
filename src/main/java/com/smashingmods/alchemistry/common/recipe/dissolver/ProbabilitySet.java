@@ -4,13 +4,10 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.core.NonNullList;
 
 import java.util.*;
-import java.util.stream.IntStream;
 
 public class ProbabilitySet {
     public static final com.mojang.serialization.Codec<ProbabilitySet> CODEC = com.mojang.serialization.codecs.RecordCodecBuilder.create(i -> i.group(
@@ -86,29 +83,19 @@ public class ProbabilitySet {
     private void populateReturnList(NonNullList<ItemStack> pList, ItemStack pItemStack) {
 
         if (pItemStack.isEmpty()) return;
-        Item item = pItemStack.copy().getItem();
-        int count = pItemStack.copy().getCount();
-
-        OptionalInt optionalIndex = IntStream.range(0, pList.size())
-                .filter(index -> ItemStack.isSameItemSameComponents(pItemStack.copy(), pList.get(index)))
-                .findFirst();
-
-        if (count > 64) {
-            while (count > 0) {
-                if (count >= 64) {
-                    pList.add(new ItemStack(item, 64));
-                    count -= 64;
-                } else {
-                    pList.add(new ItemStack(item, count));
-                    count = 0;
-                }
+        int count = pItemStack.getCount();
+        for (ItemStack stack : pList) {
+            if (ItemStack.isSameItemSameComponents(pItemStack, stack)) {
+                int amount = Math.min(count, Math.max(0, stack.getMaxStackSize() - stack.getCount()));
+                stack.grow(amount);
+                count -= amount;
+                if (count == 0) return;
             }
-        } else {
-            if (optionalIndex.isPresent()) {
-                pList.get(optionalIndex.getAsInt()).grow(count);
-            } else {
-                pList.add(new ItemStack(item, count));
-            }
+        }
+        while (count > 0) {
+            int amount = Math.min(count, pItemStack.getMaxStackSize());
+            pList.add(pItemStack.copyWithCount(amount));
+            count -= amount;
         }
     }
 

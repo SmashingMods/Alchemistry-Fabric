@@ -13,7 +13,7 @@ The handbook is now a built-in item because the old Patchouli dependency does no
 
 ## Install
 
-Place `Alchemistry-1.0.2+mc26.2.jar`, the matching ChemLib JAR and Fabric API in your Fabric 26.2 instance's `mods` folder. Energy API and Forge Config API Port are bundled in Alchemistry. To use REI, install its matching Fabric release and its required dependencies.
+Place `Alchemistry-1.0.3+mc26.2.jar`, the matching ChemLib JAR and Fabric API in your Fabric 26.2 instance's `mods` folder. Energy API and Forge Config API Port are bundled in Alchemistry. To use REI, install its matching Fabric release and its required dependencies.
 
 This is a local development port; the older releases on CurseForge and Modrinth are not this build. Existing 1.19.2 worlds have not been migration-tested.
 

@@ -15,9 +15,9 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
-import java.util.Objects;
+import java.util.Optional;
 
 public class CombinerRecipe extends AbstractAlchemistryRecipe implements Comparable<CombinerRecipe> {
 
@@ -78,25 +78,35 @@ public class CombinerRecipe extends AbstractAlchemistryRecipe implements Compara
     }
 
     public boolean matchInputs(List<ItemStack> pStacks) {
-        int matchingStacks = 0;
-        List<ItemStack> handlerStacks = new ArrayList<>();
-        for (int i = 0; i < pStacks.size()-1; i++) {
-            if (!pStacks.get(i).isEmpty()) handlerStacks.add(pStacks.get(i));
-        }
-        List<ItemStack> recipeStacks = getInput().stream().filter(itemStack -> !itemStack.isEmpty()).toList();
+        return getInputConsumption(pStacks).isPresent();
+    }
 
-        if (recipeStacks.size() == handlerStacks.size()) {
-            for (ItemStack recipeStack : recipeStacks) {
-                for (ItemStack handlerStack : handlerStacks) {
-                    if (ItemStack.isSameItemSameComponents(recipeStack, handlerStack) && handlerStack.getCount() >= recipeStack.getCount()) {
-                        matchingStacks++;
-                        break;
-                    }
+    /** Assign each ingredient to a distinct input slot; the last slot is output. */
+    public Optional<int[]> getInputConsumption(List<ItemStack> stacks) {
+        if (stacks.isEmpty()) return Optional.empty();
+        int[] consumption = new int[stacks.size() - 1];
+        List<ItemStack> ingredients = getInput().stream().filter(stack -> !stack.isEmpty())
+                // Reserve larger stacks first when duplicate ingredients require different counts.
+                .sorted(Comparator.comparingInt(ItemStack::getCount).reversed()).toList();
+        int occupied = 0;
+        for (int slot = 0; slot < consumption.length; slot++) {
+            if (!stacks.get(slot).isEmpty()) occupied++;
+        }
+        if (occupied != ingredients.size()) return Optional.empty();
+        for (ItemStack ingredient : ingredients) {
+            boolean matched = false;
+            for (int slot = 0; slot < consumption.length; slot++) {
+                ItemStack stack = stacks.get(slot);
+                if (consumption[slot] == 0 && ItemStack.isSameItemSameComponents(ingredient, stack)
+                        && stack.getCount() >= ingredient.getCount()) {
+                    consumption[slot] = ingredient.getCount();
+                    matched = true;
+                    break;
                 }
             }
-            return matchingStacks == recipeStacks.size();
+            if (!matched) return Optional.empty();
         }
-        return false;
+        return Optional.of(consumption);
     }
 
     @Override

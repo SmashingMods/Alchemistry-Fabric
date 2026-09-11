@@ -115,16 +115,14 @@ public class CombinerBlockEntity extends AbstractInventoryBlockEntity {
         if (getProgress() < maxProgress) {
             incrementProgress();
         } else {
+            var consumption = currentRecipe.getInputConsumption(getItems());
+            if (consumption.isEmpty()) return;
             setProgress(0);
-            setOrIncrement(OUTPUT_SLOT_INDEX, currentRecipe.getOutput().copy());
-            for (int i = 0; i < currentRecipe.getInput().size(); i++) {
-                for (int j = 0; j < 4; j++) {
-                    if (ItemStack.isSameItemSameComponents(currentRecipe.getInput().get(i), getItems().get(j))) {
-                        decrementSlot(j, currentRecipe.getInput().get(i).getCount());
-                        break;
-                    }
-                }
+            int[] amounts = consumption.get();
+            for (int slot = 0; slot < amounts.length; slot++) {
+                if (amounts[slot] > 0) decrementSlot(slot, amounts[slot]);
             }
+            setOrIncrement(OUTPUT_SLOT_INDEX, currentRecipe.getOutput().copy());
         }
         extractEnergy(Config.Common.combinerEnergyPerTick.get());
         setChanged();

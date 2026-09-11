@@ -9,6 +9,12 @@ import com.smashingmods.alchemistry.api.recipe.*;
 import com.smashingmods.alchemistry.common.block.atomizer.AtomizerBlockEntity;
 import com.smashingmods.alchemistry.common.block.liquifier.LiquifierBlockEntity;
 import com.smashingmods.alchemistry.common.block.compactor.CompactorBlockEntity;
+import com.smashingmods.alchemistry.common.block.combiner.CombinerBlockEntity;
+import com.smashingmods.alchemistry.common.block.dissolver.DissolverBlockEntity;
+import com.smashingmods.alchemistry.common.recipe.combiner.CombinerRecipe;
+import com.smashingmods.alchemistry.common.recipe.dissolver.DissolverRecipe;
+import com.smashingmods.alchemistry.common.recipe.dissolver.ProbabilityGroup;
+import com.smashingmods.alchemistry.common.recipe.dissolver.ProbabilitySet;
 import com.smashingmods.alchemistry.common.recipe.atomizer.AtomizerRecipe;
 import com.smashingmods.alchemistry.common.recipe.liquifier.LiquifierRecipe;
 import com.smashingmods.alchemistry.common.recipe.compactor.CompactorRecipe;
@@ -28,6 +34,101 @@ import java.util.*;
 
 public class AlchemistryGameTest {
     private Identifier id(String path) { return Identifier.parse("alchemistry:" + path); }
+
+    @GameTest public void diamondRequiresBothGraphiteStacks(GameTestHelper test) {
+        var pos = new BlockPos(1, 1, 1);
+        test.setBlock(pos, BlockRegistry.COMBINER);
+        var machine = test.getBlockEntity(pos, CombinerBlockEntity.class);
+        var recipe = MachineRecipes.all(test.getLevel(), CombinerRecipe.Type.INSTANCE).stream()
+                .filter(r -> r.getId().equals(id("combiner/diamond"))).findFirst().orElseThrow();
+        machine.setRecipe(recipe);
+        machine.setRecipeLocked(true);
+        machine.insertEnergy(100000);
+        machine.setStackInSlot(0, recipe.getInput().getFirst());
+        machine.setStackInSlot(1, new ItemStack(Items.DIRT));
+        for (int i = 0; i <= Config.Common.combinerTicksPerOperation.get(); i++) machine.tick();
+        test.assertTrue(machine.getStackInSlot(4).isEmpty() && machine.getStackInSlot(0).getCount() == 64
+                && machine.getEnergyStorage().amount == 100000, "Insufficient graphite must not produce diamonds or consume inputs/energy");
+        machine.setStackInSlot(1, ItemStack.EMPTY);
+        machine.setStackInSlot(3, recipe.getInput().getFirst().copyWithCount(63));
+        test.assertTrue(!machine.canProcessRecipe(), "127 graphite must not satisfy the 128-graphite recipe");
+        machine.setStackInSlot(3, recipe.getInput().getFirst());
+        for (int i = 0; i <= Config.Common.combinerTicksPerOperation.get(); i++) machine.tick();
+        test.assertTrue(machine.getStackInSlot(0).isEmpty() && machine.getStackInSlot(3).isEmpty()
+                && ItemStack.matches(machine.getStackInSlot(4), recipe.getOutput()), "Two graphite stacks in shuffled slots must produce exactly one recipe output");
+        test.succeed();
+    }
+
+    @GameTest public void packedIceConsumesEveryWaterStack(GameTestHelper test) {
+        var pos = new BlockPos(1, 1, 1);
+        test.setBlock(pos, BlockRegistry.COMBINER);
+        var machine = test.getBlockEntity(pos, CombinerBlockEntity.class);
+        var recipe = MachineRecipes.all(test.getLevel(), CombinerRecipe.Type.INSTANCE).stream()
+                .filter(r -> r.getId().equals(id("combiner/packed_ice"))).findFirst().orElseThrow();
+        machine.setRecipe(recipe);
+        machine.setRecipeLocked(true);
+        machine.insertEnergy(100000);
+        for (int slot = 0; slot < 4; slot++) machine.setStackInSlot(slot, recipe.getInput().getFirst().copyWithCount(64));
+        for (int i = 0; i <= Config.Common.combinerTicksPerOperation.get(); i++) machine.tick();
+        for (int slot = 0; slot < 4; slot++) {
+            test.assertTrue(machine.getStackInSlot(slot).getCount() == 28, "Packed ice must consume 36 water from each of its four input stacks");
+        }
+        test.assertTrue(ItemStack.matches(machine.getStackInSlot(4), recipe.getOutput()), "Packed ice output must match the recipe");
+        test.assertTrue(!machine.canProcessRecipe(), "Leftover water must not allow another operation");
+        test.succeed();
+    }
+
+    @GameTest public void duplicateIngredientsWithUnequalCounts(GameTestHelper test) {
+        var pos = new BlockPos(1, 1, 1);
+        test.setBlock(pos, BlockRegistry.COMBINER);
+        var machine = test.getBlockEntity(pos, CombinerBlockEntity.class);
+        var recipe = new CombinerRecipe(id("test/unequal_inputs"),
+                List.of(RecipeStack.of(Items.COBBLESTONE, 1), RecipeStack.of(Items.COBBLESTONE, 64)), RecipeStack.of(Items.STONE, 1));
+        machine.setRecipe(recipe);
+        machine.setRecipeLocked(true);
+        machine.insertEnergy(100000);
+        machine.setStackInSlot(0, new ItemStack(Items.COBBLESTONE, 64));
+        machine.setStackInSlot(2, new ItemStack(Items.COBBLESTONE, 1));
+        for (int i = 0; i <= Config.Common.combinerTicksPerOperation.get(); i++) machine.tick();
+        test.assertTrue(machine.getStackInSlot(0).isEmpty() && machine.getStackInSlot(2).isEmpty()
+                && ItemStack.matches(machine.getStackInSlot(4), recipe.getOutput()), "Duplicate ingredients with unequal counts must match and consume distinct slots");
+        test.succeed();
+    }
+
+    @GameTest public void dissolverOutputRespectsStackLimits(GameTestHelper test) {
+        // One weighted group makes every roll deterministic while exercising repeated output merging.
+        for (Item item : List.of(Items.COPPER_INGOT, Items.SNOWBALL, Items.IRON_SWORD)) {
+            var output = new ProbabilitySet(List.of(new ProbabilityGroup(List.of(new ItemStack(item, 9)))), true, 16);
+            var stacks = output.calculateOutput();
+            test.assertTrue(stacks.stream().mapToInt(ItemStack::getCount).sum() == 144, "Splitting repeated outputs must preserve all 144 items");
+            for (ItemStack stack : stacks) {
+                test.assertTrue(stack.is(item) && stack.getCount() <= stack.getMaxStackSize(), "Outputs must respect each item's own stack limit");
+            }
+        }
+        var output = new ProbabilitySet(List.of(new ProbabilityGroup(List.of(new ItemStack(Items.COPPER_INGOT, 144)))), true, 1);
+        var stacks = output.calculateOutput();
+        test.assertTrue(stacks.size() == 3 && stacks.get(0).getCount() == 64 && stacks.get(1).getCount() == 64
+                && stacks.get(2).getCount() == 16, "A single oversized result must split into 64, 64, and 16");
+
+        var pos = new BlockPos(1, 1, 1);
+        test.setBlock(pos, BlockRegistry.DISSOLVER);
+        var machine = test.getBlockEntity(pos, DissolverBlockEntity.class);
+        machine.setRecipe(new DissolverRecipe(id("test/repeated_output"),
+                new ProbabilitySet(List.of(new ProbabilityGroup(List.of(new ItemStack(Items.COPPER_INGOT, 9)))), true, 16), Ingredient.of(Items.STONE)));
+        machine.setRecipeLocked(true);
+        machine.insertEnergy(100000);
+        machine.setStackInSlot(0, new ItemStack(Items.STONE));
+        for (int i = 0; i <= Config.Common.dissolverTicksPerOperation.get() + 5; i++) machine.tick();
+        test.assertTrue(machine.getStackInSlot(0).isEmpty() && machine.getItems().stream().mapToInt(ItemStack::getCount).sum() == 144,
+                "Dissolver must deliver all 144 items from the internal buffer");
+        for (ItemStack stack : machine.getItems()) test.assertTrue(stack.getCount() <= stack.getMaxStackSize(), "Machine output slots must not exceed stack limits");
+        var saved = machine.saveWithFullMetadata(test.getLevel().registryAccess());
+        var restored = (DissolverBlockEntity) BlockEntity.loadStatic(machine.getBlockPos(), machine.getBlockState(), saved, test.getLevel().registryAccess());
+        test.assertTrue(restored != null && restored.getItems().stream().mapToInt(ItemStack::getCount).sum() == 144,
+                "All split outputs must survive save/reload");
+        test.succeed();
+    }
+
     @GameTest public void bucketsAndGhostSlots(GameTestHelper test) {
         BlockPos pos = test.absolutePos(new BlockPos(1, 2, 1));
         var level = test.getLevel();
@@ -183,35 +284,6 @@ public class AlchemistryGameTest {
                 var inputPort = (com.smashingmods.alchemistry.common.block.reactor.ReactorInputBlockEntity) test.getLevel().getBlockEntity(portPos);
                 test.assertTrue(inputPort.getController() == null, "All ports must detach when the controller is removed");
             }
-        }
-        test.succeed();
-    }
-
-    @GameTest public void releaseReviewDiamondIngredients(GameTestHelper test) {
-        var pos = new BlockPos(1,1,1); test.setBlock(pos, BlockRegistry.COMBINER);
-        var machine=test.getBlockEntity(pos,com.smashingmods.alchemistry.common.block.combiner.CombinerBlockEntity.class);
-        var recipe=MachineRecipes.all(test.getLevel(),com.smashingmods.alchemistry.common.recipe.combiner.CombinerRecipe.Type.INSTANCE).stream().filter(r -> r.getId().equals(id("combiner/diamond"))).findFirst().orElseThrow();
-        machine.setRecipe(recipe); machine.setRecipeLocked(true); machine.insertEnergy(100000);
-        machine.setStackInSlot(0,recipe.getInput().getFirst()); machine.setStackInSlot(1,new ItemStack(Items.DIRT));
-        for(int i=0;i<=Config.Common.combinerTicksPerOperation.get();i++) machine.tick();
-        test.assertTrue(machine.getStackInSlot(4).isEmpty(),"Diamond created from only 64 graphite plus unconsumed dirt; recipe requires 128 graphite");
-        test.succeed();
-    }
-    @GameTest public void releaseReviewPackedIceConsumption(GameTestHelper test) {
-        var pos = new BlockPos(1,1,1); test.setBlock(pos, BlockRegistry.COMBINER);
-        var machine=test.getBlockEntity(pos,com.smashingmods.alchemistry.common.block.combiner.CombinerBlockEntity.class);
-        var recipe=MachineRecipes.all(test.getLevel(),com.smashingmods.alchemistry.common.recipe.combiner.CombinerRecipe.Type.INSTANCE).stream().filter(r -> r.getId().equals(id("combiner/packed_ice"))).findFirst().orElseThrow();
-        machine.setRecipe(recipe); machine.setRecipeLocked(true); machine.insertEnergy(100000);
-        for(int i=0;i<4;i++) machine.setStackInSlot(i,recipe.getInput().getFirst().copyWithCount(64));
-        for(int i=0;i<=Config.Common.combinerTicksPerOperation.get();i++) machine.tick();
-        int remaining=0; for(int i=0;i<4;i++)remaining+=machine.getStackInSlot(i).getCount();
-        test.assertTrue(remaining==112,"Packed ice consumed "+(256-remaining)+" water instead of required 144");
-        test.succeed();
-    }
-    @GameTest public void releaseReviewDissolverStackBounds(GameTestHelper test) {
-        var recipe=MachineRecipes.all(test.getLevel(),com.smashingmods.alchemistry.common.recipe.dissolver.DissolverRecipe.Type.INSTANCE).stream().filter(r -> r.getId().equals(id("dissolver/exposed_copper"))).findFirst().orElseThrow();
-        for(int attempt=0;attempt<100;attempt++) for(var stack:recipe.getProbabilityOutput().calculateOutput()) {
-            test.assertTrue(stack.getCount()<=stack.getMaxStackSize(),"Exposed copper produced an oversized output stack: "+stack.getCount()+" (max "+stack.getMaxStackSize()+")");
         }
         test.succeed();
     }
