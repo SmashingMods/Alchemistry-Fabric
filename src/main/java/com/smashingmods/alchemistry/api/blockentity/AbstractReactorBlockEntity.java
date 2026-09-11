@@ -38,6 +38,7 @@ public abstract class AbstractReactorBlockEntity extends AbstractInventoryBlockE
     @Override
     public void tick() {
         if (level != null && !level.isClientSide()) {
+            refreshRecipe();
             if (reactorShape == null) {
                 setReactorShape(new ReactorShape(getBlockPos(), getReactorType(), level));
             }

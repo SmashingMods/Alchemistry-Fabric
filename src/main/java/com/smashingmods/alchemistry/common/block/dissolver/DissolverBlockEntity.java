@@ -74,6 +74,7 @@ public class DissolverBlockEntity extends AbstractInventoryBlockEntity {
     @Override
     public void tick() {
         if (level != null && !level.isClientSide()) {
+            refreshRecipe();
             if (!isProcessingPaused()) {
                 if (!isRecipeLocked()) {
                     updateRecipe();

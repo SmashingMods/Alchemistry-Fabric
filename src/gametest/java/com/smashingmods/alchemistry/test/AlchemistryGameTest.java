@@ -84,14 +84,16 @@ public class AlchemistryGameTest {
         var machine = test.getBlockEntity(pos, CombinerBlockEntity.class);
         var recipe = new CombinerRecipe(id("test/unequal_inputs"),
                 List.of(RecipeStack.of(Items.COBBLESTONE, 1), RecipeStack.of(Items.COBBLESTONE, 64)), RecipeStack.of(Items.STONE, 1));
-        machine.setRecipe(recipe);
-        machine.setRecipeLocked(true);
-        machine.insertEnergy(100000);
-        machine.setStackInSlot(0, new ItemStack(Items.COBBLESTONE, 64));
-        machine.setStackInSlot(2, new ItemStack(Items.COBBLESTONE, 1));
-        for (int i = 0; i <= Config.Common.combinerTicksPerOperation.get(); i++) machine.tick();
-        test.assertTrue(machine.getStackInSlot(0).isEmpty() && machine.getStackInSlot(2).isEmpty()
-                && ItemStack.matches(machine.getStackInSlot(4), recipe.getOutput()), "Duplicate ingredients with unequal counts must match and consume distinct slots");
+        try (var ignored = RecipeTestScope.withRecipes(test.getLevel(), recipe)) {
+            machine.setRecipe(recipe);
+            machine.setRecipeLocked(true);
+            machine.insertEnergy(100000);
+            machine.setStackInSlot(0, new ItemStack(Items.COBBLESTONE, 64));
+            machine.setStackInSlot(2, new ItemStack(Items.COBBLESTONE, 1));
+            for (int i = 0; i <= Config.Common.combinerTicksPerOperation.get(); i++) machine.tick();
+            test.assertTrue(machine.getStackInSlot(0).isEmpty() && machine.getStackInSlot(2).isEmpty()
+                    && ItemStack.matches(machine.getStackInSlot(4), recipe.getOutput()), "Duplicate ingredients with unequal counts must match and consume distinct slots");
+        }
         test.succeed();
     }
 
@@ -113,19 +115,22 @@ public class AlchemistryGameTest {
         var pos = new BlockPos(1, 1, 1);
         test.setBlock(pos, BlockRegistry.DISSOLVER);
         var machine = test.getBlockEntity(pos, DissolverBlockEntity.class);
-        machine.setRecipe(new DissolverRecipe(id("test/repeated_output"),
-                new ProbabilitySet(List.of(new ProbabilityGroup(List.of(new ItemStack(Items.COPPER_INGOT, 9)))), true, 16), Ingredient.of(Items.STONE)));
-        machine.setRecipeLocked(true);
-        machine.insertEnergy(100000);
-        machine.setStackInSlot(0, new ItemStack(Items.STONE));
-        for (int i = 0; i <= Config.Common.dissolverTicksPerOperation.get() + 5; i++) machine.tick();
-        test.assertTrue(machine.getStackInSlot(0).isEmpty() && machine.getItems().stream().mapToInt(ItemStack::getCount).sum() == 144,
-                "Dissolver must deliver all 144 items from the internal buffer");
-        for (ItemStack stack : machine.getItems()) test.assertTrue(stack.getCount() <= stack.getMaxStackSize(), "Machine output slots must not exceed stack limits");
-        var saved = machine.saveWithFullMetadata(test.getLevel().registryAccess());
-        var restored = (DissolverBlockEntity) BlockEntity.loadStatic(machine.getBlockPos(), machine.getBlockState(), saved, test.getLevel().registryAccess());
-        test.assertTrue(restored != null && restored.getItems().stream().mapToInt(ItemStack::getCount).sum() == 144,
-                "All split outputs must survive save/reload");
+        var recipe = new DissolverRecipe(id("test/repeated_output"),
+                new ProbabilitySet(List.of(new ProbabilityGroup(List.of(new ItemStack(Items.COPPER_INGOT, 9)))), true, 16), Ingredient.of(Items.STONE));
+        try (var ignored = RecipeTestScope.withRecipes(test.getLevel(), recipe)) {
+            machine.setRecipe(recipe);
+            machine.setRecipeLocked(true);
+            machine.insertEnergy(100000);
+            machine.setStackInSlot(0, new ItemStack(Items.STONE));
+            for (int i = 0; i <= Config.Common.dissolverTicksPerOperation.get() + 5; i++) machine.tick();
+            test.assertTrue(machine.getStackInSlot(0).isEmpty() && machine.getItems().stream().mapToInt(ItemStack::getCount).sum() == 144,
+                    "Dissolver must deliver all 144 items from the internal buffer");
+            for (ItemStack stack : machine.getItems()) test.assertTrue(stack.getCount() <= stack.getMaxStackSize(), "Machine output slots must not exceed stack limits");
+            var saved = machine.saveWithFullMetadata(test.getLevel().registryAccess());
+            var restored = (DissolverBlockEntity) BlockEntity.loadStatic(machine.getBlockPos(), machine.getBlockState(), saved, test.getLevel().registryAccess());
+            test.assertTrue(restored != null && restored.getItems().stream().mapToInt(ItemStack::getCount).sum() == 144,
+                    "All split outputs must survive save/reload");
+        }
         test.succeed();
     }
 
