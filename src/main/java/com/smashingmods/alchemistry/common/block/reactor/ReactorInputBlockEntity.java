@@ -21,7 +21,8 @@ public class ReactorInputBlockEntity extends BlockEntity implements ImplementedI
 
     public ReactorInputBlockEntity(BlockPos worldPosition, BlockState state) {
         super(BlockEntityRegistry.REACTOR_INPUT_BLOCK_ENTITY, worldPosition, state);
-        tempInv = NonNullList.withSize(1, ItemStack.EMPTY);
+        // Both reactor controllers expose three slots; cached automation views must remain valid when detached.
+        tempInv = NonNullList.withSize(3, ItemStack.EMPTY);
     }
 
     @Nullable
@@ -31,6 +32,13 @@ public class ReactorInputBlockEntity extends BlockEntity implements ImplementedI
 
     public void setController(@Nullable AbstractReactorBlockEntity controller) {
         this.controller = controller;
+    }
+
+    @Override
+    public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+        // The controller owns these items. Vanilla must not drop its inventory when a port is removed.
+        setController(null);
+        super.preRemoveSideEffects(pos, state);
     }
 
     @Override

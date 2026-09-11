@@ -8,6 +8,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.core.NonNullList;
 
 import java.util.*;
+import java.util.random.RandomGenerator;
 
 public class ProbabilitySet {
     public static final com.mojang.serialization.Codec<ProbabilitySet> CODEC = com.mojang.serialization.codecs.RecordCodecBuilder.create(i -> i.group(
@@ -49,29 +50,29 @@ public class ProbabilitySet {
 
 
     public NonNullList<ItemStack> calculateOutput() {
+        return calculateOutput(new Random());
+    }
+
+    public NonNullList<ItemStack> calculateOutput(RandomGenerator random) {
         NonNullList<ItemStack> toReturn = NonNullList.create();
-        Random random = new Random();
+        double totalProbability = weighted ? getTotalProbability() : 0;
 
         for (int i = 1; i <= rolls; i++) {
-            double totalProbability = getTotalProbability();
-            double targetProbability = random.nextDouble();
-
             if (weighted) {
+                double targetProbability = random.nextDouble();
                 double outputProbability = 0.0;
 
                 for (ProbabilityGroup group : probabilityGroups) {
                     outputProbability += (group.getProbability() / totalProbability);
 
-                    if (outputProbability >= targetProbability) {
+                    if (targetProbability < outputProbability) {
                         group.getOutput().forEach(itemStack -> populateReturnList(toReturn, itemStack));
                         break;
                     }
                 }
             } else {
-                if ((totalProbability / 100) < targetProbability) return toReturn;
-
                 for (ProbabilityGroup group : probabilityGroups) {
-                    if (group.getProbability() >= random.nextInt(101)) {
+                    if (random.nextDouble() < group.getProbability() / 100.0) {
                         group.getOutput().forEach(itemStack -> populateReturnList(toReturn, itemStack));
                     }
                 }
