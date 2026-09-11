@@ -1,9 +1,9 @@
 package com.smashingmods.alchemistry.api.container;
 
-import net.minecraft.screen.PropertyDelegate;
-import net.minecraft.text.MutableText;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
+import net.minecraft.world.inventory.ContainerData;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.Component;
+import net.minecraft.ChatFormatting;
 
 import java.text.NumberFormat;
 import java.util.List;
@@ -11,11 +11,11 @@ import java.util.Locale;
 
 public class EnergyDisplayData extends DisplayData {
 
-    private final PropertyDelegate delegate;
+    private final ContainerData delegate;
     private final int valueSlot;
     private final int maxValueSlot;
 
-    public EnergyDisplayData(PropertyDelegate delegate, int valueSlot, int maxValueSlot, int x, int y, int width, int height) {
+    public EnergyDisplayData(ContainerData delegate, int valueSlot, int maxValueSlot, int x, int y, int width, int height) {
         super(x, y, width, height);
         this.delegate = delegate;
         this.valueSlot = valueSlot;
@@ -33,7 +33,7 @@ public class EnergyDisplayData extends DisplayData {
     }
 
     @Override
-    public List<Text> toText() {
+    public List<Component> toText() {
         NumberFormat numFormat = NumberFormat.getCompactNumberInstance(Locale.US, NumberFormat.Style.SHORT);
         numFormat.setMinimumFractionDigits(0);
         numFormat.setMaximumFractionDigits(1);
@@ -42,13 +42,13 @@ public class EnergyDisplayData extends DisplayData {
         String capacity = numFormat.format(getMaxValue()).toLowerCase();
         int percent = (int) (((double) getValue() / (double) getMaxValue()) * 100);
 
-        Formatting color;
-        if (percent < 11) color = Formatting.RED;
-        else if (percent < 75) color = Formatting.YELLOW;
-        else color = Formatting.GREEN;
+        ChatFormatting color;
+        if (percent < 11) color = ChatFormatting.RED;
+        else if (percent < 75) color = ChatFormatting.YELLOW;
+        else color = ChatFormatting.GREEN;
 
-        MutableText line1 = Text.literal(stored + "/" + capacity + " E");
-        MutableText line2 = Text.literal(percent + "%").formatted(color).append(Text.literal(" Charged").formatted(Formatting.GRAY));
+        MutableComponent line1 = Component.literal(stored + "/" + capacity + " E");
+        MutableComponent line2 = Component.literal(percent + "%").withStyle(color).append(Component.literal(" Charged").withStyle(ChatFormatting.GRAY));
         return List.of(line1, line2);
     }
 }

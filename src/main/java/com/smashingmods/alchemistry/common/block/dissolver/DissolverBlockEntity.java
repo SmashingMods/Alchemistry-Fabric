@@ -1,21 +1,22 @@
 package com.smashingmods.alchemistry.common.block.dissolver;
 
+import net.minecraft.world.item.crafting.RecipeInput;
 import com.smashingmods.alchemistry.Config;
 import com.smashingmods.alchemistry.api.blockentity.AbstractInventoryBlockEntity;
 import com.smashingmods.alchemistry.common.recipe.dissolver.DissolverRecipe;
 import com.smashingmods.alchemistry.registry.BlockEntityRegistry;
-import net.minecraft.block.BlockState;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.SimpleInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.recipe.Recipe;
-import net.minecraft.screen.PropertyDelegate;
-import net.minecraft.screen.ScreenHandler;
-import net.minecraft.util.collection.DefaultedList;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.inventory.ContainerData;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.core.NonNullList;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
@@ -25,15 +26,15 @@ public class DissolverBlockEntity extends AbstractInventoryBlockEntity {
     public static final int INVENTORY_SIZE = 11;
 
     private DissolverRecipe currentRecipe;
-    protected final PropertyDelegate propertyDelegate;
+    protected final ContainerData propertyDelegate;
     private final int maxProgress;
-    private final DefaultedList<ItemStack> internalBuffer;
+    private final NonNullList<ItemStack> internalBuffer;
 
-    public DissolverBlockEntity(BlockPos pos, BlockState state) {
-        super(DefaultedList.ofSize(INVENTORY_SIZE, ItemStack.EMPTY), BlockEntityRegistry.DISSOLVER_BLOCK_ENTITY, pos, state, Config.Common.dissolverEnergyCapacity.get());
-        this.internalBuffer = DefaultedList.ofSize(64);
+    public DissolverBlockEntity(BlockPos worldPosition, BlockState state) {
+        super(NonNullList.withSize(INVENTORY_SIZE, ItemStack.EMPTY), BlockEntityRegistry.DISSOLVER_BLOCK_ENTITY, worldPosition, state, Config.Common.dissolverEnergyCapacity.get());
+        this.internalBuffer = NonNullList.createWithCapacity(64);
         this.maxProgress = Config.Common.dissolverTicksPerOperation.get();
-        this.propertyDelegate = new PropertyDelegate() {
+        this.propertyDelegate = new ContainerData() {
             public int get(int index) {
                 return switch (index) {
                     case 0 -> getProgress();
@@ -49,30 +50,30 @@ public class DissolverBlockEntity extends AbstractInventoryBlockEntity {
                     case 2 -> insertEnergy(value);
                 }
             }
-            public int size() {
+            public int getCount() {
                 return 4;
             }
         };
     }
 
     @Override
-    public boolean canExtract(int slot, ItemStack stack, Direction side) {
+    public boolean canTakeItemThroughFace(int slot, ItemStack stack, Direction side) {
         return slot != 0;
     }
 
     @Override
-    public boolean canInsert(int slot, ItemStack stack, @Nullable Direction side) {
+    public boolean canPlaceItemThroughFace(int slot, ItemStack stack, @Nullable Direction side) {
         return slot == 0;
     }
 
     @Override
-    public @Nullable ScreenHandler createMenu(int syncId, PlayerInventory inv, PlayerEntity player) {
+    public @Nullable AbstractContainerMenu createMenu(int syncId, Inventory inv, Player player) {
         return new DissolverScreenHandler(syncId, inv, this, this, this.propertyDelegate);
     }
 
     @Override
     public void tick() {
-        if (world != null && !world.isClient()) {
+        if (level != null && !level.isClientSide()) {
             if (!isProcessingPaused()) {
                 if (!isRecipeLocked()) {
                     updateRecipe();
@@ -87,12 +88,12 @@ public class DissolverBlockEntity extends AbstractInventoryBlockEntity {
 
     @Override
     public void updateRecipe() {
-        if (world == null || world.isClient()) return;
-        SimpleInventory inventory = new SimpleInventory(getItems().size());
+        if (level == null || level.isClientSide()) return;
+        SimpleContainer inventory = new SimpleContainer(getItems().size());
         for (int i = 0; i < getItems().size(); i++) {
-            inventory.setStack(i, getStack(i));
+            inventory.setItem(i, getItem(i));
         }
-        Optional<DissolverRecipe> match = world.getRecipeManager().getFirstMatch(DissolverRecipe.Type.INSTANCE, inventory, world);
+        Optional<DissolverRecipe> match = com.smashingmods.alchemistry.api.recipe.MachineRecipes.all(level, DissolverRecipe.Type.INSTANCE).stream().filter(recipe -> recipe.getInput().test(getItem(0))).findFirst();
         if (match.isPresent()) {
             if (currentRecipe == null || !currentRecipe.equals(match.get())) {
                 setProgress(0);
@@ -105,12 +106,12 @@ public class DissolverBlockEntity extends AbstractInventoryBlockEntity {
     public boolean canProcessRecipe() {
         if (currentRecipe != null) {
             ItemStack input = getStackInSlot(0).copy();
-            SimpleInventory inputInventory = new SimpleInventory(1);
-            inputInventory.addStack(input);
+            SimpleContainer inputInventory = new SimpleContainer(1);
+            inputInventory.addItem(input);
             return getEnergyStorage().getAmount() >= Config.Common.dissolverEnergyPerTick.get()
-                    && currentRecipe.matches(inputInventory, world)
-                    && currentRecipe.getInput().getMatchingStacks().length > 0
-                    && (input.getCount() >= currentRecipe.getInput().getMatchingStacks()[0].copy().getCount())
+                    && currentRecipe.getInput().test(input)
+                    && !currentRecipe.getInput().isEmpty()
+                    && (input.getCount() >= 1)
                     && internalBuffer.isEmpty();
         } else {
             return false;
@@ -123,11 +124,11 @@ public class DissolverBlockEntity extends AbstractInventoryBlockEntity {
             incrementProgress();
         } else {
             setProgress(0);
-            decrementSlot(0, currentRecipe.getInput().getMatchingStacks()[0].copy().getCount());
+            decrementSlot(0, 1);
             internalBuffer.addAll(currentRecipe.getProbabilityOutput().calculateOutput());
         }
         extractEnergy(Config.Common.dissolverEnergyPerTick.get());
-        markDirty();
+        setChanged();
     }
 
     private void processBuffer() {
@@ -135,24 +136,38 @@ public class DissolverBlockEntity extends AbstractInventoryBlockEntity {
             ItemStack bufferStack = internalBuffer.get(i).copy();
             for (int j = 1; j < getItems().size(); j++) {
                 ItemStack slotStack = getStackInSlot(j).copy();
-                if (slotStack.isEmpty() || (ItemStack.canCombine(bufferStack, slotStack) && bufferStack.getCount() + slotStack.getCount() <= slotStack.getMaxCount())) {
+                if (slotStack.isEmpty() || (ItemStack.isSameItemSameComponents(bufferStack, slotStack) && bufferStack.getCount() + slotStack.getCount() <= slotStack.getMaxStackSize())) {
                     setOrIncrement(j, bufferStack);
                     internalBuffer.remove(i);
                     break;
                 }
             }
         }
-        markDirty();
+        setChanged();
     }
 
     @Override
-    public <T extends Recipe<SimpleInventory>> void setRecipe(@Nullable T pRecipe) {
+    public <T extends Recipe<RecipeInput>> void setRecipe(@Nullable T pRecipe) {
         currentRecipe = (DissolverRecipe) pRecipe;
     }
 
     @Override
-    public Recipe<SimpleInventory> getRecipe() {
+    public Recipe<RecipeInput> getRecipe() {
         return currentRecipe;
     }
 
+    @Override protected void saveAdditional(net.minecraft.world.level.storage.ValueOutput output) {
+        super.saveAdditional(output);
+        output.store("internalBuffer", ItemStack.CODEC.listOf(), internalBuffer);
+    }
+    @Override public void loadAdditional(net.minecraft.world.level.storage.ValueInput input) {
+        super.loadAdditional(input);
+        internalBuffer.clear();
+        internalBuffer.addAll(input.read("internalBuffer", ItemStack.CODEC.listOf()).orElse(java.util.List.of()));
+    }
+    @Override public void dropContents() {
+        super.dropContents();
+        if (level != null) for (ItemStack stack : internalBuffer) net.minecraft.world.Containers.dropItemStack(level, worldPosition.getX(), worldPosition.getY(), worldPosition.getZ(), stack);
+        internalBuffer.clear();
+    }
 }

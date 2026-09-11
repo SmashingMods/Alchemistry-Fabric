@@ -2,40 +2,40 @@ package com.smashingmods.alchemistry.common.block.reactor;
 
 import com.smashingmods.alchemistry.api.blockentity.PowerState;
 import com.smashingmods.alchemistry.api.blockentity.PowerStateProperty;
-import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Material;
-import net.minecraft.block.PillarBlock;
-import net.minecraft.item.ItemPlacementContext;
-import net.minecraft.state.StateManager;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.BlockView;
+import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.MapColor;
+import net.minecraft.world.level.block.RotatedPillarBlock;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.BlockGetter;
 
 import java.util.Objects;
 
-public class ReactorCoreBlock extends PillarBlock {
+public class ReactorCoreBlock extends RotatedPillarBlock {
 
-    public ReactorCoreBlock() {
-        super(FabricBlockSettings.of(Material.METAL).strength(2.0f));
+    public ReactorCoreBlock(BlockBehaviour.Properties properties) {
+        super(properties);
     }
 
     @Override
-    public float getAmbientOcclusionLightLevel(BlockState state, BlockView world, BlockPos pos) {
-        if (state.get(PowerStateProperty.POWER_STATE).equals(PowerState.ON)) {
+    public float getShadeBrightness(BlockState state, BlockGetter level, BlockPos pos) {
+        if (state.getValue(PowerStateProperty.POWER_STATE).equals(PowerState.ON)) {
             return 15;
         }
         return 0;
     }
 
     @Override
-    protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(PowerStateProperty.POWER_STATE);
-        super.appendProperties(builder);
+        super.createBlockStateDefinition(builder);
     }
 
     @Override
-    public BlockState getPlacementState(ItemPlacementContext ctx) {
-        return Objects.requireNonNull(super.getPlacementState(ctx)).with(PowerStateProperty.POWER_STATE, PowerState.OFF);
+    public BlockState getStateForPlacement(BlockPlaceContext ctx) {
+        return Objects.requireNonNull(super.getStateForPlacement(ctx)).setValue(PowerStateProperty.POWER_STATE, PowerState.OFF);
     }
 }

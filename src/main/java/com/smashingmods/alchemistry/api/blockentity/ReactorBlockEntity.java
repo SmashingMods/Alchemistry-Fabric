@@ -1,10 +1,10 @@
 package com.smashingmods.alchemistry.api.blockentity;
 
 import com.mojang.datafixers.util.Function3;
-import net.minecraft.block.Block;
-import net.minecraft.util.math.BlockBox;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.levelgen.structure.BoundingBox;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,11 +26,11 @@ public interface ReactorBlockEntity {
 
     void setPowerState(PowerState pPowerState);
 
-    default Function3<BlockBox, List<Block>, World, Boolean> blockPredicate() {
-        return (box, blockList, level) -> BlockPos.stream(box).allMatch(blockPos -> blockList.contains(level.getBlockState(blockPos).getBlock()));
+    default Function3<BoundingBox, List<Block>, Level, Boolean> blockPredicate() {
+        return (box, blockList, level) -> BlockPos.betweenClosedStream(box).allMatch(blockPos -> blockList.contains(level.getBlockState(blockPos).getBlock()));
     }
 
-    default boolean validateMultiblockShape(World pLevel, Map<BlockBox, List<Block>> pMap) {
+    default boolean validateMultiblockShape(Level pLevel, Map<BoundingBox, List<Block>> pMap) {
         List<Boolean> checks = new ArrayList<>();
         pMap.forEach((box, list) -> checks.add(blockPredicate().apply(box, list, pLevel)));
         return checks.stream().allMatch(check -> check);

@@ -1,19 +1,19 @@
 package com.smashingmods.alchemistry.common.recipe.liquifier;
 
+import net.minecraft.world.item.crafting.RecipeInput;
 import com.smashingmods.alchemistry.api.recipe.AbstractAlchemistryRecipe;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
-import net.minecraft.inventory.SimpleInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.recipe.Ingredient;
-import net.minecraft.recipe.RecipeSerializer;
-import net.minecraft.recipe.RecipeType;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.collection.DefaultedList;
-import net.minecraft.world.World;
+import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.resources.Identifier;
+import net.minecraft.core.NonNullList;
+import net.minecraft.world.level.Level;
 
 public class LiquifierRecipe extends AbstractAlchemistryRecipe {
 
-    private final Identifier id;
     private final Ingredient input;
     private final FluidVariant output;
     private final long fluidAmount;
@@ -21,7 +21,6 @@ public class LiquifierRecipe extends AbstractAlchemistryRecipe {
 
     public LiquifierRecipe(Identifier id, Ingredient input, FluidVariant output, long fluidAmount, int inputAmount) {
         super(id);
-        this.id = id;
         this.output = output;
         this.input = input;
         this.fluidAmount = fluidAmount;
@@ -29,9 +28,9 @@ public class LiquifierRecipe extends AbstractAlchemistryRecipe {
     }
 
     @Override
-    public boolean matches(SimpleInventory inventory, World world) {
-        if (world.isClient()) return false;
-        return input.test(inventory.getStack(0));
+    public boolean matches(RecipeInput inventory, Level level) {
+        if (level.isClientSide()) return false;
+        return input.test(inventory.getItem(0));
     }
 
     public Ingredient getInput() {
@@ -51,9 +50,9 @@ public class LiquifierRecipe extends AbstractAlchemistryRecipe {
     }
 
     @Override
-    public DefaultedList<Ingredient> getIngredients() {
-        ItemStack stack = new ItemStack(input.getMatchingStacks()[0].getItem(), inputAmount);
-        return DefaultedList.ofSize(1, Ingredient.ofStacks(stack));
+    public NonNullList<Ingredient> getIngredients() {
+        ItemStack stack = new ItemStack(input.items().findFirst().orElseThrow().value(), inputAmount);
+        return NonNullList.withSize(1, Ingredient.of(stack.getItem()));
     }
 
     @Override
@@ -61,18 +60,14 @@ public class LiquifierRecipe extends AbstractAlchemistryRecipe {
         return String.format("input=%s, outputs=%s", input, output);
     }
 
-    @Override
-    public Identifier getId() {
-        return id;
-    }
 
     @Override
-    public RecipeSerializer<?> getSerializer() {
+    public RecipeSerializer<LiquifierRecipe> getSerializer() {
         return LiquifierRecipeSerializer.INSTANCE;
     }
 
     @Override
-    public RecipeType<?> getType() {
+    public RecipeType<LiquifierRecipe> getType() {
         return LiquifierRecipe.Type.INSTANCE;
     }
 

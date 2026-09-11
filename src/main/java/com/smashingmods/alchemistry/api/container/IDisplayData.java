@@ -1,7 +1,7 @@
 package com.smashingmods.alchemistry.api.container;
 
-import net.minecraft.text.MutableText;
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.Component;
 
 import java.util.List;
 
@@ -19,5 +19,5 @@ public interface IDisplayData {
 
     int getMaxValue();
 
-    List<Text> toText();
+    List<Component> toText();
 }

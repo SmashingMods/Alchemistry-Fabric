@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "group": "machines",
+  "pattern": [
+    "ICI",
+    "GSR",
+    "ICI"
+  ],
+  "key": {
+    "I": "minecraft:iron_ingot",
+    "R": "minecraft:redstone",
+    "C": "alchemistry:reactor_casing",
+    "G": "minecraft:glass",
+    "S": "minecraft:nether_star"
+  },
+  "result": {
+    "id": "alchemistry:fusion_chamber_controller"
+  }
+}

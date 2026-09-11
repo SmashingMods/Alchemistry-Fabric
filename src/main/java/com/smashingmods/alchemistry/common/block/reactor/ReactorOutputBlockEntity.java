@@ -4,24 +4,24 @@ import com.smashingmods.alchemistry.api.blockentity.AbstractReactorBlockEntity;
 import com.smashingmods.alchemistry.api.blockentity.ImplementedInventory;
 import com.smashingmods.alchemistry.api.blockentity.ReactorType;
 import com.smashingmods.alchemistry.registry.BlockEntityRegistry;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.collection.DefaultedList;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.core.NonNullList;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 public class ReactorOutputBlockEntity extends BlockEntity implements ImplementedInventory {
 
     @Nullable
     private AbstractReactorBlockEntity controller;
-    private final DefaultedList<ItemStack> tempInv;
+    private final NonNullList<ItemStack> tempInv;
 
-    public ReactorOutputBlockEntity(BlockPos pos, BlockState state) {
-        super(BlockEntityRegistry.REACTOR_OUTPUT_BLOCK_ENTITY, pos, state);
-        tempInv = DefaultedList.ofSize(1, ItemStack.EMPTY);
+    public ReactorOutputBlockEntity(BlockPos worldPosition, BlockState state) {
+        super(BlockEntityRegistry.REACTOR_OUTPUT_BLOCK_ENTITY, worldPosition, state);
+        tempInv = NonNullList.withSize(1, ItemStack.EMPTY);
     }
 
     @Nullable
@@ -34,12 +34,12 @@ public class ReactorOutputBlockEntity extends BlockEntity implements Implemented
     }
 
     @Override
-    public boolean canInsert(int slot, ItemStack stack, @org.jetbrains.annotations.Nullable Direction side) {
+    public boolean canPlaceItemThroughFace(int slot, ItemStack stack, @org.jetbrains.annotations.Nullable Direction side) {
         return false;
     }
 
     @Override
-    public boolean canExtract(int slot, ItemStack stack, Direction side) {
+    public boolean canTakeItemThroughFace(int slot, ItemStack stack, Direction side) {
         if (controller != null) {
             if (controller.getReactorType() == ReactorType.FISSION) {
                 return slot > 0;
@@ -51,7 +51,13 @@ public class ReactorOutputBlockEntity extends BlockEntity implements Implemented
     }
 
     @Override
-    public DefaultedList<ItemStack> getItems() {
+    public void setChanged() {
+        super.setChanged();
+        if (controller != null) controller.setChanged();
+    }
+
+    @Override
+    public NonNullList<ItemStack> getItems() {
         return (controller != null) ? controller.getItems() : tempInv;
     }
 }

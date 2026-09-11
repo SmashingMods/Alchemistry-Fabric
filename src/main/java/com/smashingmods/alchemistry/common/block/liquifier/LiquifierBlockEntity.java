@@ -1,22 +1,24 @@
 package com.smashingmods.alchemistry.common.block.liquifier;
 
+import net.minecraft.world.item.crafting.RecipeInput;
 import com.smashingmods.alchemistry.Config;
 import com.smashingmods.alchemistry.api.blockentity.AbstractFluidBlockEntity;
 import com.smashingmods.alchemistry.common.recipe.liquifier.LiquifierRecipe;
 import com.smashingmods.alchemistry.registry.BlockEntityRegistry;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
-import net.minecraft.block.BlockState;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.SimpleInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.recipe.Recipe;
-import net.minecraft.screen.PropertyDelegate;
-import net.minecraft.screen.ScreenHandler;
-import net.minecraft.util.collection.DefaultedList;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.registry.Registry;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.inventory.ContainerData;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.core.NonNullList;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
@@ -26,13 +28,13 @@ public class LiquifierBlockEntity extends AbstractFluidBlockEntity {
     public static final int INVENTORY_SIZE = 1;
 
     private LiquifierRecipe currentRecipe;
-    protected final PropertyDelegate propertyDelegate;
+    protected final ContainerData propertyDelegate;
     private final int maxProgress;
 
-    public LiquifierBlockEntity(BlockPos pos, BlockState state) {
-        super(DefaultedList.ofSize(INVENTORY_SIZE, ItemStack.EMPTY), BlockEntityRegistry.LIQUIFIER_BLOCK_ENTITY, pos, state, Config.Common.liquifierEnergyCapacity.get(), 81L * Config.Common.liquifierFluidCapacity.get());
+    public LiquifierBlockEntity(BlockPos worldPosition, BlockState state) {
+        super(NonNullList.withSize(INVENTORY_SIZE, ItemStack.EMPTY), BlockEntityRegistry.LIQUIFIER_BLOCK_ENTITY, worldPosition, state, Config.Common.liquifierEnergyCapacity.get(), 81L * Config.Common.liquifierFluidCapacity.get());
         this.maxProgress = Config.Common.liquifierTicksPerOperation.get();
-        this.propertyDelegate = new PropertyDelegate() {
+        this.propertyDelegate = new ContainerData() {
             public int get(int index) {
                 return switch (index) {
                     case 0 -> getProgress();
@@ -41,7 +43,7 @@ public class LiquifierBlockEntity extends AbstractFluidBlockEntity {
                     case 3 -> (int) getEnergyStorage().getCapacity();
                     case 4 -> (int) getFluidStorage().getAmount();
                     case 5 -> (int) getFluidStorage().getCapacity();
-                    case 6 -> Registry.FLUID.getRawId(getFluidStorage().getResource().getFluid());
+                    case 6 -> BuiltInRegistries.FLUID.getId(getFluidStorage().getResource().getFluid());
                     default -> 0;
                 };
             }
@@ -50,33 +52,33 @@ public class LiquifierBlockEntity extends AbstractFluidBlockEntity {
                     case 0 -> setProgress(value);
                     case 2 -> insertEnergy(value);
                     case 4 -> getFluidStorage().amount = value;
-                    case 6 -> getFluidStorage().variant = FluidVariant.of(Registry.FLUID.get(value));
+                    case 6 -> getFluidStorage().variant = FluidVariant.of(BuiltInRegistries.FLUID.byId(value));
                 }
             }
-            public int size() {
+            public int getCount() {
                 return 7;
             }
         };
     }
 
     @Override
-    public boolean canExtract(int slot, ItemStack stack, Direction side) {
+    public boolean canTakeItemThroughFace(int slot, ItemStack stack, Direction side) {
         return false;
     }
 
     @Override
-    public boolean canInsert(int slot, ItemStack stack, @Nullable Direction side) {
+    public boolean canPlaceItemThroughFace(int slot, ItemStack stack, @Nullable Direction side) {
         return true;
     }
 
     @Override
     public void updateRecipe() {
-        if (world == null || world.isClient()) return;
-        SimpleInventory inventory = new SimpleInventory(getItems().size());
+        if (level == null || level.isClientSide()) return;
+        SimpleContainer inventory = new SimpleContainer(getItems().size());
         for (int i = 0; i < getItems().size(); i++) {
-            inventory.setStack(i, getStack(i));
+            inventory.setItem(i, getItem(i));
         }
-        Optional<LiquifierRecipe> match = world.getRecipeManager().getFirstMatch(LiquifierRecipe.Type.INSTANCE, inventory, world);
+        Optional<LiquifierRecipe> match = com.smashingmods.alchemistry.api.recipe.MachineRecipes.all(level, LiquifierRecipe.Type.INSTANCE).stream().filter(recipe -> recipe.getInput().test(getItem(0))).findFirst();
         if (match.isPresent()) {
             if (currentRecipe == null || !currentRecipe.equals(match.get())) {
                 setProgress(0);
@@ -90,8 +92,8 @@ public class LiquifierBlockEntity extends AbstractFluidBlockEntity {
         if (currentRecipe != null) {
             return getEnergyStorage().getAmount() >= Config.Common.liquifierEnergyPerTick.get()
                     && (getFluidStorage().getResource().equals(currentRecipe.getFluidOutput()) || getFluidStorage().getAmount() == 0)
-                    && getFluidStorage().getAmount() <= (getFluidStorage().getAmount() + currentRecipe.getFluidAmount())
-                    && (ItemStack.canCombine(currentRecipe.getInput().getMatchingStacks()[0], getStackInSlot(0)))
+                    && currentRecipe.getFluidAmount() * 81L <= getFluidStorage().getCapacity() - getFluidStorage().getAmount()
+                    && (currentRecipe.getInput().test(getStackInSlot(0)))
                     && getStackInSlot(0).getCount() >= currentRecipe.getInputAmount();
         }
         return false;
@@ -107,22 +109,22 @@ public class LiquifierBlockEntity extends AbstractFluidBlockEntity {
             insertFluid(currentRecipe.getFluidOutput(), currentRecipe.getFluidAmount() * 81);
         }
         extractEnergy(Config.Common.liquifierEnergyPerTick.get());
-        markDirty();
+        setChanged();
     }
 
     @Override
-    public <T extends Recipe<SimpleInventory>> void setRecipe(@Nullable T pRecipe) {
+    public <T extends Recipe<RecipeInput>> void setRecipe(@Nullable T pRecipe) {
         currentRecipe = (LiquifierRecipe) pRecipe;
     }
 
     @Override
-    public Recipe<SimpleInventory> getRecipe() {
+    public Recipe<RecipeInput> getRecipe() {
         return currentRecipe;
     }
 
     @Nullable
     @Override
-    public ScreenHandler createMenu(int syncId, PlayerInventory inv, PlayerEntity player) {
+    public AbstractContainerMenu createMenu(int syncId, Inventory inv, Player player) {
         return new LiquifierScreenHandler(syncId, inv, this, this, this.propertyDelegate);
     }
 }

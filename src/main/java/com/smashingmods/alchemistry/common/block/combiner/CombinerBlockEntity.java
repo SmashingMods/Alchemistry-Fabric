@@ -1,21 +1,22 @@
 package com.smashingmods.alchemistry.common.block.combiner;
 
+import net.minecraft.world.item.crafting.RecipeInput;
 import com.smashingmods.alchemistry.Config;
 import com.smashingmods.alchemistry.api.blockentity.AbstractInventoryBlockEntity;
 import com.smashingmods.alchemistry.common.recipe.combiner.CombinerRecipe;
 import com.smashingmods.alchemistry.registry.BlockEntityRegistry;
-import net.minecraft.block.BlockState;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.SimpleInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.recipe.Recipe;
-import net.minecraft.screen.PropertyDelegate;
-import net.minecraft.screen.ScreenHandler;
-import net.minecraft.util.collection.DefaultedList;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.inventory.ContainerData;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.core.NonNullList;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -26,7 +27,7 @@ public class CombinerBlockEntity extends AbstractInventoryBlockEntity {
     public static final int INVENTORY_SIZE = 5;
     public static final int OUTPUT_SLOT_INDEX = 4;
 
-    protected final PropertyDelegate propertyDelegate;
+    protected final ContainerData propertyDelegate;
     private final int maxProgress;
     private final List<CombinerRecipe> recipes;
     private CombinerRecipe currentRecipe;
@@ -34,14 +35,14 @@ public class CombinerBlockEntity extends AbstractInventoryBlockEntity {
     private String editBoxText;
     private boolean recipesSynced;
 
-    public CombinerBlockEntity(BlockPos pos, BlockState state) {
-        super(DefaultedList.ofSize(INVENTORY_SIZE, ItemStack.EMPTY), BlockEntityRegistry.COMBINER_BLOCK_ENTITY, pos, state, Config.Common.combinerEnergyCapacity.get());
+    public CombinerBlockEntity(BlockPos worldPosition, BlockState state) {
+        super(NonNullList.withSize(INVENTORY_SIZE, ItemStack.EMPTY), BlockEntityRegistry.COMBINER_BLOCK_ENTITY, worldPosition, state, Config.Common.combinerEnergyCapacity.get());
         this.maxProgress = Config.Common.combinerTicksPerOperation.get();
         this.recipes = new ArrayList<>();
         this.selectedRecipe = -1;
         this.editBoxText = "";
         this.recipesSynced = false;
-        this.propertyDelegate = new PropertyDelegate() {
+        this.propertyDelegate = new ContainerData() {
             public int get(int index) {
                 return switch (index) {
                     case 0 -> getProgress();
@@ -59,32 +60,32 @@ public class CombinerBlockEntity extends AbstractInventoryBlockEntity {
                     case 4 -> selectedRecipe = value;
                 }
             }
-            public int size() {
+            public int getCount() {
                 return 5;
             }
         };
     }
 
     @Override
-    public boolean canExtract(int slot, ItemStack stack, Direction side) {
+    public boolean canTakeItemThroughFace(int slot, ItemStack stack, Direction side) {
         return slot == OUTPUT_SLOT_INDEX;
     }
 
     @Override
-    public boolean canInsert(int slot, ItemStack stack, @Nullable Direction side) {
+    public boolean canPlaceItemThroughFace(int slot, ItemStack stack, @Nullable Direction side) {
         return slot < OUTPUT_SLOT_INDEX;
     }
 
     @Override
-    public @Nullable ScreenHandler createMenu(int syncId, PlayerInventory inv, PlayerEntity player) {
+    public @Nullable AbstractContainerMenu createMenu(int syncId, Inventory inv, Player player) {
         return new CombinerScreenHandler(syncId, inv, this, this, this.propertyDelegate);
     }
 
     @Override
     public void updateRecipe() {
-        if (world != null && !world.isClient()) {
+        if (level != null && !level.isClientSide()) {
             if (currentRecipe == null) {
-                world.getRecipeManager().getAllMatches(CombinerRecipe.Type.INSTANCE, new SimpleInventory(1), world).stream()
+                com.smashingmods.alchemistry.api.recipe.MachineRecipes.all(level, CombinerRecipe.Type.INSTANCE).stream()
                         .filter(recipe -> recipe.matchInputs(getItems()))
                         .findFirst()
                         .ifPresent(recipe ->  {
@@ -102,8 +103,8 @@ public class CombinerBlockEntity extends AbstractInventoryBlockEntity {
         if (currentRecipe != null) {
             ItemStack output = getStackInSlot(OUTPUT_SLOT_INDEX);
             return getEnergyStorage().getAmount() >= Config.Common.combinerEnergyPerTick.get()
-                    && (currentRecipe.getOutput().copy().getCount() + output.copy().getCount()) <= currentRecipe.getOutput().copy().getMaxCount()
-                    && (ItemStack.canCombine(output.copy(), currentRecipe.getOutput().copy()) || output.isEmpty())
+                    && (currentRecipe.getOutput().copy().getCount() + output.copy().getCount()) <= currentRecipe.getOutput().copy().getMaxStackSize()
+                    && (ItemStack.isSameItemSameComponents(output.copy(), currentRecipe.getOutput().copy()) || output.isEmpty())
                     && currentRecipe.matchInputs(getItems());
         }
         return false;
@@ -114,28 +115,26 @@ public class CombinerBlockEntity extends AbstractInventoryBlockEntity {
         if (getProgress() < maxProgress) {
             incrementProgress();
         } else {
+            var consumption = currentRecipe.getInputConsumption(getItems());
+            if (consumption.isEmpty()) return;
             setProgress(0);
-            setOrIncrement(OUTPUT_SLOT_INDEX, currentRecipe.getOutput().copy());
-            for (int i = 0; i < currentRecipe.getInput().size(); i++) {
-                for (int j = 0; j < 4; j++) {
-                    if (ItemStack.canCombine(currentRecipe.getInput().get(i), getItems().get(j))) {
-                        decrementSlot(j, currentRecipe.getInput().get(i).getCount());
-                        break;
-                    }
-                }
+            int[] amounts = consumption.get();
+            for (int slot = 0; slot < amounts.length; slot++) {
+                if (amounts[slot] > 0) decrementSlot(slot, amounts[slot]);
             }
+            setOrIncrement(OUTPUT_SLOT_INDEX, currentRecipe.getOutput().copy());
         }
         extractEnergy(Config.Common.combinerEnergyPerTick.get());
-        markDirty();
+        setChanged();
     }
 
     @Override
-    public <T extends Recipe<SimpleInventory>> void setRecipe(@Nullable T recipe) {
+    public <T extends Recipe<RecipeInput>> void setRecipe(@Nullable T recipe) {
         currentRecipe = (CombinerRecipe) recipe;
     }
 
     @Override
-    public Recipe<SimpleInventory> getRecipe() {
+    public Recipe<RecipeInput> getRecipe() {
         return this.currentRecipe;
     }
 
@@ -164,16 +163,16 @@ public class CombinerBlockEntity extends AbstractInventoryBlockEntity {
     }
 
     @Override
-    protected void writeNbt(NbtCompound nbt) {
+    protected void saveAdditional(net.minecraft.world.level.storage.ValueOutput nbt) {
         nbt.putString("editBoxText", editBoxText);
         nbt.putInt("selectedRecipe", selectedRecipe);
-        super.writeNbt(nbt);
+        super.saveAdditional(nbt);
     }
 
     @Override
-    public void readNbt(NbtCompound nbt) {
-        super.readNbt(nbt);
-        editBoxText = nbt.getString("editBoxText");
-        selectedRecipe = nbt.getInt("selectedRecipe");
+    public void loadAdditional(net.minecraft.world.level.storage.ValueInput nbt) {
+        super.loadAdditional(nbt);
+        editBoxText = nbt.getStringOr("editBoxText", "");
+        selectedRecipe = nbt.getIntOr("selectedRecipe", 0);
     }
 }

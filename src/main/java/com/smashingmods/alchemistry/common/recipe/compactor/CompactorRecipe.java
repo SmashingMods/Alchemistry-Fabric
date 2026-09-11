@@ -1,49 +1,53 @@
 package com.smashingmods.alchemistry.common.recipe.compactor;
 
+import net.minecraft.world.item.crafting.RecipeInput;
 import com.smashingmods.alchemistry.api.recipe.AbstractAlchemistryRecipe;
-import net.minecraft.inventory.SimpleInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.recipe.Ingredient;
-import net.minecraft.recipe.RecipeSerializer;
-import net.minecraft.recipe.RecipeType;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.collection.DefaultedList;
-import net.minecraft.world.World;
+import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.item.ItemStack;
+import com.smashingmods.alchemistry.api.recipe.RecipeStack;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.resources.Identifier;
+import net.minecraft.core.NonNullList;
+import net.minecraft.world.level.Level;
 
 public class CompactorRecipe extends AbstractAlchemistryRecipe {
 
-    private final Identifier id;
-    private final ItemStack input;
-    private final ItemStack output;
+    private final RecipeStack input;
+    private final RecipeStack output;
 
-    public CompactorRecipe(Identifier id, ItemStack input, ItemStack output) {
+    public CompactorRecipe(Identifier id, RecipeStack input, RecipeStack output) {
         super(id);
-        this.id = id;
         this.input = input;
         this.output = output;
     }
 
     @Override
-    public boolean matches(SimpleInventory inventory, World world) {
-        return !world.isClient();
+    public boolean matches(RecipeInput inventory, Level level) {
+        return !level.isClientSide();
     }
 
     @Override
-    public ItemStack craft(SimpleInventory inventory) {
-        return output;
+    public ItemStack assemble(RecipeInput inventory) {
+        return output.create();
     }
+
+    public RecipeStack getInputData() { return input; }
 
     public ItemStack getInput() {
-        return input;
+        return input.create();
     }
 
+    public RecipeStack getOutputData() { return output; }
+
     public ItemStack getOutput() {
-        return output;
+        return output.create();
     }
 
     @Override
-    public DefaultedList<Ingredient> getIngredients() {
-        return DefaultedList.ofSize(1, Ingredient.ofStacks(input));
+    public NonNullList<Ingredient> getIngredients() {
+        return NonNullList.withSize(1, Ingredient.of(input.item().value()));
     }
 
     @Override
@@ -51,18 +55,14 @@ public class CompactorRecipe extends AbstractAlchemistryRecipe {
         return String.format("input=%s, outputs=%s", input, output);
     }
 
-    @Override
-    public Identifier getId() {
-        return id;
-    }
 
     @Override
-    public RecipeSerializer<?> getSerializer() {
+    public RecipeSerializer<CompactorRecipe> getSerializer() {
         return CompactorRecipeSerializer.INSTANCE;
     }
 
     @Override
-    public RecipeType<?> getType() {
+    public RecipeType<CompactorRecipe> getType() {
         return Type.INSTANCE;
     }
 

@@ -4,26 +4,26 @@ import com.smashingmods.alchemistry.api.container.slots.OutputSlot;
 import com.smashingmods.alchemistry.api.container.slots.TargetSlot;
 import com.smashingmods.alchemistry.api.container.AbstractAlchemistryScreenHandler;
 import com.smashingmods.alchemistry.registry.ScreenRegistry;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.Inventory;
-import net.minecraft.inventory.SimpleInventory;
-import net.minecraft.network.PacketByteBuf;
-import net.minecraft.screen.ArrayPropertyDelegate;
-import net.minecraft.screen.PropertyDelegate;
-import net.minecraft.screen.slot.Slot;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.Container;
+import net.minecraft.world.SimpleContainer;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.world.inventory.SimpleContainerData;
+import net.minecraft.world.inventory.ContainerData;
+import net.minecraft.world.inventory.Slot;
 
 import java.util.Objects;
 
 public class CompactorScreenHandler extends AbstractAlchemistryScreenHandler {
 
-    protected final PropertyDelegate propertyDelegate;
+    protected final ContainerData propertyDelegate;
 
-    public CompactorScreenHandler(int syncId, PlayerInventory playerInventory, PacketByteBuf buffer) {
-        this(syncId, playerInventory,Objects.requireNonNull(playerInventory.player.getWorld().getBlockEntity(buffer.readBlockPos())), new SimpleInventory(CompactorBlockEntity.INVENTORY_SIZE), new ArrayPropertyDelegate(4));
+    public CompactorScreenHandler(int syncId, Inventory playerInventory, net.minecraft.core.BlockPos position) {
+        this(syncId, playerInventory,Objects.requireNonNull(playerInventory.player.level().getBlockEntity(position)), new SimpleContainer(CompactorBlockEntity.INVENTORY_SIZE), new SimpleContainerData(4));
     }
 
-    protected CompactorScreenHandler(int syncId, PlayerInventory playerInventory, BlockEntity blockEntity, Inventory inventory, PropertyDelegate delegate) {
+    protected CompactorScreenHandler(int syncId, Inventory playerInventory, BlockEntity blockEntity, Container inventory, ContainerData delegate) {
         super(ScreenRegistry.COMPACTOR_SCREEN_HANDLER, syncId, playerInventory, blockEntity, inventory, delegate, 2, 1);
 
         // input slot
@@ -34,11 +34,11 @@ public class CompactorScreenHandler extends AbstractAlchemistryScreenHandler {
         addSlots(OutputSlot::new, inventory, 2, 1, 111, 35);
 
         this.propertyDelegate = delegate;
-        addProperties(delegate);
+        addDataSlots(delegate);
     }
 
     @Override
-    public void addPlayerInventorySlots(Inventory pInventory) {
+    public void addPlayerInventorySlots(Container pInventory) {
         addSlots(Slot::new, pInventory, 3, 9, 9, 27, 8, 84);
         addSlots(Slot::new, pInventory, 1, 9, 0, 9, 8, 142);
     }

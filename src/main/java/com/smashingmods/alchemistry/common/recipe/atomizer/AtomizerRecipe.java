@@ -1,48 +1,50 @@
 package com.smashingmods.alchemistry.common.recipe.atomizer;
 
+import net.minecraft.world.item.crafting.RecipeInput;
 import com.smashingmods.alchemistry.api.recipe.AbstractAlchemistryRecipe;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
-import net.minecraft.inventory.SimpleInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.recipe.Ingredient;
-import net.minecraft.recipe.RecipeSerializer;
-import net.minecraft.recipe.RecipeType;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.collection.DefaultedList;
-import net.minecraft.world.World;
+import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.item.ItemStack;
+import com.smashingmods.alchemistry.api.recipe.RecipeStack;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.resources.Identifier;
+import net.minecraft.core.NonNullList;
+import net.minecraft.world.level.Level;
 
 public class AtomizerRecipe extends AbstractAlchemistryRecipe {
 
-    private final Identifier id;
     private final FluidVariant input;
-    private final ItemStack output;
+    private final RecipeStack output;
     private final long fluidAmount;
 
-    public AtomizerRecipe(Identifier id, FluidVariant input, ItemStack output, long fluidAmount) {
+    public AtomizerRecipe(Identifier id, FluidVariant input, RecipeStack output, long fluidAmount) {
         super(id);
-        this.id = id;
         this.output = output;
         this.input = input;
         this.fluidAmount = fluidAmount;
     }
 
     @Override
-    public boolean matches(SimpleInventory inventory, World world) {
-        if (world.isClient()) return false;
+    public boolean matches(RecipeInput inventory, Level level) {
+        if (level.isClientSide()) return false;
         return true;
     }
 
     @Override
-    public ItemStack craft(SimpleInventory inventory) {
-        return output;
+    public ItemStack assemble(RecipeInput inventory) {
+        return output.create();
     }
 
     public FluidVariant getFluidInput() {
         return input;
     }
 
+    public RecipeStack getOutputData() { return output; }
+
     public ItemStack getOutput() {
-        return output;
+        return output.create();
     }
 
     public long getFluidAmount() {
@@ -54,18 +56,14 @@ public class AtomizerRecipe extends AbstractAlchemistryRecipe {
         return String.format("input=%s, outputs=%s", input, output);
     }
 
-    @Override
-    public Identifier getId() {
-        return id;
-    }
 
     @Override
-    public RecipeSerializer<?> getSerializer() {
+    public RecipeSerializer<AtomizerRecipe> getSerializer() {
         return AtomizerRecipeSerializer.INSTANCE;
     }
 
     @Override
-    public RecipeType<?> getType() {
+    public RecipeType<AtomizerRecipe> getType() {
         return AtomizerRecipe.Type.INSTANCE;
     }
 

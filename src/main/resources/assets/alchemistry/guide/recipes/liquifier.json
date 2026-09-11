@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "group": "machines",
+  "pattern": [
+    "IPI",
+    "SRS",
+    "ICI"
+  ],
+  "key": {
+    "I": "minecraft:iron_ingot",
+    "P": "minecraft:piston",
+    "R": "minecraft:redstone",
+    "S": "minecraft:stone_pressure_plate",
+    "C": "minecraft:cauldron"
+  },
+  "result": {
+    "id": "alchemistry:liquifier"
+  }
+}

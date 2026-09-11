@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "group": "machines",
+  "pattern": [
+    "YBY",
+    "YBY",
+    "YBY"
+  ],
+  "key": {
+    "Y": "chemlib:yttrium_ingot",
+    "B": "minecraft:blaze_rod"
+  },
+  "result": {
+    "id": "alchemistry:fission_core"
+  }
+}

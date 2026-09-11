@@ -4,15 +4,18 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.network.PacketByteBuf;
-import net.minecraft.util.collection.DefaultedList;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.core.NonNullList;
 
 import java.util.*;
-import java.util.stream.IntStream;
 
 public class ProbabilitySet {
+    public static final com.mojang.serialization.Codec<ProbabilitySet> CODEC = com.mojang.serialization.codecs.RecordCodecBuilder.create(i -> i.group(
+        ProbabilityGroup.CODEC.listOf().fieldOf("groups").forGetter(ProbabilitySet::getProbabilityGroups),
+        com.mojang.serialization.Codec.BOOL.fieldOf("weighted").forGetter(ProbabilitySet::isWeighted),
+        com.mojang.serialization.Codec.intRange(1, 10000).fieldOf("rolls").forGetter(ProbabilitySet::getRolls)
+    ).apply(i, ProbabilitySet::new));
+
 
     private final List<ProbabilityGroup> probabilityGroups;
     private final boolean weighted;
@@ -43,29 +46,10 @@ public class ProbabilitySet {
         return toReturn;
     }
 
-    public void write(PacketByteBuf pBuffer) {
-        pBuffer.writeInt(probabilityGroups.size());
-        pBuffer.writeInt(rolls);
-        pBuffer.writeBoolean(weighted);
-        for (ProbabilityGroup group : probabilityGroups) {
-            group.write(pBuffer);
-        }
-    }
 
-    public static ProbabilitySet read(PacketByteBuf pbuffer) {
-        List<ProbabilityGroup> groupArrayList = new ArrayList<>();
-        int size = pbuffer.readInt();
-        int rolls = pbuffer.readInt();
-        boolean weighted = pbuffer.readBoolean();
 
-        for (int index = 0; index < size; index++) {
-            groupArrayList.add(ProbabilityGroup.read(pbuffer));
-        }
-        return new ProbabilitySet(groupArrayList, weighted, rolls);
-    }
-
-    public DefaultedList<ItemStack> calculateOutput() {
-        DefaultedList<ItemStack> toReturn = DefaultedList.of();
+    public NonNullList<ItemStack> calculateOutput() {
+        NonNullList<ItemStack> toReturn = NonNullList.create();
         Random random = new Random();
 
         for (int i = 1; i <= rolls; i++) {
@@ -96,31 +80,22 @@ public class ProbabilitySet {
         return toReturn;
     }
 
-    private void populateReturnList(DefaultedList<ItemStack> pList, ItemStack pItemStack) {
+    private void populateReturnList(NonNullList<ItemStack> pList, ItemStack pItemStack) {
 
-        Item item = pItemStack.copy().getItem();
-        int count = pItemStack.copy().getCount();
-
-        OptionalInt optionalIndex = IntStream.range(0, pList.size())
-                .filter(index -> ItemStack.canCombine(pItemStack.copy(), pList.get(index)))
-                .findFirst();
-
-        if (count > 64) {
-            while (count > 0) {
-                if (count >= 64) {
-                    pList.add(new ItemStack(item, 64));
-                    count -= 64;
-                } else {
-                    pList.add(new ItemStack(item, count));
-                    count = 0;
-                }
+        if (pItemStack.isEmpty()) return;
+        int count = pItemStack.getCount();
+        for (ItemStack stack : pList) {
+            if (ItemStack.isSameItemSameComponents(pItemStack, stack)) {
+                int amount = Math.min(count, Math.max(0, stack.getMaxStackSize() - stack.getCount()));
+                stack.grow(amount);
+                count -= amount;
+                if (count == 0) return;
             }
-        } else {
-            if (optionalIndex.isPresent()) {
-                pList.get(optionalIndex.getAsInt()).increment(count);
-            } else {
-                pList.add(new ItemStack(item, count));
-            }
+        }
+        while (count > 0) {
+            int amount = Math.min(count, pItemStack.getMaxStackSize());
+            pList.add(pItemStack.copyWithCount(amount));
+            count -= amount;
         }
     }
 

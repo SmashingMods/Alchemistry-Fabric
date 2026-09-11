@@ -1,22 +1,23 @@
 package com.smashingmods.alchemistry.common.block.fusion;
 
+import net.minecraft.world.item.crafting.RecipeInput;
 import com.smashingmods.alchemistry.Config;
 import com.smashingmods.alchemistry.api.blockentity.AbstractReactorBlockEntity;
 import com.smashingmods.alchemistry.api.blockentity.PowerState;
 import com.smashingmods.alchemistry.api.blockentity.ReactorType;
 import com.smashingmods.alchemistry.common.recipe.fusion.FusionRecipe;
 import com.smashingmods.alchemistry.registry.BlockEntityRegistry;
-import net.minecraft.block.BlockState;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.SimpleInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.recipe.Recipe;
-import net.minecraft.screen.PropertyDelegate;
-import net.minecraft.screen.ScreenHandler;
-import net.minecraft.util.collection.DefaultedList;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.inventory.ContainerData;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.core.NonNullList;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import org.jetbrains.annotations.Nullable;
 
 public class FusionControllerBlockEntity extends AbstractReactorBlockEntity {
@@ -24,14 +25,14 @@ public class FusionControllerBlockEntity extends AbstractReactorBlockEntity {
     public static final int INVENTORY_SIZE = 3;
 
     private FusionRecipe currentRecipe;
-    protected final PropertyDelegate propertyDelegate;
+    protected final ContainerData propertyDelegate;
     private final int maxProgress;
 
-    public FusionControllerBlockEntity(BlockPos pos, BlockState state) {
-        super(DefaultedList.ofSize(INVENTORY_SIZE, ItemStack.EMPTY), BlockEntityRegistry.FUSION_CONTROLLER_BLOCK_ENTITY, pos, state, Config.Common.fusionEnergyCapacity.get());
+    public FusionControllerBlockEntity(BlockPos worldPosition, BlockState state) {
+        super(NonNullList.withSize(INVENTORY_SIZE, ItemStack.EMPTY), BlockEntityRegistry.FUSION_CONTROLLER_BLOCK_ENTITY, worldPosition, state, Config.Common.fusionEnergyCapacity.get());
         setReactorType(ReactorType.FUSION);
         this.maxProgress = Config.Common.fusionTicksPerOperation.get();
-        this.propertyDelegate = new PropertyDelegate() {
+        this.propertyDelegate = new ContainerData() {
             public int get(int index) {
                 return switch (index) {
                     case 0 -> getProgress();
@@ -47,24 +48,26 @@ public class FusionControllerBlockEntity extends AbstractReactorBlockEntity {
                     case 2 -> insertEnergy(value);
                 }
             }
-            public int size() {
+            public int getCount() {
                 return 4;
             }
         };
     }
 
     @Override
-    public boolean canExtract(int slot, ItemStack stack, Direction side) {
+    public boolean canTakeItemThroughFace(int slot, ItemStack stack, Direction side) {
         return slot == 2;
     }
 
     @Override
-    public boolean canInsert(int slot, ItemStack stack, @Nullable Direction side) {
+    public boolean canPlaceItemThroughFace(int slot, ItemStack stack, @Nullable Direction side) {
         return slot < 2;
     }
 
     @Override
     public void tick() {
+        super.tick();
+        if (level == null || level.isClientSide() || !isValidMultiblock()) return;
         if (!isProcessingPaused()) {
             if (!isRecipeLocked()) {
                 updateRecipe();
@@ -80,19 +83,18 @@ public class FusionControllerBlockEntity extends AbstractReactorBlockEntity {
                 }
             }
         }
-        super.tick();
     }
 
     @Override
     public void updateRecipe() {
-        if (world != null && !world.isClient()) {
+        if (level != null && !level.isClientSide()) {
             if (!getStackInSlot(0).isEmpty()) {
-                world.getRecipeManager().getAllMatches(FusionRecipe.Type.INSTANCE, new SimpleInventory(1), world).stream()
+                com.smashingmods.alchemistry.api.recipe.MachineRecipes.all(level, FusionRecipe.Type.INSTANCE).stream()
                         .filter(recipe -> {
                             ItemStack input1 = getStackInSlot(0);
                             ItemStack input2 = getStackInSlot(1);
-                            return ItemStack.canCombine(recipe.getInput1(), input1) && ItemStack.canCombine(recipe.getInput2(), input2)
-                                    || ItemStack.canCombine(recipe.getInput2(), input1) && ItemStack.canCombine(recipe.getInput1(), input2);
+                            return ItemStack.isSameItemSameComponents(recipe.getInput1(), input1) && ItemStack.isSameItemSameComponents(recipe.getInput2(), input2)
+                                    || ItemStack.isSameItemSameComponents(recipe.getInput2(), input1) && ItemStack.isSameItemSameComponents(recipe.getInput1(), input2);
                         })
                         .findFirst()
                         .ifPresent(recipe -> {
@@ -115,11 +117,11 @@ public class FusionControllerBlockEntity extends AbstractReactorBlockEntity {
             ItemStack input2 = getStackInSlot(1);
             ItemStack output = getStackInSlot(2);
             return getEnergyStorage().getAmount() >= Config.Common.fusionEnergyPerTick.get()
-                    && (((ItemStack.canCombine(input1, currentRecipe.getInput1()) && input1.getCount() >= currentRecipe.getInput1().getCount())
-                    && (ItemStack.canCombine(input2, currentRecipe.getInput2()) && input2.getCount() >= currentRecipe.getInput2().getCount()))
-                    || ((ItemStack.canCombine(input1, currentRecipe.getInput2()) && input1.getCount() >= currentRecipe.getInput2().getCount())
-                    && (ItemStack.canCombine(input2, currentRecipe.getInput1()) && input2.getCount() >= currentRecipe.getInput1().getCount())))
-                    && ((ItemStack.canCombine(output, currentRecipe.getOutput()) || output.isEmpty()) && (currentRecipe.getOutput().getCount() + output.getCount()) <= currentRecipe.getOutput().getMaxCount());
+                    && (((ItemStack.isSameItemSameComponents(input1, currentRecipe.getInput1()) && input1.getCount() >= currentRecipe.getInput1().getCount())
+                    && (ItemStack.isSameItemSameComponents(input2, currentRecipe.getInput2()) && input2.getCount() >= currentRecipe.getInput2().getCount()))
+                    || ((ItemStack.isSameItemSameComponents(input1, currentRecipe.getInput2()) && input1.getCount() >= currentRecipe.getInput2().getCount())
+                    && (ItemStack.isSameItemSameComponents(input2, currentRecipe.getInput1()) && input2.getCount() >= currentRecipe.getInput1().getCount())))
+                    && ((ItemStack.isSameItemSameComponents(output, currentRecipe.getOutput()) || output.isEmpty()) && (currentRecipe.getOutput().getCount() + output.getCount()) <= currentRecipe.getOutput().getMaxStackSize());
         }
         return false;
     }
@@ -135,22 +137,22 @@ public class FusionControllerBlockEntity extends AbstractReactorBlockEntity {
             setOrIncrement(2, currentRecipe.getOutput().copy());
         }
         extractEnergy(Config.Common.fusionEnergyPerTick.get());
-        markDirty();
+        setChanged();
     }
 
     @Override
-    public <T extends Recipe<SimpleInventory>> void setRecipe(@Nullable T recipe) {
+    public <T extends Recipe<RecipeInput>> void setRecipe(@Nullable T recipe) {
         currentRecipe = (FusionRecipe) recipe;
     }
 
     @Override
-    public Recipe<SimpleInventory> getRecipe() {
+    public Recipe<RecipeInput> getRecipe() {
         return currentRecipe;
     }
 
     @Nullable
     @Override
-    public ScreenHandler createMenu(int syncId, PlayerInventory inv, PlayerEntity player) {
+    public AbstractContainerMenu createMenu(int syncId, Inventory inv, Player player) {
         return new FusionControllerScreenHandler(syncId, inv, this, this, this.propertyDelegate);
     }
 }

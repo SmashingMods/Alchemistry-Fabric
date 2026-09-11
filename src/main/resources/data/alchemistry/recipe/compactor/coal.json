@@ -1,0 +1,11 @@
+{
+  "type": "alchemistry:compactor",
+  "group": "compactor",
+  "input": {
+    "item": "chemlib:graphite",
+    "count": 2
+  },
+  "result": {
+    "item": "minecraft:coal"
+  }
+}

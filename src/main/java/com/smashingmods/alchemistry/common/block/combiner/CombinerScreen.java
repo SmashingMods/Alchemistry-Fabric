@@ -1,6 +1,5 @@
 package com.smashingmods.alchemistry.common.block.combiner;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.smashingmods.alchemistry.Alchemistry;
 import com.smashingmods.alchemistry.api.container.*;
 import com.smashingmods.alchemistry.common.recipe.combiner.CombinerRecipe;
@@ -10,22 +9,22 @@ import com.smashingmods.chemlib.common.items.ChemicalItem;
 import com.smashingmods.chemlib.common.items.CompoundItem;
 import com.smashingmods.chemlib.common.items.ElementItem;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.widget.TextFieldWidget;
-import net.minecraft.client.render.GameRenderer;
-import net.minecraft.client.resource.language.I18n;
-import net.minecraft.client.sound.PositionedSoundInstance;
-import net.minecraft.client.util.InputUtil;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.sound.SoundEvents;
-import net.minecraft.text.MutableText;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.registry.Registry;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.client.resources.language.I18n;
+import net.minecraft.client.resources.sounds.SimpleSoundInstance;
+import com.mojang.blaze3d.platform.InputConstants;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.Component;
+import net.minecraft.ChatFormatting;
+import net.minecraft.resources.Identifier;
+import net.minecraft.util.Mth;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
@@ -35,11 +34,11 @@ import java.util.Optional;
 
 public class CombinerScreen extends AbstractAlchemistryScreen<CombinerScreenHandler> {
 
-    private static final Identifier TEXTURE = new Identifier(Alchemistry.MOD_ID, "textures/gui/combiner_gui.png");
+    private static final Identifier TEXTURE = Identifier.fromNamespaceAndPath(Alchemistry.MOD_ID, "textures/gui/combiner_gui.png");
 
     protected final List<DisplayData> displayData = new ArrayList<>();
     private final CombinerBlockEntity blockEntity;
-    protected final TextFieldWidget editBox;
+    protected final EditBox editBox;
 
     private final int DISPLAYED_SLOTS = 12;
     private final int RECIPE_BOX_SIZE = 18;
@@ -48,41 +47,39 @@ public class CombinerScreen extends AbstractAlchemistryScreen<CombinerScreenHand
     private int startIndex;
     private int editBoxCharacters;
 
-    public CombinerScreen(CombinerScreenHandler handler, PlayerInventory inventory, Text title) {
-        super(handler, inventory, title);
-        this.backgroundWidth = 184;
-        this.backgroundHeight = 193;
-        this.displayData.add(new ProgressDisplayData(handler.getPropertyDelegate(), 0, 1, 65, 84, 60, 9, Direction2D.RIGHT));
-        this.displayData.add(new EnergyDisplayData(handler.getPropertyDelegate(), 2, 3, 156, 23, 16, 54));
-        this.blockEntity = (CombinerBlockEntity) handler.getBlockEntity();
+    public CombinerScreen(CombinerScreenHandler menu, Inventory inventory, Component title) {
+        super(menu, inventory, title, 184, 193);
+        this.displayData.add(new ProgressDisplayData(menu.getPropertyDelegate(), 0, 1, 65, 84, 60, 9, Direction2D.RIGHT));
+        this.displayData.add(new EnergyDisplayData(menu.getPropertyDelegate(), 2, 3, 156, 23, 16, 54));
+        this.blockEntity = (CombinerBlockEntity) menu.getBlockEntity();
         this.editBoxCharacters = 0;
 
-        this.editBox = new TextFieldWidget(MinecraftClient.getInstance().textRenderer, 0, 0, 72, 12, Text.literal(""));
+        this.editBox = new EditBox(Minecraft.getInstance().font, 0, 0, 72, 12, Component.literal(""));
         if (!blockEntity.getEditBoxText().isEmpty()) {
-            editBox.setText(blockEntity.getEditBoxText());
-            handler.searchRecipeList(blockEntity.getEditBoxText());
+            editBox.setValue(blockEntity.getEditBoxText());
+            menu.searchRecipeList(blockEntity.getEditBoxText());
         }
     }
 
     @Override
-    protected void handledScreenTick() {
+    protected void containerTick() {
         if (blockEntity.getEditBoxText().length() != editBoxCharacters) {
             editBoxCharacters = blockEntity.getEditBoxText().length();
-            mouseScrolled(0, 0, 0);
-            blockEntity.setEditBoxText(editBox.getText());
-            handler.searchRecipeList(editBox.getText());
+            mouseScrolled(0, 0, 0, 0);
+            blockEntity.setEditBoxText(editBox.getValue());
+            menu.searchRecipeList(editBox.getValue());
             editBox.setSuggestion("");
             resetScrollbar();
-        } else if (editBox.getText().isEmpty()) {
+        } else if (editBox.getValue().isEmpty()) {
             blockEntity.setEditBoxText("");
-            handler.resetDisplayedRecipes();
-            editBox.setSuggestion(I18n.translate("alchemistry.container.combiner.search"));
+            menu.resetDisplayedRecipes();
+            editBox.setSuggestion(I18n.get("alchemistry.container.combiner.search"));
         } else {
-            mouseScrolled(0, 0, 0);
-            blockEntity.setEditBoxText(editBox.getText());
+            mouseScrolled(0, 0, 0, 0);
+            blockEntity.setEditBoxText(editBox.getValue());
             editBox.setSuggestion("");
         }
-        super.handledScreenTick();
+        super.containerTick();
     }
 
     private void resetScrollbar() {
@@ -92,65 +89,61 @@ public class CombinerScreen extends AbstractAlchemistryScreen<CombinerScreenHand
     }
 
     @Override
-    protected void drawBackground(MatrixStack matrices, float delta, int mouseX, int mouseY) {
-        RenderSystem.setShader(GameRenderer::getPositionTexShader);
-        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-        RenderSystem.setShaderTexture(0, TEXTURE);
-        drawTexture(matrices, this.x, this.y, 0, 0, backgroundWidth, backgroundHeight);
+    protected void drawBackground(GuiGraphicsExtractor matrices, float delta, int mouseX, int mouseY) {
+        texture = TEXTURE;
+        drawTexture(matrices, this.leftPos, this.topPos, 0, 0, imageWidth, imageHeight);
     }
 
     @Override
-    public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
-        super.render(matrices, mouseX, mouseY, delta);
+    public void extractRenderState(GuiGraphicsExtractor matrices, int mouseX, int mouseY, float delta) {
+        super.extractRenderState(matrices, mouseX, mouseY, delta);
         renderRecipeBox(matrices, mouseX, mouseY);
         renderCurrentRecipe(matrices, mouseX, mouseY);
-        renderDisplayData(displayData, matrices, this.x, this.y);
+        renderDisplayData(displayData, matrices, this.leftPos, this.topPos);
 
-        drawMouseoverTooltip(matrices, mouseX, mouseY);
+        extractTooltip(matrices, mouseX, mouseY);
         renderRecipeTooltips(matrices, mouseX, mouseY);
-        renderDisplayTooltip(displayData, matrices, this.x, this.y, mouseX, mouseY);
+        renderDisplayTooltip(displayData, matrices, this.leftPos, this.topPos, mouseX, mouseY);
     }
 
     @Override
-    protected void drawForeground(MatrixStack matrices, int mouseX, int mouseY) {
-        MutableText title = Text.translatable("alchemistry.container.combiner");
-        drawTextWithShadow(matrices, textRenderer, title, backgroundWidth / 2 - textRenderer.getWidth(title) / 2, -10, 0xFFFFFFFF);
+    protected void extractLabels(GuiGraphicsExtractor matrices, int mouseX, int mouseY) {
+        MutableComponent title = Component.translatable("alchemistry.container.combiner");
+        matrices.text(font, title, imageWidth / 2 - font.width(title) / 2, -10, 0xFFFFFFFF);
     }
 
     @Override
-    public void renderWidgets() {
-        super.renderWidgets();
-        renderWidget(editBox, x + 57, y + 7);
+    public void draw() {
+        super.draw();
+        renderWidget(editBox, leftPos + 57, topPos + 7);
     }
 
-    protected void renderRecipeBox(MatrixStack matrices, int mouseX, int mouseY) {
-        RenderSystem.setShader(GameRenderer::getPositionTexShader);
-        RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
-        RenderSystem.setShaderTexture(0, TEXTURE);
+    protected void renderRecipeBox(GuiGraphicsExtractor matrices, int mouseX, int mouseY) {
+        texture = TEXTURE;
 
         int scrollPosition = (int)(39.0F * scrollOffset);
-        drawTexture(matrices, x + 132, y + 23 + scrollPosition, 18 + (isScrollBarActive() ? 0 : 12), backgroundHeight, 12, 15);
+        drawTexture(matrices, leftPos + 132, topPos + 23 + scrollPosition, 18 + (isScrollBarActive() ? 0 : 12), imageHeight, 12, 15);
 
-        int recipeBoxLeftPos = x + 57;
-        int recipeBoxTopPos = y + 21;
+        int recipeBoxLeftPos = leftPos + 57;
+        int recipeBoxTopPos = topPos + 21;
         int lastVisibleElementIndex = startIndex + DISPLAYED_SLOTS;
 
         renderRecipeButtons(matrices, mouseX, mouseY, recipeBoxLeftPos, recipeBoxTopPos, lastVisibleElementIndex);
         renderRecipes(recipeBoxLeftPos, recipeBoxTopPos, lastVisibleElementIndex);
     }
 
-    private void renderRecipeButtons(MatrixStack matrices, int pMouseX, int pMouseY, int pX, int pY, int pLastVisibleElementIndex) {
+    private void renderRecipeButtons(GuiGraphicsExtractor matrices, int pMouseX, int pMouseY, int pX, int pY, int pLastVisibleElementIndex) {
 
-        for (int index = startIndex; index < pLastVisibleElementIndex && index < handler.getDisplayedRecipes().size(); index++) {
+        for (int index = startIndex; index < pLastVisibleElementIndex && index < menu.getDisplayedRecipes().size(); index++) {
             int firstVisibleElementIndex = index - startIndex;
             int col = pX + firstVisibleElementIndex % 4 * RECIPE_BOX_SIZE;
             int rowt = firstVisibleElementIndex / 4;
             int row = pY + rowt * RECIPE_BOX_SIZE + 2;
-            int vOffset = backgroundHeight;
+            int vOffset = imageHeight;
 
-            int currentRecipeIndex = handler.getDisplayedRecipes().indexOf((CombinerRecipe) handler.getBlockEntity().getRecipe());
+            int currentRecipeIndex = menu.getDisplayedRecipes().indexOf((CombinerRecipe) menu.getBlockEntity().getRecipe());
 
-            if (index == handler.getSelectedRecipeIndex() || index == currentRecipeIndex) {
+            if (index == menu.getSelectedRecipeIndex() || index == currentRecipeIndex) {
                 vOffset += RECIPE_BOX_SIZE;
             } else if (pMouseX >= col && pMouseY >= row && pMouseX < col + RECIPE_BOX_SIZE && pMouseY < row + RECIPE_BOX_SIZE) {
                 vOffset += RECIPE_BOX_SIZE * 2;
@@ -160,9 +153,9 @@ public class CombinerScreen extends AbstractAlchemistryScreen<CombinerScreenHand
     }
 
     private void renderRecipes(int pLeftPos, int pTopPos, int pRecipeIndexOffsetMax) {
-        List<CombinerRecipe> list = handler.getDisplayedRecipes();
+        List<CombinerRecipe> list = menu.getDisplayedRecipes();
 
-        for (int index = startIndex; index < pRecipeIndexOffsetMax && index < handler.getDisplayedRecipes().size(); index++) {
+        for (int index = startIndex; index < pRecipeIndexOffsetMax && index < menu.getDisplayedRecipes().size(); index++) {
 
             ItemStack output = list.get(index).getOutput();
 
@@ -170,39 +163,39 @@ public class CombinerScreen extends AbstractAlchemistryScreen<CombinerScreenHand
             int recipeBoxLeftPos = pLeftPos + firstVisibleIndex % 4 * RECIPE_BOX_SIZE + 1;
             int l = firstVisibleIndex / 4;
             int recipeBoxTopPos = pTopPos + l * RECIPE_BOX_SIZE + 3;
-            MinecraftClient.getInstance().getItemRenderer().renderGuiItemIcon(output, recipeBoxLeftPos, recipeBoxTopPos);
+            graphics.item(output, recipeBoxLeftPos, recipeBoxTopPos);
         }
     }
 
-    private void renderCurrentRecipe(MatrixStack matrices, int pMouseX, int pMouseY) {
-        CombinerRecipe currentRecipe = (CombinerRecipe) handler.getBlockEntity().getRecipe();
+    private void renderCurrentRecipe(GuiGraphicsExtractor matrices, int pMouseX, int pMouseY) {
+        CombinerRecipe currentRecipe = (CombinerRecipe) menu.getBlockEntity().getRecipe();
 
         // Intellij thinks this is never null. Remove this and watch it crash.
         // noinspection ConstantConditions
         if (currentRecipe != null) {
             ItemStack currentOutput = currentRecipe.getOutput();
-            MinecraftClient.getInstance().getItemRenderer().renderInGuiWithOverrides(currentOutput, x + 21, y + 15);
+            matrices.item(currentOutput, leftPos + 21, topPos + 15);
 
-            if (pMouseX >= x + 20 && pMouseX < x + 36 && pMouseY > y + 14 && pMouseY < y + 30) {
+            if (pMouseX >= leftPos + 20 && pMouseX < leftPos + 36 && pMouseY > topPos + 14 && pMouseY < topPos + 30) {
                 renderItemTooltip(matrices, currentOutput, "alchemistry.container.combiner.current_recipe", pMouseX, pMouseY);
             }
 
-            int xOrigin = x + 12;
-            int yOrigin = y + 63;
+            int xOrigin = leftPos + 12;
+            int yOrigin = topPos + 63;
 
             for (int row = 0; row < 2; row++) {
                 for (int column = 0; column < 2; column++) {
                     int index = column + row * 2;
-                    int x = xOrigin + column * 18;
-                    int y = yOrigin + row * 18;
+                    int leftPos = xOrigin + column * 18;
+                    int topPos = yOrigin + row * 18;
 
                     if (index < currentRecipe.getInput().size()) {
 
                         ItemStack itemStack = currentRecipe.getInput().get(index);
-                        if (handler.getClientInventory().getStack(index).isEmpty()) {
-                            FakeItemRenderer.renderFakeItem(itemStack, x, y, 0.35F);
+                        if (menu.getClientInventory().getItem(index).isEmpty()) {
+                            FakeItemRenderer.renderFakeItem(matrices, itemStack, leftPos, topPos, 0.35F);
 
-                            if (pMouseX >= x - 1 && pMouseX < x + 17 && pMouseY > y - 2 && pMouseY < y + 17) {
+                            if (pMouseX >= leftPos - 1 && pMouseX < leftPos + 17 && pMouseY > topPos - 2 && pMouseY < topPos + 17) {
                                 renderItemTooltip(matrices, itemStack, "alchemistry.container.combiner.required_input", pMouseX, pMouseY);
                             }
                         }
@@ -212,10 +205,10 @@ public class CombinerScreen extends AbstractAlchemistryScreen<CombinerScreenHand
         }
     }
 
-    private void renderRecipeTooltips(MatrixStack matrices, int pMouseX, int pMouseY) {
-        int originX = x + 57;
-        int originY = y + 23;
-        List<CombinerRecipe> displayedRecipes = handler.getDisplayedRecipes();
+    private void renderRecipeTooltips(GuiGraphicsExtractor matrices, int pMouseX, int pMouseY) {
+        int originX = leftPos + 57;
+        int originY = topPos + 23;
+        List<CombinerRecipe> displayedRecipes = menu.getDisplayedRecipes();
 
         for (int index = startIndex; index < startIndex + DISPLAYED_SLOTS && index < displayedRecipes.size(); index++) {
             ItemStack output = displayedRecipes.get(index).getOutput();
@@ -231,67 +224,70 @@ public class CombinerScreen extends AbstractAlchemistryScreen<CombinerScreenHand
         }
     }
 
-    private void renderItemTooltip(MatrixStack matrices, ItemStack pItemStack, String pTranslationKey, int pMouseX, int pMouseY) {
-        List<Text> components = new ArrayList<>();
-        String namespace = FabricLoader.getInstance().getModContainer(Registry.ITEM.getId(pItemStack.getItem()).getNamespace()).get().getMetadata().getName();
+    private void renderItemTooltip(GuiGraphicsExtractor matrices, ItemStack pItemStack, String pTranslationKey, int pMouseX, int pMouseY) {
+        List<Component> components = new ArrayList<>();
+        String namespace = FabricLoader.getInstance().getModContainer(BuiltInRegistries.ITEM.getKey(pItemStack.getItem()).getNamespace()).get().getMetadata().getName();
 
-        components.add(Text.translatable(pTranslationKey).formatted(Formatting.UNDERLINE, Formatting.YELLOW));
-        components.add(Text.literal(String.format("%dx %s", pItemStack.getCount(), pItemStack.getItem().getName().getString())));
+        components.add(Component.translatable(pTranslationKey).withStyle(ChatFormatting.UNDERLINE, ChatFormatting.YELLOW));
+        components.add(Component.literal(String.format("%dx %s", pItemStack.getCount(), pItemStack.getHoverName().getString())));
 
         if (pItemStack.getItem() instanceof Chemical chemical) {
             String abbreviation = chemical.getAbbreviation();
 
             if (chemical instanceof ElementItem element) {
-                components.add(Text.literal(String.format("%s (%d)", abbreviation, element.getAtomicNumber())).formatted(Formatting.DARK_AQUA));
-                components.add(Text.literal(element.getGroupName()).formatted(Formatting.GRAY));
+                components.add(Component.literal(String.format("%s (%d)", abbreviation, element.getAtomicNumber())).withStyle(ChatFormatting.DARK_AQUA));
+                components.add(Component.literal(element.getGroupName()).withStyle(ChatFormatting.GRAY));
             } else if (chemical instanceof ChemicalItem chemicalItem && !chemicalItem.getItemType().equals(ChemicalItemType.COMPOUND)) {
                 ElementItem element = (ElementItem) chemicalItem.getChemical();
-                components.add(Text.literal(String.format("%s (%d)", chemicalItem.getAbbreviation(), element.getAtomicNumber())).formatted(Formatting.DARK_AQUA));
-                components.add(Text.literal(element.getGroupName()).formatted(Formatting.GRAY));
+                components.add(Component.literal(String.format("%s (%d)", chemicalItem.getAbbreviation(), element.getAtomicNumber())).withStyle(ChatFormatting.DARK_AQUA));
+                components.add(Component.literal(element.getGroupName()).withStyle(ChatFormatting.GRAY));
             } else if (chemical instanceof CompoundItem) {
-                components.add(Text.literal(abbreviation).formatted(Formatting.DARK_AQUA));
+                components.add(Component.literal(abbreviation).withStyle(ChatFormatting.DARK_AQUA));
             }
         }
-        components.add(Text.literal(namespace).formatted(Formatting.BLUE));
+        components.add(Component.literal(namespace).withStyle(ChatFormatting.BLUE));
         renderTooltip(matrices, components, Optional.empty(), pMouseX, pMouseY);
     }
 
     @Override
-    public boolean keyPressed(int pKeyCode, int pScanCode, int pModifiers) {
-        if (pKeyCode == InputUtil.GLFW_KEY_E && editBox.isFocused()) {
+    public boolean keyPressed(net.minecraft.client.input.KeyEvent event) {
+        int pKeyCode = event.key();
+        if (pKeyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_E && editBox.isFocused()) {
             return false;
-        } else if (pKeyCode == InputUtil.GLFW_KEY_TAB && !editBox.isFocused()) {
-            editBox.setTextFieldFocused(true);
+        } else if (pKeyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_TAB && !editBox.isFocused()) {
+            editBox.setFocused(true);
             editBox.setEditable(true);
             editBox.active = true;
-        } else if (pKeyCode == InputUtil.GLFW_KEY_ESCAPE && editBox.isFocused()) {
-            editBox.setTextFieldFocused(false);
+        } else if (pKeyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE && editBox.isFocused()) {
+            editBox.setFocused(false);
             editBox.setEditable(false);
             editBox.active = false;
             return false;
         }
-        return super.keyPressed(pKeyCode, pScanCode, pModifiers);
+        return super.keyPressed(event);
     }
 
     @Override
-    public boolean mouseClicked(double pMouseX, double pMouseY, int pButton) {
-        Objects.requireNonNull(MinecraftClient.getInstance().player);
-        Objects.requireNonNull(MinecraftClient.getInstance().interactionManager);
+    public boolean mouseClicked(net.minecraft.client.input.MouseButtonEvent event, boolean doubleClick) {
+        double pMouseX = event.x(), pMouseY = event.y();
+        int pButton = event.button();
+        Objects.requireNonNull(Minecraft.getInstance().player);
+        Objects.requireNonNull(Minecraft.getInstance().gameMode);
 
-        int editBoxMinX = x + 57;
+        int editBoxMinX = leftPos + 57;
         int editBoxMaxX = editBoxMinX + 72;
-        int editBoxMinY = y + 7;
+        int editBoxMinY = topPos + 7;
         int editBoxMaxY = editBoxMinY + 12;
 
         if (pMouseX >= editBoxMinX && pMouseX < editBoxMaxX && pMouseY >= editBoxMinY && pMouseY < editBoxMaxY) {
-            editBox.onClick(pMouseX, pMouseY);
+            editBox.mouseClicked(event, doubleClick);
         } else {
             editBox.active = false;
         }
         scrolling = false;
 
-        int recipeBoxLeftPos = x + 57;
-        int recipeBoxTopPos = y + 23;
+        int recipeBoxLeftPos = leftPos + 57;
+        int recipeBoxTopPos = topPos + 23;
         int k = startIndex + DISPLAYED_SLOTS;
 
         for (int index = this.startIndex; index < k; index++) {
@@ -299,9 +295,9 @@ public class CombinerScreen extends AbstractAlchemistryScreen<CombinerScreenHand
             double boxX = pMouseX - (double)(recipeBoxLeftPos + currentIndex % 4 * RECIPE_BOX_SIZE);
             double boxY = pMouseY - (double)(recipeBoxTopPos + currentIndex / 4 * RECIPE_BOX_SIZE);
 
-            if (boxX >= 0 && boxY >= 0 && boxX < RECIPE_BOX_SIZE && boxY < RECIPE_BOX_SIZE && handler.onButtonClick(MinecraftClient.getInstance().player, index)) {
-                MinecraftClient.getInstance().getSoundManager().play(PositionedSoundInstance.master(SoundEvents.UI_STONECUTTER_SELECT_RECIPE, 1.0F));
-                MinecraftClient.getInstance().interactionManager.clickButton((handler).syncId, index);
+            if (boxX >= 0 && boxY >= 0 && boxX < RECIPE_BOX_SIZE && boxY < RECIPE_BOX_SIZE && menu.clickMenuButton(Minecraft.getInstance().player, index)) {
+                Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_STONECUTTER_SELECT_RECIPE, 1.0F));
+                Minecraft.getInstance().gameMode.handleInventoryButtonClick((menu).containerId, index);
                 return true;
             }
 
@@ -315,39 +311,40 @@ public class CombinerScreen extends AbstractAlchemistryScreen<CombinerScreenHand
                 scrolling = true;
             }
         }
-        return super.mouseClicked(pMouseX, pMouseY, pButton);
+        return super.mouseClicked(event, doubleClick);
     }
 
     @Override
-    public boolean mouseDragged(double pMouseX, double pMouseY, int pButton, double pDragX, double pDragY) {
+    public boolean mouseDragged(net.minecraft.client.input.MouseButtonEvent event, double pDragX, double pDragY) {
+        double pMouseX = event.x(), pMouseY = event.y();
         if (scrolling && isScrollBarActive()) {
-            int i = y + 14;
+            int i = topPos + 14;
             int j = i + 54;
             scrollOffset = ((float)pMouseY - (float)i - 7.5F) / ((float)(j - i) - 15.0F);
-            scrollOffset = MathHelper.clamp(scrollOffset, 0.0F, 1.0F);
+            scrollOffset = Mth.clamp(scrollOffset, 0.0F, 1.0F);
             startIndex = (int)((double)(scrollOffset * (float) getOffscreenRows()) + 0.5D) * 4;
             return true;
         } else {
-            return super.mouseDragged(pMouseX, pMouseY, pButton, pDragX, pDragY);
+            return super.mouseDragged(event, pDragX, pDragY);
         }
     }
 
     @Override
-    public boolean mouseScrolled(double pMouseX, double pMouseY, double pDelta) {
+    public boolean mouseScrolled(double pMouseX, double pMouseY, double horizontal, double pDelta) {
         if (isScrollBarActive()) {
             int offscreenRows = getOffscreenRows();
             float f = (float) pDelta / (float) offscreenRows;
-            scrollOffset = MathHelper.clamp(scrollOffset - f, 0.0F, 1.0F);
+            scrollOffset = Mth.clamp(scrollOffset - f, 0.0F, 1.0F);
             startIndex = (int)((double)(scrollOffset * (float) offscreenRows) + 0.5D) * 4;
         }
         return true;
     }
 
     private boolean isScrollBarActive() {
-        return handler.getDisplayedRecipes().size() > 12;
+        return menu.getDisplayedRecipes().size() > 12;
     }
 
     private int getOffscreenRows() {
-        return (handler.getDisplayedRecipes().size() + 4 - 1) / 4 - 3;
+        return (menu.getDisplayedRecipes().size() + 4 - 1) / 4 - 3;
     }
 }

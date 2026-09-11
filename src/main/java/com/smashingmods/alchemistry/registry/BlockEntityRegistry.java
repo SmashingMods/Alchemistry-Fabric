@@ -13,9 +13,10 @@ import com.smashingmods.alchemistry.common.block.reactor.ReactorInputBlockEntity
 import com.smashingmods.alchemistry.common.block.reactor.ReactorOutputBlockEntity;
 import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorage;
-import net.minecraft.block.entity.BlockEntityType;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.registry.Registry;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.resources.Identifier;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import team.reborn.energy.api.EnergyStorage;
 
 public class BlockEntityRegistry {
@@ -33,16 +34,16 @@ public class BlockEntityRegistry {
 
     public static void registerBlockEntities() {
         // Register block entity
-        Registry.register(Registry.BLOCK_ENTITY_TYPE, new Identifier(Alchemistry.MOD_ID, "dissolver_block_entity"), DISSOLVER_BLOCK_ENTITY);
-        Registry.register(Registry.BLOCK_ENTITY_TYPE, new Identifier(Alchemistry.MOD_ID, "liquifier_block_entity"), LIQUIFIER_BLOCK_ENTITY);
-        Registry.register(Registry.BLOCK_ENTITY_TYPE, new Identifier(Alchemistry.MOD_ID, "atomizer_block_entity"), ATOMIZER_BLOCK_ENTITY);
-        Registry.register(Registry.BLOCK_ENTITY_TYPE, new Identifier(Alchemistry.MOD_ID, "compactor_block_entity"), COMPACTOR_BLOCK_ENTITY);
-        Registry.register(Registry.BLOCK_ENTITY_TYPE, new Identifier(Alchemistry.MOD_ID, "combiner_block_entity"), COMBINER_BLOCK_ENTITY);
-        Registry.register(Registry.BLOCK_ENTITY_TYPE, new Identifier(Alchemistry.MOD_ID, "reactor_energy_block_entity"), REACTOR_ENERGY_BLOCK_ENTITY);
-        Registry.register(Registry.BLOCK_ENTITY_TYPE, new Identifier(Alchemistry.MOD_ID, "reactor_input_block_entity"), REACTOR_INPUT_BLOCK_ENTITY);
-        Registry.register(Registry.BLOCK_ENTITY_TYPE, new Identifier(Alchemistry.MOD_ID, "reactor_output_block_entity"), REACTOR_OUTPUT_BLOCK_ENTITY);
-        Registry.register(Registry.BLOCK_ENTITY_TYPE, new Identifier(Alchemistry.MOD_ID, "fission_controller_block_entity"), FISSION_CONTROLLER_BLOCK_ENTITY);
-        Registry.register(Registry.BLOCK_ENTITY_TYPE, new Identifier(Alchemistry.MOD_ID, "fusion_controller_block_entity"), FUSION_CONTROLLER_BLOCK_ENTITY);
+        Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, Identifier.fromNamespaceAndPath(Alchemistry.MOD_ID, "dissolver_block_entity"), DISSOLVER_BLOCK_ENTITY);
+        Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, Identifier.fromNamespaceAndPath(Alchemistry.MOD_ID, "liquifier_block_entity"), LIQUIFIER_BLOCK_ENTITY);
+        Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, Identifier.fromNamespaceAndPath(Alchemistry.MOD_ID, "atomizer_block_entity"), ATOMIZER_BLOCK_ENTITY);
+        Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, Identifier.fromNamespaceAndPath(Alchemistry.MOD_ID, "compactor_block_entity"), COMPACTOR_BLOCK_ENTITY);
+        Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, Identifier.fromNamespaceAndPath(Alchemistry.MOD_ID, "combiner_block_entity"), COMBINER_BLOCK_ENTITY);
+        Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, Identifier.fromNamespaceAndPath(Alchemistry.MOD_ID, "reactor_energy_block_entity"), REACTOR_ENERGY_BLOCK_ENTITY);
+        Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, Identifier.fromNamespaceAndPath(Alchemistry.MOD_ID, "reactor_input_block_entity"), REACTOR_INPUT_BLOCK_ENTITY);
+        Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, Identifier.fromNamespaceAndPath(Alchemistry.MOD_ID, "reactor_output_block_entity"), REACTOR_OUTPUT_BLOCK_ENTITY);
+        Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, Identifier.fromNamespaceAndPath(Alchemistry.MOD_ID, "fission_controller_block_entity"), FISSION_CONTROLLER_BLOCK_ENTITY);
+        Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, Identifier.fromNamespaceAndPath(Alchemistry.MOD_ID, "fusion_controller_block_entity"), FUSION_CONTROLLER_BLOCK_ENTITY);
 
         // Register energy storage for block entity
         EnergyStorage.SIDED.registerForBlockEntity((myBlockEntity, direction) -> myBlockEntity.getEnergyStorage(), DISSOLVER_BLOCK_ENTITY);

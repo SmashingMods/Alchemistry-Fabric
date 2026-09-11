@@ -1,37 +1,35 @@
 package com.smashingmods.alchemistry.common.recipe.dissolver;
 
 import com.smashingmods.alchemistry.api.recipe.AbstractAlchemistryRecipe;
-import net.minecraft.inventory.SimpleInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.recipe.*;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.collection.DefaultedList;
-import net.minecraft.world.World;
+import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.*;
+import net.minecraft.resources.Identifier;
+import net.minecraft.core.NonNullList;
+import net.minecraft.world.level.Level;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class DissolverRecipe extends AbstractAlchemistryRecipe {
 
-    private final Identifier id;
     private final ProbabilitySet  output;
     private final Ingredient input;
 
     public DissolverRecipe(Identifier id, ProbabilitySet output, Ingredient input) {
         super(id);
-        this.id = id;
         this.output = output;
         this.input = input;
     }
 
     @Override
-    public boolean matches(SimpleInventory inventory, World world) {
-        if (world.isClient()) return false;
-        return input.test(inventory.getStack(0));
+    public boolean matches(RecipeInput inventory, Level level) {
+        if (level.isClientSide()) return false;
+        return input.test(inventory.getItem(0));
     }
 
     @Override
-    public ItemStack craft(SimpleInventory inventory) {
+    public ItemStack assemble(RecipeInput inventory) {
         return output.calculateOutput().get(0);
     }
 
@@ -52,8 +50,8 @@ public class DissolverRecipe extends AbstractAlchemistryRecipe {
     }
 
     @Override
-    public DefaultedList<Ingredient> getIngredients() {
-        return DefaultedList.ofSize(1, input);
+    public NonNullList<Ingredient> getIngredients() {
+        return NonNullList.withSize(1, input);
     }
 
     @Override
@@ -61,18 +59,14 @@ public class DissolverRecipe extends AbstractAlchemistryRecipe {
         return String.format("input=%s, outputs=%s", input, output);
     }
 
-    @Override
-    public Identifier getId() {
-        return id;
-    }
 
     @Override
-    public RecipeSerializer<?> getSerializer() {
+    public RecipeSerializer<DissolverRecipe> getSerializer() {
         return DissolverRecipeSerializer.INSTANCE;
     }
 
     @Override
-    public RecipeType<?> getType() {
+    public RecipeType<DissolverRecipe> getType() {
         return Type.INSTANCE;
     }
 

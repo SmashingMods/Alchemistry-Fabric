@@ -1,0 +1,22 @@
+{
+  "type": "alchemistry:dissolver",
+  "group": "alchemistry:dissolver",
+  "input": "minecraft:redstone",
+  "output": {
+    "rolls": 1,
+    "weighted": false,
+    "groups": [
+      {
+        "probability": 100.0,
+        "results": [
+          {
+            "item": "chemlib:iron_oxide"
+          },
+          {
+            "item": "chemlib:strontium_carbonate"
+          }
+        ]
+      }
+    ]
+  }
+}

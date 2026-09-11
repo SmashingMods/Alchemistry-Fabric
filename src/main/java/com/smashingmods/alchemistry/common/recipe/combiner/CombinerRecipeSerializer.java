@@ -1,59 +1,14 @@
 package com.smashingmods.alchemistry.common.recipe.combiner;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import com.smashingmods.alchemistry.api.recipe.RecipeCodecs;
+import com.smashingmods.alchemistry.common.recipe.dissolver.ProbabilitySet;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.RecipeSerializer;
 
-import com.google.common.collect.Lists;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import com.smashingmods.alchemistry.common.recipe.compactor.CompactorRecipe;
-import net.minecraft.item.ItemStack;
-import net.minecraft.network.PacketByteBuf;
-import net.minecraft.recipe.RecipeSerializer;
-import net.minecraft.recipe.ShapedRecipe;
-import net.minecraft.util.Identifier;
-
-import java.util.ArrayList;
-import java.util.List;
-
-public class CombinerRecipeSerializer implements RecipeSerializer<CombinerRecipe> {
-
-    public static final CombinerRecipeSerializer INSTANCE = new CombinerRecipeSerializer();
-    public static final String ID = CombinerRecipe.Type.ID;
-
-    @Override
-    public CombinerRecipe read(Identifier id, JsonObject json) {
-        JsonArray inputJson = json.getAsJsonArray("input");
-        List<ItemStack> input = new ArrayList<>();
-        ItemStack output;
-
-        inputJson.forEach(element -> input.add(ShapedRecipe.outputFromJson(element.getAsJsonObject())));
-
-        if (json.get("result").isJsonObject()) {
-            output = ShapedRecipe.outputFromJson(json.getAsJsonObject("result"));
-        } else {
-            output = ShapedRecipe.outputFromJson(json.getAsJsonObject("item"));
-        }
-
-        return new CombinerRecipe(id, input, output);
-    }
-
-    @Override
-    public CombinerRecipe read(Identifier id, PacketByteBuf buf) {
-        List<ItemStack> input = Lists.newArrayList();
-        for (int i = 0; i < 4; i++) {
-            input.add(buf.readItemStack());
-        }
-        ItemStack output = buf.readItemStack();
-        return new CombinerRecipe(id, input, output);
-    }
-
-    @Override
-    public void write(PacketByteBuf buf, CombinerRecipe recipe) {
-        for (int i = 0; i < 4; i++) {
-            try {
-                buf.writeItemStack(recipe.getInput().get(i));
-            } catch (IndexOutOfBoundsException e) {
-                buf.writeItemStack(ItemStack.EMPTY);
-            }
-        }
-        buf.writeItemStack(recipe.getOutput());
-    }
+public final class CombinerRecipeSerializer {
+    public static final String ID = "combiner";
+    public static final RecipeSerializer<CombinerRecipe> INSTANCE = RecipeCodecs.serializer(RecordCodecBuilder.mapCodec(i -> i.group(
+        RecipeCodecs.STACK.listOf().fieldOf("input").forGetter(CombinerRecipe::getInputData), RecipeCodecs.STACK.fieldOf("result").forGetter(CombinerRecipe::getOutputData)
+    ).apply(i, (a, b) -> new CombinerRecipe(RecipeCodecs.UNASSIGNED, a, b))));
 }

@@ -5,74 +5,73 @@ import com.smashingmods.alchemistry.api.block.AbstractAlchemistryBlock;
 import com.smashingmods.alchemistry.api.blockentity.PowerState;
 import com.smashingmods.alchemistry.api.blockentity.PowerStateProperty;
 import com.smashingmods.alchemistry.common.block.fission.FissionControllerBlockEntity;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.block.entity.BlockEntityTicker;
-import net.minecraft.block.entity.BlockEntityType;
-import net.minecraft.client.item.TooltipContext;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemPlacementContext;
-import net.minecraft.item.ItemStack;
-import net.minecraft.screen.NamedScreenHandlerFactory;
-import net.minecraft.state.StateManager;
-import net.minecraft.state.property.Properties;
-import net.minecraft.text.Text;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Formatting;
-import net.minecraft.util.Hand;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.BlockView;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.ChatFormatting;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
 public class FusionControllerBlock extends AbstractAlchemistryBlock {
 
-    public FusionControllerBlock() {
-        super(FusionControllerBlockEntity::new);
+    public FusionControllerBlock(net.minecraft.world.level.block.state.BlockBehaviour.Properties properties) {
+        super(FusionControllerBlockEntity::new, properties);
     }
 
     @Override
-    protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
-        builder.add(PowerStateProperty.POWER_STATE, Properties.HORIZONTAL_FACING);
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
+        builder.add(PowerStateProperty.POWER_STATE, BlockStateProperties.HORIZONTAL_FACING);
     }
 
     @Override
-    public @Nullable BlockState getPlacementState(ItemPlacementContext ctx) {
-        return this.getDefaultState()
-                .with(Properties.HORIZONTAL_FACING, ctx.getPlayerFacing().getOpposite())
-                .with(PowerStateProperty.POWER_STATE, PowerState.DISABLED);
+    public @Nullable BlockState getStateForPlacement(BlockPlaceContext ctx) {
+        return this.defaultBlockState()
+                .setValue(BlockStateProperties.HORIZONTAL_FACING, ctx.getHorizontalDirection().getOpposite())
+                .setValue(PowerStateProperty.POWER_STATE, PowerState.DISABLED);
+    }
+
+    public void appendHoverText(ItemStack stack, net.minecraft.world.item.Item.TooltipContext context, net.minecraft.world.item.component.TooltipDisplay display, java.util.function.Consumer<Component> tooltip, TooltipFlag options) {
+        super.appendHoverText(stack, context, display, tooltip, options);
+        tooltip.accept(Component.translatable("tooltip.alchemistry.energy_requirement", Config.Common.fissionEnergyPerTick.get()).withStyle(ChatFormatting.GRAY));
     }
 
     @Override
-    public void appendTooltip(ItemStack stack, @Nullable BlockView world, List<Text> tooltip, TooltipContext options) {
-        super.appendTooltip(stack, world, tooltip, options);
-        tooltip.add(Text.translatable("tooltip.alchemistry.energy_requirement", Config.Common.fissionEnergyPerTick.get()).formatted(Formatting.GRAY));
-    }
-
-    @Override
-    public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
-        if (!world.isClient()) {
-            if (world.getBlockState(pos).get(PowerStateProperty.POWER_STATE) != PowerState.DISABLED) {
-                NamedScreenHandlerFactory screenHandlerFactory = state.createScreenHandlerFactory(world, pos);
+    public InteractionResult useWithoutItem(BlockState state, Level level, BlockPos worldPosition, Player player, BlockHitResult hit) {
+        if (!level.isClientSide()) {
+            if (level.getBlockState(worldPosition).getValue(PowerStateProperty.POWER_STATE) != PowerState.DISABLED) {
+                MenuProvider screenHandlerFactory = state.getMenuProvider(level, worldPosition);
                 if (screenHandlerFactory != null) {
-                    player.openHandledScreen(screenHandlerFactory);
-                    return ActionResult.SUCCESS;
+                    player.openMenu(screenHandlerFactory);
+                    return InteractionResult.SUCCESS;
                 }
             }
-            return ActionResult.FAIL;
+            return InteractionResult.FAIL;
         }
-        return ActionResult.SUCCESS;
+        return InteractionResult.SUCCESS;
     }
 
     @Nullable
     @Override
-    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(World world, BlockState state, BlockEntityType<T> type) {
-        if (!world.isClient()) {
-            return (level, pos, blockState, blockEntity) -> {
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
+        if (!level.isClientSide()) {
+            return (tickLevel, worldPosition, blockState, blockEntity) -> {
                 if (blockEntity instanceof FusionControllerBlockEntity fusionBlockEntity) {
                     fusionBlockEntity.tick();
                 }

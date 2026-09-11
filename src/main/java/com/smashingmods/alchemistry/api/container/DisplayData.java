@@ -1,7 +1,7 @@
 package com.smashingmods.alchemistry.api.container;
 
-import net.minecraft.text.MutableText;
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.Component;
 
 import java.util.List;
 
@@ -19,12 +19,12 @@ public abstract class DisplayData implements IDisplayData {
         this.height = pHeight;
     }
 
-    public List<Text> toText() {
+    public List<Component> toText() {
         String temp = "";
         if (this.toString() != null) {
             temp = this.toString();
         }
-        return List.of(Text.literal(temp));
+        return List.of(Component.literal(temp));
     }
 
     @Override

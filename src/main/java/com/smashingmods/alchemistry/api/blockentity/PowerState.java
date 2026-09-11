@@ -1,8 +1,8 @@
 package com.smashingmods.alchemistry.api.blockentity;
 
-import net.minecraft.util.StringIdentifiable;
+import net.minecraft.util.StringRepresentable;
 
-public enum PowerState implements StringIdentifiable {
+public enum PowerState implements StringRepresentable {
 
     DISABLED("disabled"),
     OFF("off"),
@@ -16,7 +16,7 @@ public enum PowerState implements StringIdentifiable {
     }
 
     @Override
-    public String asString() {
+    public String getSerializedName() {
         return this.name;
     }
 }

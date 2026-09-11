@@ -1,0 +1,28 @@
+{
+  "type": "alchemistry:dissolver",
+  "group": "alchemistry:dissolver",
+  "input": "minecraft:cut_red_sandstone",
+  "output": {
+    "rolls": 4,
+    "weighted": true,
+    "groups": [
+      {
+        "probability": 100.0,
+        "results": [
+          {
+            "item": "chemlib:silicon_dioxide",
+            "count": 4
+          }
+        ]
+      },
+      {
+        "probability": 10.0,
+        "results": [
+          {
+            "item": "chemlib:iron_oxide"
+          }
+        ]
+      }
+    ]
+  }
+}

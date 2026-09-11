@@ -3,42 +3,31 @@ package com.smashingmods.alchemistry.common.block.reactor;
 import com.smashingmods.alchemistry.api.block.AbstractAlchemistryBlock;
 import com.smashingmods.alchemistry.api.blockentity.PowerState;
 import com.smashingmods.alchemistry.api.blockentity.PowerStateProperty;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.item.ItemPlacementContext;
-import net.minecraft.state.StateManager;
-import net.minecraft.state.property.Properties;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 
 public class ReactorEnergyBlock extends AbstractAlchemistryBlock {
 
-    public ReactorEnergyBlock() {
-        super(ReactorEnergyBlockEntity::new);
+    public ReactorEnergyBlock(net.minecraft.world.level.block.state.BlockBehaviour.Properties properties) {
+        super(ReactorEnergyBlockEntity::new, properties);
     }
 
     @Override
-    protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
-        builder.add(PowerStateProperty.POWER_STATE, Properties.HORIZONTAL_FACING);
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
+        builder.add(PowerStateProperty.POWER_STATE, BlockStateProperties.HORIZONTAL_FACING);
     }
 
     @Override
-    public @Nullable BlockState getPlacementState(ItemPlacementContext ctx) {
-        return this.getDefaultState()
-                .with(Properties.HORIZONTAL_FACING, ctx.getPlayerFacing().getOpposite())
-                .with(PowerStateProperty.POWER_STATE, PowerState.DISABLED);
+    public @Nullable BlockState getStateForPlacement(BlockPlaceContext ctx) {
+        return this.defaultBlockState()
+                .setValue(BlockStateProperties.HORIZONTAL_FACING, ctx.getHorizontalDirection().getOpposite())
+                .setValue(PowerStateProperty.POWER_STATE, PowerState.DISABLED);
     }
 
-    @Override
-    public void onStateReplaced(BlockState state, World world, BlockPos pos, BlockState newState, boolean moved) {
-        if (!world.isClient()) {
-            if (world.getBlockEntity(pos) instanceof ReactorEnergyBlockEntity blockEntity) {
-                if (blockEntity.getController() != null) {
-                    blockEntity.getController().setEnergyFound(false);
-                }
-            }
-        }
-        super.onStateReplaced(state, world, pos, newState, moved);
-    }
 }

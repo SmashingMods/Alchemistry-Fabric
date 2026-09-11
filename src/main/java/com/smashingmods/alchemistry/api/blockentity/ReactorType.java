@@ -1,8 +1,8 @@
 package com.smashingmods.alchemistry.api.blockentity;
 
-import net.minecraft.util.StringIdentifiable;
+import net.minecraft.util.StringRepresentable;
 
-public enum ReactorType implements StringIdentifiable {
+public enum ReactorType implements StringRepresentable {
 
     FUSION("fusion"),
     FISSION("fission");
@@ -14,7 +14,7 @@ public enum ReactorType implements StringIdentifiable {
     }
 
     @Override
-    public String asString() {
+    public String getSerializedName() {
         return this.name;
     }
 }

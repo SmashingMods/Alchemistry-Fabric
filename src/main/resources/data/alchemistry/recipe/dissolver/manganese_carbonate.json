@@ -1,0 +1,22 @@
+{
+  "type": "alchemistry:dissolver",
+  "group": "alchemistry:dissolver",
+  "input": "chemlib:manganese_carbonate",
+  "output": {
+    "rolls": 1,
+    "weighted": false,
+    "groups": [
+      {
+        "probability": 100.0,
+        "results": [
+          {
+            "item": "chemlib:manganese"
+          },
+          {
+            "item": "chemlib:carbonate"
+          }
+        ]
+      }
+    ]
+  }
+}

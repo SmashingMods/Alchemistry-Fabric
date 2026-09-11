@@ -1,37 +1,14 @@
 package com.smashingmods.alchemistry.common.recipe.fusion;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import com.smashingmods.alchemistry.api.recipe.RecipeCodecs;
+import com.smashingmods.alchemistry.common.recipe.dissolver.ProbabilitySet;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.RecipeSerializer;
 
-import com.google.gson.JsonObject;
-import net.minecraft.item.ItemStack;
-import net.minecraft.network.PacketByteBuf;
-import net.minecraft.recipe.RecipeSerializer;
-import net.minecraft.recipe.ShapedRecipe;
-import net.minecraft.util.Identifier;
-
-public class FusionRecipeSerializer implements RecipeSerializer<FusionRecipe> {
-
-    public static final FusionRecipeSerializer INSTANCE = new FusionRecipeSerializer();
-    public static final String ID = FusionRecipe.Type.ID;
-
-    @Override
-    public FusionRecipe read(Identifier id, JsonObject json) {
-        ItemStack input1 = ShapedRecipe.outputFromJson(json.getAsJsonObject("input1"));
-        ItemStack input2 = ShapedRecipe.outputFromJson(json.getAsJsonObject("input2"));
-        ItemStack output = ShapedRecipe.outputFromJson(json.getAsJsonObject("output"));
-        return new FusionRecipe(id, input1, input2, output);
-    }
-
-    @Override
-    public FusionRecipe read(Identifier id, PacketByteBuf buf) {
-        ItemStack input1 = buf.readItemStack();
-        ItemStack input2 = buf.readItemStack();
-        ItemStack output = buf.readItemStack();
-        return new FusionRecipe(id, input1, input2, output);
-    }
-
-    @Override
-    public void write(PacketByteBuf buf, FusionRecipe recipe) {
-        buf.writeItemStack(recipe.getInput1());
-        buf.writeItemStack(recipe.getInput2());
-        buf.writeItemStack(recipe.getOutput());
-    }
+public final class FusionRecipeSerializer {
+    public static final String ID = "fusion";
+    public static final RecipeSerializer<FusionRecipe> INSTANCE = RecipeCodecs.serializer(RecordCodecBuilder.mapCodec(i -> i.group(
+        RecipeCodecs.STACK.fieldOf("input1").forGetter(FusionRecipe::getInput1Data), RecipeCodecs.STACK.fieldOf("input2").forGetter(FusionRecipe::getInput2Data), RecipeCodecs.STACK.fieldOf("output").forGetter(FusionRecipe::getOutputData)
+    ).apply(i, (a, b, c) -> new FusionRecipe(RecipeCodecs.UNASSIGNED, a, b, c))));
 }

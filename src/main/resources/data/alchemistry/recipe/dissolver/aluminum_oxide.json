@@ -1,0 +1,24 @@
+{
+  "type": "alchemistry:dissolver",
+  "group": "alchemistry:dissolver",
+  "input": "chemlib:aluminum_oxide",
+  "output": {
+    "rolls": 1,
+    "weighted": false,
+    "groups": [
+      {
+        "probability": 100.0,
+        "results": [
+          {
+            "item": "chemlib:aluminum",
+            "count": 2
+          },
+          {
+            "item": "chemlib:oxygen",
+            "count": 3
+          }
+        ]
+      }
+    ]
+  }
+}
